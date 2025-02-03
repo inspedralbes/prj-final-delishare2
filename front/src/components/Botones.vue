@@ -76,91 +76,91 @@ export default {
   components: { RecipeCard },
 
   setup(_, { emit }) {
-    const datos = ref([]);         // For categories
-    const usuarios = ref([]);      // For users
-    const recetas = ref([]);       // For filtered recipes
-    const cuisines = ref([]);      // For cuisines (countries)
-    const times = ref([]);         // For times
+    // Variables reactivas para almacenar los datos
+    const datos = ref([]);         // Para las categorías
+    const usuarios = ref([]);      // Para los usuarios
+    const recetas = ref([]);       // Para las recetas filtradas
+    const cuisines = ref([]);      // Para las cocinas (países)
+    const times = ref([]);         // Para los tiempos
 
-    // Function to fetch categories
+    // Función para obtener las categorías
     const obtenerCategorias = async () => {
       try {
         datos.value = await communicationManager.fetchCategories();
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.error('Error al obtener categorías:', error);
       }
     };
 
-    // Function to fetch cuisines (countries)
+    // Función para obtener las cocinas (países)
     const obtenerCuisines = async () => {
       try {
         cuisines.value = await communicationManager.fetchCuisines();
       } catch (error) {
-        console.error('Error fetching cuisines:', error);
+        console.error('Error al obtener cocinas:', error);
       }
     };
 
-    // Function to fetch available times
+    // Función para obtener los tiempos disponibles
     const obtenerTimes = async () => {
       try {
         const response = await communicationManager.getAllTimes();
         times.value = response.times; // Asegúrate de usar `response.times` aquí
       } catch (error) {
-        console.error('Error fetching times:', error);
+        console.error('Error al obtener tiempos:', error);
       }
     };
 
-   // Función para filtrar por tiempo en Vue.js
-const filtrarPorTiempo = async (time) => {
-  try {
-    const response = await communicationManager.fetchRecipesByTime(time);
-    recetas.value = response.recipes;
-    emit('filtradoPorTiempo', true);
-  } catch (error) {
-    console.error('Error filtering recipes by time:', error);
-  }
-};
+    // Función para filtrar por tiempo
+    const filtrarPorTiempo = async (time) => {
+      try {
+        const response = await communicationManager.fetchRecipesByTime(time);
+        recetas.value = response.recipes;
+        emit('filtradoPorTiempo', true);
+      } catch (error) {
+        console.error('Error al filtrar recetas por tiempo:', error);
+      }
+    };
 
-
-    // Function to filter recipes by category
+    // Función para filtrar por categoría
     const filtrarPorCategoria = async (categoryId) => {
       try {
         const response = await communicationManager.fetchRecipesByCategory(categoryId);
         recetas.value = response.recipes;
         emit('filtradoPorCategoria', true);
       } catch (error) {
-        console.error('Error filtering recipes by category:', error);
+        console.error('Error al filtrar recetas por categoría:', error);
       }
     };
 
-    // Function to filter recipes by cuisine (country)
+    // Función para filtrar por cocina (país)
     const filtrarPorCuisine = async (cuisineId) => {
       try {
         const response = await communicationManager.fetchRecipesByCuisine(cuisineId);
         recetas.value = response.recipes;
         emit('filtradoPorCuisine', true);
       } catch (error) {
-        console.error('Error filtering recipes by cuisine:', error);
+        console.error('Error al filtrar recetas por cocina:', error);
       }
     };
 
-    // Function to fetch users
+    // Función para obtener los usuarios
     const obtenerUsers = async () => {
       try {
         usuarios.value = await communicationManager.fetchUsers();
       } catch (error) {
-        console.error('Error fetching users:', error);
+        console.error('Error al obtener usuarios:', error);
       }
     };
 
-    // Function to filter recipes by user
+    // Función para filtrar recetas por usuario
     const filtrarPorUsuario = async (userId) => {
       try {
         const response = await communicationManager.fetchRecipesByUser(userId);
         recetas.value = response.recipes;
         emit('filtradoPorUsuarios', true);
       } catch (error) {
-        console.error('Error filtering recipes by user:', error);
+        console.error('Error al filtrar recetas por usuario:', error);
       }
     };
 
