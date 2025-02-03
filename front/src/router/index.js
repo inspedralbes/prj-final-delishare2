@@ -57,7 +57,14 @@ const routes = [
     component: Guardadas,
     meta: { requiresAuth: true },
 
-  }
+  },
+  {
+    path: '/perfil',
+    name: 'Perfil',
+    component: () => import('@/views/Perfil.vue'),
+    meta: { requiresAuth: true },
+}
+
 ];
 
 const router = createRouter({

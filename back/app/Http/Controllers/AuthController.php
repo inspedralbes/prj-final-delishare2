@@ -98,23 +98,26 @@ class AuthController extends Controller
     }
   
     public function cambiarContra(Request $request)
- {
-    $usuario = $request->user();
-    if (!Hash::check($request->contrasena_actual, $usuario->password)) {
-        return response()->json(['mensaje' => 'La contraseña actual es incorrecta.'], 403);
-    }
-    $usuario->update(['password' => Hash::make($request->nueva_contrasena)]);
-    return response()->json(['mensaje' => 'Contraseña actualizada correctamente.'], 200);
- }
-
-
-
- public function getAllUsers()
 {
-    $users = User::all();
+    $user = $request->user();
 
-    return response()->json([
-        'users' => $users,
-    ], 200);
+    // Validación de los campos
+    $request->validate([
+        'contrasena_actual' => 'required',
+        'nueva_contrasena' => 'required|min:8',
+    ]);
+
+    // Verificar que la contraseña actual coincida
+    if (!Hash::check($request->contrasena_actual, $user->password)) {
+        return response()->json(['message' => 'Contraseña actual incorrecta'], 403);
+    }
+
+    // Cambiar la contraseña
+    $user->password = Hash::make($request->nueva_contrasena);
+    $user->save();
+
+    return response()->json(['message' => 'Contraseña cambiada exitosamente']);
 }
+
+    
 }
