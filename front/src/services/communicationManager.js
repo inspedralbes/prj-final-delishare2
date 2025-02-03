@@ -152,27 +152,16 @@ const communicationManager = {
         throw error;
       });
   },
-
-  getCuisines() {
-    return apiClient.get('/cuisines')
+  fetchRecipesByCategory(categoryId) {
+    return apiClient.get(`/filterByCategory/${categoryId}`)
       .then(response => response.data)
       .catch(error => {
-        console.error('Error fetching cuisines:', error);
+        console.error('Error fetching recipes by category:', error);
         throw error;
       });
   },
-  fetchTimes() {
-    return apiClient.get('/times')
-      .then(response => response.data.times) // La API devuelve 'times'
-      .catch(error => {
-        console.error('Error fetching times:', error);
-        throw error;
-      });
-  },
-  
 
-  
-  fetchUsers() { // ✅ Esta es la función correcta para obtener los usuarios
+  fetchUsers() {
     return apiClient.get('/getAllUsers')
       .then(response => response.data.users)
       .catch(error => {
@@ -181,7 +170,19 @@ const communicationManager = {
       });
   },
 
+  // Obtener recetas filtradas por el ID del usuario
+  fetchRecipesByUser(userId) {
+    return apiClient.get(`/recipes/filterByUser/${userId}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching recipes by user:', error);
+        throw error;
+      });
+  },
 
+
+  
+  
   
 };
 

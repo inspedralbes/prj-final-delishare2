@@ -37,4 +37,5 @@ class CuisineController extends Controller
         $cuisine->delete();
         return response()->json(['message' => 'Cuisine deleted successfully']);
     }
+    
 }

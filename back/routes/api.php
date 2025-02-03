@@ -16,7 +16,9 @@ Route::middleware('auth:sanctum')->delete('/categories/{id}', [CategoryControlle
 
 // Cocinas
 Route::middleware('auth:sanctum')->post('/cuisines', [CuisineController::class, 'store']);
-Route::get('/cuisines', [CuisineController::class, 'index']);
+Route::get('/cuisines', [CuisineController::class, 'index']);  
+Route::get('/filterByCuisine/{id}', [CuisineController::class, 'filterByCuisine']);  // Filtrar recetas por cocina (país)
+
 Route::middleware('auth:sanctum')->get('/cuisines/{id}', [CuisineController::class, 'show']);
 Route::middleware('auth:sanctum')->put('/cuisines/{id}', [CuisineController::class, 'update']);
 Route::middleware('auth:sanctum')->delete('/cuisines/{id}', [CuisineController::class, 'destroy']);
@@ -63,6 +65,8 @@ Route::get('/filterByCategory/{id}', [RecipeController::class, 'filterByCategory
 Route::get('/filterByCuisine/{id}', [RecipeController::class, 'filterByCuisine']);
 Route::get('/filterByTime/{time}',[RecipeController::class,'filterByTime']);
 Route::get('/times', [RecipeController::class, 'getAllTimes']);
+Route::get('/recipes/filterByUser/{userId}', [RecipeController::class, 'filterByUser']);
+
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/saved-recipes', [SavedRecipeController::class, 'index']);

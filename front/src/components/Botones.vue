@@ -2,30 +2,26 @@
   <div class="filter-buttons">
     <button @click="obtenerCategorias">Categoría</button>
     <div v-if="datos.length">
-      <button v-for="dato in datos" :key="dato.id" class="button-secondary">
+      <button 
+        v-for="dato in datos" 
+        :key="dato.id" 
+        class="button-secondary"
+        @click="filtrarPorCategoria(dato.id)"
+      >
         {{ dato.name }}
       </button>
     </div>
 
-    <button @click="obtenerCuisines">Cuisine</button>
-    <div v-if="countries.length">
-      <button v-for="country in countries" :key="country.id" class="button-secondary">
-        {{ country.country }}
-      </button>
-    </div>
-
-    <button @click="obtenerTiempos">Tiempo</button>
-    <div v-if="tiempos.length">
-      <button v-for="(tiempo, index) in tiempos" :key="index" class="button-secondary">
-        {{ tiempo }} mins <!-- Mostramos el tiempo -->
-      </button>
-    </div>
-
-    <button @click="obtenerUsuarios">Usuario</button>
-    <div v-if="usuarios.length">
-      <button v-for="usuario in usuarios" :key="usuario.id" class="button-secondary">
-        {{ usuario.name }}
-      </button>
+    <!-- Recetas filtradas por categoría -->
+    <div v-if="recetas.length" class="recipe-list">
+      <RecipeCard
+        v-for="receta in recetas"
+        :key="receta.id"
+        :recipeId="receta.id"
+        :title="receta.title"
+        :description="receta.description || 'Descripción no disponible'"
+        :image="receta.image"
+      />
     </div>
   </div>
 </template>
@@ -33,111 +29,65 @@
 <script>
 import { ref } from 'vue';
 import communicationManager from '../services/communicationManager';
+import RecipeCard from './RecipeCard.vue';
 
 export default {
   name: 'Botones',
-  setup() {
-    const datos = ref([]);
-    const countries = ref([]);
-    const usuarios = ref([]);
-    const tiempos = ref([]);
+  components: { RecipeCard },
+  emits: ['filtradoPorCategoria'], // Declaramos el evento
 
-    // Obtener categorías
+  setup(_, { emit }) {
+    const datos = ref([]);         
+    const recetas = ref([]);       
+
     const obtenerCategorias = async () => {
       try {
         datos.value = await communicationManager.fetchCategories();
-        console.log(datos.value);
       } catch (error) {
         console.error('Error fetching categories:', error);
       }
     };
 
-    // Obtener cocinas
-    const obtenerCuisines = async () => {
+    const filtrarPorCategoria = async (categoryId) => {
       try {
-        countries.value = await communicationManager.fetchCuisines();
-        console.log(countries.value);
+        const response = await communicationManager.fetchRecipesByCategory(categoryId);
+        recetas.value = response.recipes;
+        emit('filtradoPorCategoria', true);  // Emitimos el evento para ocultar las recetas generales
       } catch (error) {
-        console.error('Error fetching cuisines:', error);
+        console.error('Error filtering recipes:', error);
       }
     };
-
-    // Obtener usuarios
-    const obtenerUsuarios = async () => {
-      try {
-        usuarios.value = await communicationManager.fetchUsers(); // Asegúrate de que esta función exista
-        console.log(usuarios.value);  // Opcional: Verifica que los usuarios se estén obteniendo correctamente
-      } catch (error) {
-        console.error('Error fetching users:', error);
-      }
-    };
-
-   // Obtener tiempos
-const obtenerTiempos = async () => {
-  try {
-    tiempos.value = await communicationManager.fetchTimes(); // Correcto: Cambié 'fetchAllTimes' por 'fetchTimes'
-    console.log(tiempos.value);
-  } catch (error) {
-    console.error('Error fetching times:', error);
-  }
-};
-
 
     return {
       datos,
-      countries,
-      usuarios,
-      tiempos,
+      recetas,
       obtenerCategorias,
-      obtenerCuisines,
-      obtenerUsuarios,
-      obtenerTiempos,
+      filtrarPorCategoria,
     };
   },
 };
 </script>
 
 <style scoped>
-.filter-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-button {
-  padding: 12px;
-  background-color: #f1f1f1;
-  border: 1px solid #ccc;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-button:hover {
-  background-color: #e0e0e0;
-}
-
 .button-secondary {
-  font-size: 0.75rem;
-  padding: 6px 10px;
-  background-color: #dcdcdc;
-  border: 1px solid #bbb;
-  color: #333;
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  background-color: #358600;
+  border: none;
+  color: white;
   cursor: pointer;
-  border-radius: 100px;
+  border-radius: 20px;
 }
 
 .button-secondary:hover {
-  background-color: #c4c4c4;
+  background-color: #2a6b00;
 }
 
-div {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-div button {
-  margin: 5px 0;
-  display: inline-block;
+.recipe-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); 
+  gap: 20px;
+  justify-items: center;
+  margin-top: 20px;
 }
 </style>

@@ -202,4 +202,13 @@ public function filterByCuisine($id){
     ], 200);
 }
 
+public function filterByUser($userId)
+{
+    $recipes = Recipe::where('user_id', $userId)->get();
+    return response()->json([
+        'recipes' => $recipes,
+    ], 200);
+}
+
+
 }
