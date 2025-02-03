@@ -169,30 +169,31 @@ public function unlikeRecipe(Request $request, $recipeId)
             ], 200);
         }
     
+   // Obtener todos los tiempos disponibles (preparación + cocción)
+   public function getAllTimes()
+   {
+       // Obtener los tiempos únicos sumando prep_time y cook_time
+       $times = DB::table('recipes')
+           ->selectRaw('IFNULL(prep_time, 0) + IFNULL(cook_time, 0) as total_time')
+           ->distinct()
+           ->pluck('total_time'); // Obtener los tiempos únicos
 
-public function filterByTime($time)
-{
-    $recipes = Recipe::whereRaw('cook_time + prep_time <= ?', [$time])->get();
-    return response()->json([
-        'recipes' => $recipes,
-    ], 200);
-}
+       return response()->json([
+           'times' => $times,
+       ], 200);
+   }
 
-public function getAllTimes()
-{
-    // Usar DB::table para la consulta, en lugar de la Eloquent de Recipe
-    $times = DB::table('recipes')
-        ->selectRaw('prep_time + cook_time as total_time')
-        ->distinct()  // Asegura que los tiempos sean únicos
-        ->pluck('total_time');  // Obtiene solo los tiempos
+   // Filtrar recetas por tiempo total (preparación + cocción)
+   public function filterByTime($time)
+   {
+       // Sumar prep_time y cook_time para filtrar correctamente las recetas
+       $recipes = Recipe::whereRaw('IFNULL(prep_time, 0) + IFNULL(cook_time, 0) <= ?', [$time])
+           ->get();
 
-    // Devolver los tiempos únicos en formato JSON
-    return response()->json([
-        'times' => $times,
-    ], 200);
-}
-
-
+       return response()->json([
+           'recipes' => $recipes,
+       ], 200);
+   }
 
 public function filterByCuisine($id){
     $recipes = Recipe::where('cuisine_id', $id)->get();

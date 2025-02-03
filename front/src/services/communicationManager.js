@@ -152,6 +152,8 @@ const communicationManager = {
         throw error;
       });
   },
+  
+  // Filtrar recetas por categoría
   fetchRecipesByCategory(categoryId) {
     return apiClient.get(`/filterByCategory/${categoryId}`)
       .then(response => response.data)
@@ -161,6 +163,7 @@ const communicationManager = {
       });
   },
 
+  // Obtener todos los usuarios
   fetchUsers() {
     return apiClient.get('/getAllUsers')
       .then(response => response.data.users)
@@ -179,17 +182,8 @@ const communicationManager = {
         throw error;
       });
   },
-  fetchCuisines() {
-    return apiClient.get('/cuisines')
-      .then(response => response.data)
-      .catch(error => {
-        console.error('Error fetching cuisines:', error);
-        throw error;
-      });
-  },
-  
-  // Actualiza la función `fetchRecipesByCuisine` en el manager para que también funcione:
-  
+
+  // Obtener recetas filtradas por el ID de la cocina
   fetchRecipesByCuisine(cuisineId) {
     return apiClient.get(`/filterByCuisine/${cuisineId}`)
       .then(response => response.data)
@@ -198,11 +192,26 @@ const communicationManager = {
         throw error;
       });
   },
-  
+   // Obtener todos los tiempos disponibles
+   getAllTimes() {
+    return apiClient.get('/times') // Asumiendo que la ruta es /times para obtener todos los tiempos
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching times:', error);
+        throw error;
+      });
+  },
 
-  
-  
-  
+  // Filtrar recetas por tiempo total (preparación + cocción)
+  fetchRecipesByTime(time) {
+    return apiClient.get(`/filterByTime/${time}`) // Asumiendo que la ruta es /filterByTime/{time}
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error filtering recipes by time:', error);
+        throw error;
+      });
+  },
+
 };
 
 export default communicationManager;

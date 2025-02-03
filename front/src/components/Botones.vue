@@ -39,6 +39,19 @@
       </button>
     </div>
 
+    <!-- Botón para los tiempos -->
+    <button @click="obtenerTimes">Tiempo</button>
+    <div v-if="times.length">
+      <button 
+        v-for="time in times" 
+        :key="time"
+        class="button-secondary"
+        @click="filtrarPorTiempo(time)"
+      >
+        {{ time }} minutos
+      </button>
+    </div>
+
     <!-- Recetas filtradas por categoría, usuario o cocina -->
     <div v-if="recetas.length" class="recipe-list">
       <RecipeCard
@@ -67,6 +80,7 @@ export default {
     const usuarios = ref([]);      // For users
     const recetas = ref([]);       // For filtered recipes
     const cuisines = ref([]);      // For cuisines (countries)
+    const times = ref([]);         // For times
 
     // Function to fetch categories
     const obtenerCategorias = async () => {
@@ -85,6 +99,28 @@ export default {
         console.error('Error fetching cuisines:', error);
       }
     };
+
+    // Function to fetch available times
+    const obtenerTimes = async () => {
+      try {
+        const response = await communicationManager.getAllTimes();
+        times.value = response.times; // Asegúrate de usar `response.times` aquí
+      } catch (error) {
+        console.error('Error fetching times:', error);
+      }
+    };
+
+   // Función para filtrar por tiempo en Vue.js
+const filtrarPorTiempo = async (time) => {
+  try {
+    const response = await communicationManager.fetchRecipesByTime(time);
+    recetas.value = response.recipes;
+    emit('filtradoPorTiempo', true);
+  } catch (error) {
+    console.error('Error filtering recipes by time:', error);
+  }
+};
+
 
     // Function to filter recipes by category
     const filtrarPorCategoria = async (categoryId) => {
@@ -133,12 +169,15 @@ export default {
       usuarios,
       recetas,
       cuisines,
+      times,
       obtenerCategorias,
       obtenerCuisines,
       obtenerUsers,
+      obtenerTimes,
       filtrarPorCategoria,
       filtrarPorCuisine,
       filtrarPorUsuario,
+      filtrarPorTiempo,
     };
   },
 };
