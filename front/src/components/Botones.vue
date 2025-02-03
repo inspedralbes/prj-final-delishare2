@@ -11,8 +11,18 @@
         {{ dato.name }}
       </button>
     </div>
-
-    <!-- Recetas filtradas por categoría -->
+    <button @click="obtenerUsers">Usuarios</button>
+    <div v-if="usuarios.length">
+      <button 
+        v-for="usuario in usuarios" 
+        :key="usuario.id" 
+        class="button-secondary"
+        @click="filtrarPorUsuario(usuario.id)"
+      >
+        {{ usuario.name }}
+      </button>
+    </div>
+    <!-- Recetas filtradas por categoría o usuario -->
     <div v-if="recetas.length" class="recipe-list">
       <RecipeCard
         v-for="receta in recetas"
@@ -25,7 +35,6 @@
     </div>
   </div>
 </template>
-
 <script>
 import { ref } from 'vue';
 import communicationManager from '../services/communicationManager';
@@ -34,12 +43,13 @@ import RecipeCard from './RecipeCard.vue';
 export default {
   name: 'Botones',
   components: { RecipeCard },
-  emits: ['filtradoPorCategoria'], // Declaramos el evento
 
   setup(_, { emit }) {
-    const datos = ref([]);         
-    const recetas = ref([]);       
+    const datos = ref([]);         // For categories
+    const usuarios = ref([]);      // For users
+    const recetas = ref([]);       // For filtered recipes
 
+    // Function to fetch categories
     const obtenerCategorias = async () => {
       try {
         datos.value = await communicationManager.fetchCategories();
@@ -48,25 +58,50 @@ export default {
       }
     };
 
+    // Function to filter recipes by category
     const filtrarPorCategoria = async (categoryId) => {
       try {
         const response = await communicationManager.fetchRecipesByCategory(categoryId);
         recetas.value = response.recipes;
-        emit('filtradoPorCategoria', true);  // Emitimos el evento para ocultar las recetas generales
+        emit('filtradoPorCategoria', true);  // Emitting event to indicate filtering
       } catch (error) {
-        console.error('Error filtering recipes:', error);
+        console.error('Error filtering recipes by category:', error);
+      }
+    };
+
+    // Function to fetch users
+    const obtenerUsers = async () => {
+      try {
+        usuarios.value = await communicationManager.fetchUsers();
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
+    // Function to filter recipes by user
+    const filtrarPorUsuario = async (userId) => {
+      try {
+        const response = await communicationManager.fetchRecipesByUser(userId);
+        recetas.value = response.recipes;
+        emit('filtradoPorUsuarios', true);  // Emitting event to indicate filtering
+      } catch (error) {
+        console.error('Error filtering recipes by user:', error);
       }
     };
 
     return {
       datos,
+      usuarios,
       recetas,
       obtenerCategorias,
+      obtenerUsers,
       filtrarPorCategoria,
+      filtrarPorUsuario,
     };
   },
 };
 </script>
+
 
 <style scoped>
 .button-secondary {
