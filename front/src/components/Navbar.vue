@@ -1,12 +1,12 @@
 <template>
     <nav class="navbar">
       <ul>
-        <li><router-link to="/recetas"><img src="/assets/images/homee.png" alt="Home" /></router-link></li>
-        <li><router-link to="/search"><img src="/assets/images/lupa.png" alt="Search" class="search-icon" /></router-link></li>
-        <li><router-link to="/agregar"><img src="/assets/images/mas.png" alt="Post" /></router-link></li>
-        <li><router-link to="/guardar"><img src="/assets/images/guardar.png" alt="Saved" /></router-link></li>
+        <li><router-link to="/recetas"><img src="../assets/images/homee.png" alt="Home" /></router-link></li>
+        <li><router-link to="/search"><img src="../assets/images/lupa.png" alt="Search" class="search-icon" /></router-link></li>
+        <li><router-link to="/agregar"><img src="../assets/images/mas.png" alt="Post" /></router-link></li>
+        <li><router-link to="/guardar"><img src="../assets/images/guardar.png" alt="Saved" /></router-link></li>
         
-        <li><button><img src="/assets/images/perfil.png" alt="Profile" /></button></li>
+        <li><button><img src="../assets/images/perfil.png" alt="Profile" /></button></li>
        
 
 
