@@ -160,7 +160,18 @@ const communicationManager = {
         console.error('Error fetching cuisines:', error);
         throw error;
       });
-  }
+  },
+   // Método para obtener todos los tiempos
+   fetchAllTimes() {
+    return apiClient.get('/allTimes')  // Suponiendo que la ruta sea '/all-times'
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching all times:', error);
+        throw error;
+      });
+  },
+
+  
 };
 
 export default communicationManager;

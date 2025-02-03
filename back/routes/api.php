@@ -62,7 +62,7 @@ Route::get('/getAllRecipes', [RecipeController::class, 'getAllRecipes']);
 Route::get('/filterByCategory/{id}', [RecipeController::class, 'filterByCategory']);
 Route::get('/filterByCuisine/{id}', [RecipeController::class, 'filterByCuisine']);
 Route::get('/filterByTime/{time}',[RecipeController::class,'filterByTime']);
-Route::get('/times', [RecipeController::class, 'getAllTimes']);
+Route::get('/allTimes', [RecipeController::class, 'getAllTimes']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/saved-recipes', [SavedRecipeController::class, 'index']);
