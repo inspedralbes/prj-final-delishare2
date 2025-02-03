@@ -16,14 +16,13 @@
 
     <button @click="obtenerTiempos">Tiempo</button>
     <div v-if="tiempos.length">
-      <button v-for="tiempo in tiempos" :key="tiempo" class="button-secondary">
-        {{ tiempo }} <!-- Mostramos el tiempo -->
+      <button v-for="(tiempo, index) in tiempos" :key="index" class="button-secondary">
+        {{ tiempo }} mins <!-- Mostramos el tiempo -->
       </button>
     </div>
 
     <button @click="obtenerUsuarios">Usuario</button>
     <div v-if="usuarios.length">
-      <!-- Muestra el nombre de cada usuario -->
       <button v-for="usuario in usuarios" :key="usuario.id" class="button-secondary">
         {{ usuario.name }}
       </button>
@@ -66,22 +65,23 @@ export default {
     // Obtener usuarios
     const obtenerUsuarios = async () => {
       try {
-        usuarios.value = await communicationManager.fetchUsers(); // Asegúrate de que esta función existe
+        usuarios.value = await communicationManager.fetchUsers(); // Asegúrate de que esta función exista
         console.log(usuarios.value);  // Opcional: Verifica que los usuarios se estén obteniendo correctamente
       } catch (error) {
         console.error('Error fetching users:', error);
       }
     };
 
-    // Obtener tiempos
-    const obtenerTiempos = async () => {
-      try {
-        tiempos.value = await communicationManager.fetchAllTimes(); // Actualizado a 'fetchAllTimes'
-        console.log(tiempos.value);
-      } catch (error) {
-        console.error('Error fetching times:', error);
-      }
-    };
+   // Obtener tiempos
+const obtenerTiempos = async () => {
+  try {
+    tiempos.value = await communicationManager.fetchTimes(); // Correcto: Cambié 'fetchAllTimes' por 'fetchTimes'
+    console.log(tiempos.value);
+  } catch (error) {
+    console.error('Error fetching times:', error);
+  }
+};
+
 
     return {
       datos,
@@ -97,7 +97,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .filter-buttons {
   display: flex;
   flex-direction: column;

@@ -161,15 +161,26 @@ const communicationManager = {
         throw error;
       });
   },
-   // Método para obtener todos los tiempos
-   fetchAllTimes() {
-    return apiClient.get('/allTimes')  // Suponiendo que la ruta sea '/all-times'
-      .then(response => response.data)
+  fetchTimes() {
+    return apiClient.get('/times')
+      .then(response => response.data.times) // La API devuelve 'times'
       .catch(error => {
-        console.error('Error fetching all times:', error);
+        console.error('Error fetching times:', error);
         throw error;
       });
   },
+  
+
+  
+  fetchUsers() { // ✅ Esta es la función correcta para obtener los usuarios
+    return apiClient.get('/getAllUsers')
+      .then(response => response.data.users)
+      .catch(error => {
+        console.error('Error fetching users:', error);
+        throw error;
+      });
+  },
+
 
   
 };
