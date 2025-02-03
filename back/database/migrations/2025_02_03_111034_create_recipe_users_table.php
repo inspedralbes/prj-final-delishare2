@@ -1,27 +1,24 @@
 <?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreateRecipeUserTable extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
-        Schema::create('recipe_users', function (Blueprint $table) {
+        Schema::create('recipe_user', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('recipe_id')->constrained()->onDelete('cascade'); // Esta línea es clave
+            $table->boolean('saved')->default(false);
+            $table->boolean('liked')->default(false); // Indica si el usuario ha dado like
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
-        Schema::dropIfExists('recipe_users');
+        Schema::dropIfExists('recipe_user');
     }
-};
+}
