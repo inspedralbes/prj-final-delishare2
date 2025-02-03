@@ -179,7 +179,26 @@ const communicationManager = {
         throw error;
       });
   },
-
+  fetchCuisines() {
+    return apiClient.get('/cuisines')
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching cuisines:', error);
+        throw error;
+      });
+  },
+  
+  // Actualiza la función `fetchRecipesByCuisine` en el manager para que también funcione:
+  
+  fetchRecipesByCuisine(cuisineId) {
+    return apiClient.get(`/filterByCuisine/${cuisineId}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching recipes by cuisine:', error);
+        throw error;
+      });
+  },
+  
 
   
   
