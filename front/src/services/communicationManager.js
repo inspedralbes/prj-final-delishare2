@@ -189,7 +189,16 @@ changePassword(passwordData) {
             console.error('Error changing password:', error);
             throw error;
         });
+},
+getUserRecipes() {
+  return apiClient.get('/user/recipes')
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error fetching user recipes:', error);
+      throw error;
+    });
 }
+
 };
 
 export default communicationManager;

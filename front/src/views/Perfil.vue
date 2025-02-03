@@ -26,16 +26,63 @@
         
         <div v-if="activeTab === 'password'" class="profile-info">
           <label>Contraseña Actual:</label>
-          <input type="password" v-model="currentPassword" />
-          
+          <div class="password-field">
+            <input
+              :type="showCurrentPassword ? 'text' : 'password'"
+              v-model="currentPassword"
+            />
+            <button @click="toggleShowCurrentPassword" class="eye-icon">
+              <img v-if="showCurrentPassword" src="@/assets/images/ojoAbierto.png" alt="Mostrar contraseña" />
+              <img v-if="!showCurrentPassword" src="@/assets/images/ojo.png" alt="Ocultar contraseña" />
+            </button>
+          </div>
           <label>Nueva Contraseña:</label>
-          <input type="password" v-model="newPassword" />
-          
+          <div class="password-field">
+            <input
+              :type="showNewPassword ? 'text' : 'password'"
+              v-model="newPassword"
+            />
+            <button @click="toggleShowNewPassword" class="eye-icon">
+              <img v-if="showNewPassword" src="@/assets/images/ojoAbierto.png" alt="Mostrar contraseña" />
+              <img v-if="!showNewPassword" src="@/assets/images/ojo.png" alt="Ocultar contraseña" />
+            </button>
+          </div>
           <label>Confirmar Nueva Contraseña:</label>
-          <input type="password" v-model="confirmPassword" />
-          
+          <div class="password-field">
+            <input
+              :type="showConfirmPassword ? 'text' : 'password'"
+              v-model="confirmPassword"
+            />
+            <button @click="toggleShowConfirmPassword" class="eye-icon">
+              <img v-if="showConfirmPassword" src="@/assets/images/ojoAbierto.png" alt="Mostrar contraseña" />
+              <img v-if="!showConfirmPassword" src="@/assets/images/ojo.png" alt="Ocultar contraseña" />
+            </button>
+          </div>
           <button @click="updatePassword">Cambiar Contraseña</button>
         </div>
+      </div>
+      
+      <!-- Mostrar las recetas creadas por el usuario en tarjetas -->
+      <div class="user-recipes" v-if="recipes.length > 0">
+        <h3>Recetas creadas</h3>
+        <div class="recipe-cards">
+          <div
+            class="recipe-card"
+            v-for="recipe in recipes"
+            :key="recipe.id"
+          >
+            <router-link :to="{ name: 'InfoReceta', params: { recipeId: recipe.id } }">
+              <img :src="recipe.image" :alt="recipe.title" class="recipe-image" />
+              <div class="recipe-info">
+                <p class="recipe-title">{{ recipe.title }}</p>
+                <p class="recipe-description">{{ recipe.description }}</p>
+              </div>
+            </router-link>
+          </div>
+        </div>
+      </div>
+      <div v-else>
+        <p>No has creado ninguna receta aún.</p>
       </div>
     </div>
   </template>
@@ -49,20 +96,29 @@
     setup() {
       const authStore = useAuthStore();
       const user = ref({ name: '', email: '' });
+      const currentPassword = ref('');
       const newPassword = ref('');
       const confirmPassword = ref('');
-      const currentPassword = ref('');
       const userImage = ref('/default-avatar.png');
+      const recipes = ref([]);
       const showEditProfile = ref(false);
       const activeTab = ref('profile');
   
+      const showCurrentPassword = ref(false);
+      const showNewPassword = ref(false);
+      const showConfirmPassword = ref(false);
+  
+      // Obtener los datos del usuario y recetas creadas
       onMounted(async () => {
         try {
-          const response = await communicationManager.getUser();
-          user.value = response;
-          userImage.value = response.profile_picture || '/default-avatar.png';
+          const userData = await communicationManager.getUser();
+          user.value = userData;
+          userImage.value = userData.profile_picture || '/default-avatar.png';
+  
+          const userRecipes = await communicationManager.getUserRecipes();  // Asumimos que tienes un método para obtener recetas creadas
+          recipes.value = userRecipes;
         } catch (error) {
-          console.error('Error cargando datos del usuario', error);
+          console.error('Error cargando datos del usuario o recetas', error);
         }
       });
   
@@ -84,20 +140,28 @@
           return;
         }
   
-        const token = localStorage.getItem('token');
-        console.log("Token:", token); // Asegúrate de que el token esté presente
-  
         try {
-          // Enviar tanto la contraseña actual como la nueva contraseña
           const response = await communicationManager.changePassword({
-            contrasena_actual: currentPassword.value, // Contraseña actual
-            nueva_contrasena: newPassword.value,      // Nueva contraseña
+            contrasena_actual: currentPassword.value,
+            nueva_contrasena: newPassword.value,
           });
           alert("Contraseña actualizada correctamente");
         } catch (error) {
           console.error('Error cambiando la contraseña', error);
           alert('Error al cambiar la contraseña');
         }
+      };
+  
+      const toggleShowCurrentPassword = () => {
+        showCurrentPassword.value = !showCurrentPassword.value;
+      };
+  
+      const toggleShowNewPassword = () => {
+        showNewPassword.value = !showNewPassword.value;
+      };
+  
+      const toggleShowConfirmPassword = () => {
+        showConfirmPassword.value = !showConfirmPassword.value;
       };
   
       const uploadImage = async (event) => {
@@ -121,10 +185,17 @@
         newPassword,
         confirmPassword,
         userImage,
+        recipes,
         showEditProfile,
         activeTab,
+        showCurrentPassword,
+        showNewPassword,
+        showConfirmPassword,
         updateProfile,
         updatePassword,
+        toggleShowCurrentPassword,
+        toggleShowNewPassword,
+        toggleShowConfirmPassword,
         uploadImage,
       };
     },
@@ -132,37 +203,117 @@
   </script>
   
   <style scoped>
+  /* Tu estilo original para el perfil */
   .profile-container {
-    max-width: 400px;
-    margin: auto;
     padding: 20px;
-    text-align: center;
   }
+  
   .profile-header {
-    position: relative;
+    text-align: center;
+    margin-bottom: 20px;
   }
+  
   .profile-picture img {
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    cursor: pointer;
+    object-fit: cover;
   }
-  .edit-sections {
-    margin-top: 20px;
-  }
+  
   .profile-info {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    margin-bottom: 20px;
   }
-  button {
-    margin-top: 10px;
+  
+  .profile-info label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .profile-info input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .profile-info button {
     padding: 10px;
-    background: #007bff;
+    background-color: #007bff;
     color: white;
     border: none;
+    border-radius: 4px;
     cursor: pointer;
-    border-radius: 5px;
+  }
+  
+  .profile-info button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Estilos para las recetas */
+  .user-recipes {
+    margin-top: 20px;
+  }
+  
+  .recipe-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+  }
+  
+  .recipe-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .recipe-card:hover {
+    transform: scale(1.05);
+  }
+  
+  .recipe-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+  }
+  
+  .recipe-info {
+    padding: 10px;
+  }
+  
+  .recipe-title {
+    font-size: 1.2em;
+    font-weight: bold;
+  }
+  
+  .recipe-description {
+    font-size: 0.9em;
+    color: #666;
+  }
+  
+  /* Estilos para la vista de contraseña */
+  .password-field {
+    display: flex;
+    align-items: center;
+  }
+  
+  .password-field input {
+    width: calc(100% - 40px);
+  }
+  
+  .eye-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 10px;
+  }
+  
+  .eye-icon img {
+    width: 20px;
+    height: 20px;
   }
   </style>
   
