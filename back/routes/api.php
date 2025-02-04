@@ -60,7 +60,7 @@ Route::middleware('auth:sanctum')->get('/user/recipes', [RecipeController::class
 
 
 //Ruta para obtener todos los usuarios("Hazta hacer el filtro")
-Route::get('/getAllUsers', [AuthController::class, 'getAllUsers']);
+Route::get('/getAllUsers', [RecipeController::class, 'getAllUsers']);
 Route::get('/getAllRecipes', [RecipeController::class, 'getAllRecipes']);
 Route::get('/filterByCategory/{id}', [RecipeController::class, 'filterByCategory']);
 Route::get('/filterByCuisine/{id}', [RecipeController::class, 'filterByCuisine']);

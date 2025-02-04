@@ -163,7 +163,6 @@ const communicationManager = {
       });
   },
 
-  // Obtener todos los usuarios
   fetchUsers() {
     return apiClient.get('/getAllUsers')
       .then(response => response.data.users)
@@ -172,6 +171,7 @@ const communicationManager = {
         throw error;
       });
   },
+  
 
   // Obtener recetas filtradas por el ID del usuario
   fetchRecipesByUser(userId) {

@@ -222,6 +222,16 @@ public function getUserRecipes()
     return response()->json($recipes);
 }
 
+public function getAllUsers()
+{
+    // Obtener id y nombre de los usuarios
+    $users = DB::table('users')->select('id', 'name')->get();
+
+    return response()->json([
+        'users' => $users,
+    ], 200);
+}
+
 
 public function filterByUser($userId)
 {
