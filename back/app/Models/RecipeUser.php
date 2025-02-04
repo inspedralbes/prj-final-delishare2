@@ -11,7 +11,7 @@ class RecipeUser extends Model
 
     protected $table = 'recipe_user'; // Especifica la tabla porque no sigue la convención de nombres de Laravel
 
-    protected $fillable = ['user_id', 'recipe_id', 'saved', 'liked'];
+    protected $fillable = ['user_id', 'recipe_id', 'saved', 'liked', 'comment'];
 
     public $timestamps = true;
 }

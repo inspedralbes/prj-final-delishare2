@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\DB;
+use App\Models\RecipeUser;
 
 use App\Models\Recipe;
 
@@ -242,4 +243,51 @@ public function filterByUser($userId)
 }
 
 
+
+
+//comentario
+
+  // Guardar o actualizar un comentario
+   // Guardar o actualizar un comentario
+   public function addOrUpdateComment(Request $request, $recipeId)
+   {
+       $userId = $request->user()->id;
+
+       $request->validate([
+           'comment' => 'required|string|max:1000'
+       ]);
+
+       $recipeUser = RecipeUser::updateOrCreate(
+           ['user_id' => $userId, 'recipe_id' => $recipeId],
+           ['comment' => $request->comment, 'updated_at' => now()]
+       );
+
+       return response()->json(['message' => 'Comentario agregado/actualizado correctamente', 'comment' => $recipeUser->comment]);
+   }
+
+   // Obtener todos los comentarios de una receta
+   public function getRecipeComments($recipeId)
+   {
+       $comments = DB::table('recipe_user')
+           ->where('recipe_id', $recipeId)
+           ->whereNotNull('comment')
+           ->join('users', 'recipe_user.user_id', '=', 'users.id')
+           ->select('users.name', 'recipe_user.comment', 'recipe_user.updated_at')
+           ->orderByDesc('recipe_user.updated_at')
+           ->get();
+
+       return response()->json($comments);
+   }
+
+   // Eliminar un comentario
+   public function deleteComment(Request $request, $recipeId)
+   {
+       $userId = $request->user()->id;
+
+       RecipeUser::where('user_id', $userId)
+           ->where('recipe_id', $recipeId)
+           ->update(['comment' => null, 'updated_at' => now()]);
+
+       return response()->json(['message' => 'Comentario eliminado correctamente']);
+   }
 }

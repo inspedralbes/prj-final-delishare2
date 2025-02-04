@@ -76,3 +76,8 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) { // ✅ Pasa $request como parámetro
     return response()->json($request->user());
 });
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/recipes/{id}/comment', [RecipeController::class, 'addOrUpdateComment']);
+    Route::get('/recipes/{id}/comments', [RecipeController::class, 'getRecipeComments']);
+    Route::delete('/recipes/{id}/comment', [RecipeController::class, 'deleteComment']);
+});

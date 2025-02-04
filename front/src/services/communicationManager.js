@@ -247,7 +247,26 @@ getUserRecipes() {
       console.error('Error fetching user recipes:', error);
       throw error;
     });
+},// Obtener comentarios de una receta
+fetchComments(recipeId) {
+  return apiClient.get(`/recipes/${recipeId}/comments`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error fetching comments:', error);
+      throw error;
+    });
+},
+
+// Agregar un comentario a una receta
+addComment(recipeId, commentText) {
+  return apiClient.post(`/recipes/${recipeId}/comment`, { comment: commentText })  // <-- Enviar 'comment' en lugar de 'text'
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error adding comment:', error);
+      throw error;
+    });
 }
+
 
 };
 

@@ -10,9 +10,10 @@ class CreateRecipeUserTable extends Migration
         Schema::create('recipe_user', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('recipe_id')->constrained()->onDelete('cascade'); // Esta línea es clave
+            $table->foreignId('recipe_id')->constrained()->onDelete('cascade'); 
             $table->boolean('saved')->default(false);
-            $table->boolean('liked')->default(false); // Indica si el usuario ha dado like
+            $table->boolean('liked')->default(false);
+            $table->text('comment')->nullable(); // Nuevo campo para comentarios
             $table->timestamps();
         });
     }
