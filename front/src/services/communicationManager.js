@@ -211,6 +211,43 @@ const communicationManager = {
         throw error;
       });
   },
+  updateProfile(userData) {
+    return apiClient.post('/updatePerfile', userData)
+        .then(response => response.data)
+        .catch(error => {
+            console.error('Error updating profile:', error);
+            throw error;
+        });
+},
+
+updateProfilePicture(formData) {
+    return apiClient.post('/updateProfilePicture', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    .then(response => response.data)
+    .catch(error => {
+        console.error('Error updating profile picture:', error);
+        throw error;
+    });
+},
+
+changePassword(passwordData) {
+  
+    return apiClient.post('/cambiarContra', passwordData)
+        .then(response => response.data)
+        .catch(error => {
+            console.error('Error changing password:', error);
+            throw error;
+        });
+},
+getUserRecipes() {
+  return apiClient.get('/user/recipes')
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error fetching user recipes:', error);
+      throw error;
+    });
+}
 
 };
 

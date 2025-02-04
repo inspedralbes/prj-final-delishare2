@@ -1,68 +1,79 @@
+// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router';
 import LandingPage from '@/views/LandingPage.vue';
 import SearchPage from '@/views/SearchPage.vue';
-import InfoReceta from '@/views/InfoReceta.vue'; // Importa el componente de la página de detalles
-import AgregarReceta from '@/views/AgregarReceta.vue'; // Importa el componente de la página de detalles
-import login from '@/components/login.vue'; // Ajusta si el archivo tiene otro nombre o ruta
-import register from '@/components/register.vue'; // Ajusta si el archivo tiene otro nombre o ruta
+import InfoReceta from '@/views/InfoReceta.vue';
+import AgregarReceta from '@/views/AgregarReceta.vue';
+import login from '@/components/login.vue';
+import register from '@/components/register.vue';
 import Guardadas from '@/views/Guardadas.vue';
+import { useAuthStore } from '@/stores/authStore';  // Importa el store de autenticación
 
 const routes = [
-
   {
-    path: '/recetas',  // Ruta principal
+    path: '/recetas',
     name: 'LandingPage',
-    component: LandingPage,  // El componente que se renderiza para esta ruta
+    component: LandingPage,
     meta: { requiresAuth: true },
-
-  },  
+  },
   {
     path: '/agregar',
     name: 'AgregarReceta',
-    component: AgregarReceta,  // El componente que se renderiza para la búsqueda
+    component: AgregarReceta,
     meta: { requiresAuth: true },
   },
   {
-    path: '/search',  // Ruta de búsqueda
+    path: '/search',
     name: 'SearchPage',
-    component: SearchPage,  // El componente que se renderiza para la búsqueda
+    component: SearchPage,
     meta: { requiresAuth: true },
-
   },
   {
-    path: '/',  // Ruta con el parámetro de id de la receta
+    path: '/',
     name: 'login',
     component: login,
-    props: true, // Habilita pasar el parámetro `recipeId` como prop al componente
-
   },
   {
-    path: '/register',  // Ruta con el parámetro de id de la receta
+    path: '/register',
     name: 'register',
     component: register,
-    props: true, // Habilita pasar el parámetro `recipeId` como prop al componente
-
   },
   {
-    path: '/info/:recipeId',  // Ruta con el parámetro de id de la receta
+    path: '/info/:recipeId',
     name: 'InfoReceta',
     component: InfoReceta,
-    props: true, // Habilita pasar el parámetro `recipeId` como prop al componente
+    props: true,
     meta: { requiresAuth: true },
-
   },
   {
     path: '/guardar',
     name: 'Guardadas',
     component: Guardadas,
     meta: { requiresAuth: true },
-
-  }
+  },
+  {
+    path: '/perfil',
+    name: 'Perfil',
+    component: () => import('@/views/Perfil.vue'),
+    meta: { requiresAuth: true },
+  },
 ];
 
 const router = createRouter({
-  history: createWebHistory(), // Usa el historial del navegador para manejar rutas
+  history: createWebHistory(),
   routes,
+});
+
+// Verificación de autenticación antes de cada ruta
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore();
+  
+  // Si la ruta requiere autenticación y no hay token, redirige a login
+  if (to.meta.requiresAuth && !authStore.token) {
+    next({ name: 'login' });
+  } else {
+    next();
+  }
 });
 
 export default router;
