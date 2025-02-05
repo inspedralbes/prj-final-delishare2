@@ -247,6 +247,8 @@ getUserRecipes() {
       console.error('Error fetching user recipes:', error);
       throw error;
     });
+
+
 },// Obtener comentarios de una receta
 fetchComments(recipeId) {
   return apiClient.get(`/recipes/${recipeId}/comments`)
@@ -265,9 +267,83 @@ addComment(recipeId, commentText) {
       console.error('Error adding comment:', error);
       throw error;
     });
+},
+createFolder(folderName) {
+  return apiClient.post('/folders', { name: folderName })  // Asegúrate de que 'name' sea lo único que estás enviando
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error creando carpeta:', error.response ? error.response.data : error.message);  // Imprimir más detalles del error
+      throw error;
+    });
+  },
+
+// Obtener las recetas de una carpeta
+fetchFolderRecipes(folderId) {
+  return apiClient.get(`/folders/${folderId}/recipes`)
+    .then(response => response.data.recipes) // Esto debe devolver las recetas correctamente
+    .catch(error => {
+      console.error('Error fetching folder recipes:', error);
+      throw error;
+    });
+},
+  
+
+  // Guardar una receta en una carpeta
+  saveRecipeToFolder(folderId, recipeId) {
+    return apiClient.post(`/folders/${folderId}/recipes/${recipeId}`)
+    .then(response => response.data)
+      .catch(error => {
+        console.error('Error saving recipe to folder:', error);
+        throw error;
+      });
+  },
+
+  // Obtener las recetas guardadas por el usuario
+  fetchUserSavedRecipes() {
+    return apiClient.get('/user/saved-recipes')
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching user saved recipes:', error);
+        throw error;
+      });
+  },
+  // Obtener las carpetas del usuario
+  fetchUserFolders() {
+    return apiClient.get('/folders')
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching user folders:', error);
+        throw error;
+      });
+  },
+  // Método para eliminar una carpeta
+deleteFolder(folderId) {
+  return apiClient.delete(`/folders/${folderId}`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error eliminando carpeta:', error);
+      throw error;
+    });
+},
+saveRecipeToFolder(folderId, recipeId) {
+  return apiClient.post(`/folders/${folderId}/recipes/${recipeId}`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error saving recipe to folder:', error.response ? error.response.data : error.message);
+      throw error;
+    });
+},
+// Guardar o quitar una receta de las recetas guardadas
+toggleSaveRecipe(recipeId) {
+  return apiClient.post(`/saved-recipes/toggle/${recipeId}`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error toggling saved recipe:', error);
+      throw error;
+    });
 }
 
-
+    
 };
 
 export default communicationManager;

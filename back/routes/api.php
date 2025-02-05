@@ -6,6 +6,7 @@ use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CuisineController;
 use App\Http\Controllers\SavedRecipeController;
+use App\Http\Controllers\FolderController;
 
 // Categorías
 Route::middleware('auth:sanctum')->post('/categories', [CategoryController::class, 'store']);
@@ -77,7 +78,19 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) { //
     return response()->json($request->user());
 });
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/recipes/{id}/comment', [RecipeController::class, 'addOrUpdateComment']);
+    Route::post('/recipes/{id}/comment', [RecipeController::class, 'addComment']);
     Route::get('/recipes/{id}/comments', [RecipeController::class, 'getRecipeComments']);
     Route::delete('/recipes/{id}/comment', [RecipeController::class, 'deleteComment']);
+});// api.php
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/folders', [FolderController::class, 'store']); // Crear carpeta
+    Route::post('/folders/{folderId}/recipes/{recipeId}', [FolderController::class, 'addRecipe']); // Añadir receta a carpeta
+    Route::get('/folders/{folder}', [FolderController::class, 'show']); // Mostrar carpeta
+    Route::delete('/folders/{folderId}/recipes/{recipeId}', [FolderController::class, 'removeRecipe']); // Eliminar receta de carpeta
+    Route::delete('/folders/{folderId}', [FolderController::class, 'removeFolder']); // Eliminar carpeta
+    Route::middleware('auth:sanctum')->get('/folders', [FolderController::class, 'index']);  // Obtener todas las carpetas del usuario autenticado
+
 });
+Route::middleware('auth:sanctum')->get('/folders/{folder}/recipes', [FolderController::class, 'getRecipes']);
+

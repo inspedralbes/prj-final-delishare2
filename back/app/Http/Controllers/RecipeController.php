@@ -246,48 +246,56 @@ public function filterByUser($userId)
 
 
 //comentario
+public function getRecipeComments($recipeId)
+{
+    // Obtener los comentarios junto con el nombre del usuario
+    $comments = DB::table('recipe_user')
+        ->where('recipe_id', $recipeId)
+        ->whereNotNull('comment')
+        ->join('users', 'recipe_user.user_id', '=', 'users.id')
+        ->select('users.name', 'recipe_user.comment', 'recipe_user.updated_at')
+        ->orderByDesc('recipe_user.updated_at')
+        ->get();
 
-  // Guardar o actualizar un comentario
-   // Guardar o actualizar un comentario
-   public function addOrUpdateComment(Request $request, $recipeId)
-   {
-       $userId = $request->user()->id;
+    return response()->json($comments);
+}
 
-       $request->validate([
-           'comment' => 'required|string|max:1000'
-       ]);
 
-       $recipeUser = RecipeUser::updateOrCreate(
-           ['user_id' => $userId, 'recipe_id' => $recipeId],
-           ['comment' => $request->comment, 'updated_at' => now()]
-       );
+public function addComment(Request $request, $recipeId)
+{
+    $userId = $request->user()->id;
 
-       return response()->json(['message' => 'Comentario agregado/actualizado correctamente', 'comment' => $recipeUser->comment]);
-   }
+    $request->validate([
+        'comment' => 'required|string|max:1000'
+    ]);
 
-   // Obtener todos los comentarios de una receta
-   public function getRecipeComments($recipeId)
-   {
-       $comments = DB::table('recipe_user')
-           ->where('recipe_id', $recipeId)
-           ->whereNotNull('comment')
-           ->join('users', 'recipe_user.user_id', '=', 'users.id')
-           ->select('users.name', 'recipe_user.comment', 'recipe_user.updated_at')
-           ->orderByDesc('recipe_user.updated_at')
-           ->get();
+    // Crear un nuevo comentario para la receta
+    $recipeUser = RecipeUser::create([
+        'user_id' => $userId,
+        'recipe_id' => $recipeId,
+        'comment' => $request->comment,
+        'created_at' => now(),
+        'updated_at' => now()
+    ]);
 
-       return response()->json($comments);
-   }
+    return response()->json([
+        'message' => 'Comentario agregado correctamente',
+        'comment' => $recipeUser->comment
+    ]);
+}
 
-   // Eliminar un comentario
-   public function deleteComment(Request $request, $recipeId)
-   {
-       $userId = $request->user()->id;
 
-       RecipeUser::where('user_id', $userId)
-           ->where('recipe_id', $recipeId)
-           ->update(['comment' => null, 'updated_at' => now()]);
+// Eliminar un comentario
+public function deleteComment(Request $request, $recipeId)
+{
+    $userId = $request->user()->id;
 
-       return response()->json(['message' => 'Comentario eliminado correctamente']);
-   }
+    // Eliminar el comentario del usuario sobre la receta
+    RecipeUser::where('user_id', $userId)
+        ->where('recipe_id', $recipeId)
+        ->update(['comment' => null, 'updated_at' => now()]);
+
+    return response()->json(['message' => 'Comentario eliminado correctamente']);
+}
+
 }

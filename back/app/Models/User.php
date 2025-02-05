@@ -33,5 +33,10 @@ public function savedRecipes()
         ->withPivot('saved', 'liked')
         ->wherePivot('saved', true);  // Filtro por recetas guardadas
 }
+// En User.php
+public function folders()
+{
+    return $this->hasMany(Folder::class);
+}
 
 }

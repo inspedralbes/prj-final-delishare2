@@ -13,7 +13,7 @@ class CreateRecipeUserTable extends Migration
             $table->foreignId('recipe_id')->constrained()->onDelete('cascade'); 
             $table->boolean('saved')->default(false);
             $table->boolean('liked')->default(false);
-            $table->text('comment')->nullable(); // Nuevo campo para comentarios
+            $table->text('comment')->nullable(); 
             $table->timestamps();
         });
     }

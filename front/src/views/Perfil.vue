@@ -1,74 +1,121 @@
 <template>
-    <div class="profile-container">
-      <div class="profile-header">
-        <label for="file-input" class="profile-picture">
-          <img :src="userImage" alt="Foto de perfil" />
-          <input id="file-input" type="file" @change="uploadImage" hidden />
-        </label>
-        <h2>{{ user.name }}</h2>
-        <p>{{ user.email }}</p>
-        <button @click="showEditProfile = !showEditProfile">Editar perfil</button>
-      </div>
-      
-      <div v-if="showEditProfile" class="edit-sections">
-        <button @click="activeTab = 'profile'">Editar Información</button>
-        <button @click="activeTab = 'password'">Cambiar Contraseña</button>
+  <div class="profile-container">
+    <div class="profile-header">
+      <label for="file-input" class="profile-picture">
+        <img :src="userImage" alt="Foto de perfil" />
+        <input id="file-input" type="file" @change="uploadImage" hidden />
+      </label>
+      <h2>{{ user.name }}</h2>
+      <p>{{ user.email }}</p>
+      <button @click="showEditProfile = !showEditProfile">Editar perfil</button>
+    </div>
+
+    <div v-if="showEditProfile" class="edit-sections">
+      <button @click="activeTab = 'profile'">Editar Información</button>
+      <button @click="activeTab = 'password'">Cambiar Contraseña</button>
+
+      <div v-if="activeTab === 'profile'" class="profile-info">
+        <label>Nombre:</label>
+        <input type="text" v-model="user.name" />
         
-        <div v-if="activeTab === 'profile'" class="profile-info">
-          <label>Nombre:</label>
-          <input type="text" v-model="user.name" />
-          
-          <label>Email:</label>
-          <input type="email" v-model="user.email" />
-          
-          <button @click="updateProfile">Guardar cambios</button>
-        </div>
+        <label>Email:</label>
+        <input type="email" v-model="user.email" />
         
-        <div v-if="activeTab === 'password'" class="profile-info">
-          <label>Contraseña Actual:</label>
-          <div class="password-field">
-            <input
-              :type="showCurrentPassword ? 'text' : 'password'"
-              v-model="currentPassword"
-            />
-            <button @click="toggleShowCurrentPassword" class="eye-icon">
-              <img v-if="showCurrentPassword" src="@/assets/images/ojoAbierto.png" alt="Mostrar contraseña" />
-              <img v-if="!showCurrentPassword" src="@/assets/images/ojo.png" alt="Ocultar contraseña" />
-            </button>
-          </div>
-          <label>Nueva Contraseña:</label>
-          <div class="password-field">
-            <input
-              :type="showNewPassword ? 'text' : 'password'"
-              v-model="newPassword"
-            />
-            <button @click="toggleShowNewPassword" class="eye-icon">
-              <img v-if="showNewPassword" src="@/assets/images/ojoAbierto.png" alt="Mostrar contraseña" />
-              <img v-if="!showNewPassword" src="@/assets/images/ojo.png" alt="Ocultar contraseña" />
-            </button>
-          </div>
-          <label>Confirmar Nueva Contraseña:</label>
-          <div class="password-field">
-            <input
-              :type="showConfirmPassword ? 'text' : 'password'"
-              v-model="confirmPassword"
-            />
-            <button @click="toggleShowConfirmPassword" class="eye-icon">
-              <img v-if="showConfirmPassword" src="@/assets/images/ojoAbierto.png" alt="Mostrar contraseña" />
-              <img v-if="!showConfirmPassword" src="@/assets/images/ojo.png" alt="Ocultar contraseña" />
-            </button>
-          </div>
-          <button @click="updatePassword">Cambiar Contraseña</button>
+        <button @click="updateProfile">Guardar cambios</button>
+      </div>
+
+      <div v-if="activeTab === 'password'" class="profile-info">
+        <label>Contraseña Actual:</label>
+        <div class="password-field">
+          <input
+            :type="showCurrentPassword ? 'text' : 'password'"
+            v-model="currentPassword"
+          />
+          <button @click="toggleShowCurrentPassword" class="eye-icon">
+            <img v-if="showCurrentPassword" src="@/assets/images/ojoAbierto.png" alt="Mostrar contraseña" />
+            <img v-if="!showCurrentPassword" src="@/assets/images/ojo.png" alt="Ocultar contraseña" />
+          </button>
+        </div>
+        <label>Nueva Contraseña:</label>
+        <div class="password-field">
+          <input
+            :type="showNewPassword ? 'text' : 'password'"
+            v-model="newPassword"
+          />
+          <button @click="toggleShowNewPassword" class="eye-icon">
+            <img v-if="showNewPassword" src="@/assets/images/ojoAbierto.png" alt="Mostrar contraseña" />
+            <img v-if="!showNewPassword" src="@/assets/images/ojo.png" alt="Ocultar contraseña" />
+          </button>
+        </div>
+        <label>Confirmar Nueva Contraseña:</label>
+        <div class="password-field">
+          <input
+            :type="showConfirmPassword ? 'text' : 'password'"
+            v-model="confirmPassword"
+          />
+          <button @click="toggleShowConfirmPassword" class="eye-icon">
+            <img v-if="showConfirmPassword" src="@/assets/images/ojoAbierto.png" alt="Mostrar contraseña" />
+            <img v-if="!showConfirmPassword" src="@/assets/images/ojo.png" alt="Ocultar contraseña" />
+          </button>
+        </div>
+        <button @click="updatePassword">Cambiar Contraseña</button>
+      </div>
+    </div>
+
+    <!-- Botones de Ver Publicaciones y Mis Guardadas -->
+    <div class="profile-actions">
+      <button @click="activeTab = 'publications'">Ver Publicaciones</button>
+      <button @click="activeTab = 'savedRecipes'">Mis Guardadas</button>
+    </div>
+
+    <!-- Mostrar las recetas creadas por el usuario en tarjetas -->
+    <div v-if="activeTab === 'publications' && recipes.length > 0" class="user-recipes">
+      <h3>Recetas creadas</h3>
+      <div class="recipe-cards">
+        <div
+          class="recipe-card"
+          v-for="recipe in recipes"
+          :key="recipe.id"
+        >
+          <router-link :to="{ name: 'InfoReceta', params: { recipeId: recipe.id } }">
+            <img :src="recipe.image" :alt="recipe.title" class="recipe-image" />
+            <div class="recipe-info">
+              <p class="recipe-title">{{ recipe.title }}</p>
+              <p class="recipe-description">{{ recipe.description }}</p>
+            </div>
+          </router-link>
         </div>
       </div>
-      
-      <!-- Mostrar las recetas creadas por el usuario en tarjetas -->
-      <div class="user-recipes" v-if="recipes.length > 0">
-        <h3>Recetas creadas</h3>
+    </div>
+
+    <!-- Mostrar mis carpetas y recetas guardadas -->
+    <div v-if="activeTab === 'savedRecipes'" class="saved-recipes">
+      <input
+        v-if="showCreateFolderInput"
+        type="text"
+        v-model="newFolderName"
+        placeholder="Nombre de nueva carpeta"
+      />
+      <button v-if="showCreateFolderInput" @click="createFolder">Crear Carpeta</button>
+      <button v-else @click="showCreateFolderInput = true">Añadir Carpeta</button>
+
+      <div class="folders" v-if="folders.length > 0">
+        <div
+          class="folder-card"
+          v-for="folder in folders"
+          :key="folder.id"
+          @click="fetchFolderRecipes(folder.id)"
+        >
+          <h4>{{ folder.name }}</h4>
+        </div>
+      </div>
+
+      <div v-if="selectedFolderRecipes.length > 0" class="folder-recipes">
+        <h3>Recetas en la Carpeta</h3>
         <div class="recipe-cards">
           <div
             class="recipe-card"
-            v-for="recipe in recipes"
+            v-for="recipe in selectedFolderRecipes"
             :key="recipe.id"
           >
             <router-link :to="{ name: 'InfoReceta', params: { recipeId: recipe.id } }">
@@ -82,238 +129,253 @@
         </div>
       </div>
       <div v-else>
-        <p>No has creado ninguna receta aún.</p>
+        <p>La carpeta está vacía.</p>
       </div>
     </div>
-  </template>
-  
-  <script>
-  import { useAuthStore } from '@/stores/authStore';
-  import communicationManager from '@/services/communicationManager';
-  import { ref, onMounted } from 'vue';
-  
-  export default {
-    setup() {
-      const authStore = useAuthStore();
-      const user = ref({ name: '', email: '' });
-      const currentPassword = ref('');
-      const newPassword = ref('');
-      const confirmPassword = ref('');
-      const userImage = ref('/default-avatar.png');
-      const recipes = ref([]);
-      const showEditProfile = ref(false);
-      const activeTab = ref('profile');
-  
-      const showCurrentPassword = ref(false);
-      const showNewPassword = ref(false);
-      const showConfirmPassword = ref(false);
-  
-      // Obtener los datos del usuario y recetas creadas
-      onMounted(async () => {
+  </div>
+</template>
+
+<script>
+import { useAuthStore } from '@/stores/authStore';
+import communicationManager from '@/services/communicationManager';
+import { ref, onMounted } from 'vue';
+
+export default {
+  setup() {
+    const authStore = useAuthStore();
+    const user = ref({ name: '', email: '' });
+    const currentPassword = ref('');
+    const newPassword = ref('');
+    const confirmPassword = ref('');
+    const userImage = ref('/default-avatar.png');
+    const recipes = ref([]);
+    const folders = ref([]);
+    const selectedFolderRecipes = ref([]);
+    const showCreateFolderInput = ref(false);
+    const newFolderName = ref('');
+    const activeTab = ref('publications');
+    const showEditProfile = ref(false);
+
+    const showCurrentPassword = ref(false);
+    const showNewPassword = ref(false);
+    const showConfirmPassword = ref(false);
+
+    // Obtener los datos del usuario y recetas creadas
+    onMounted(async () => {
+      try {
+        const userData = await communicationManager.getUser();
+        user.value = userData;
+        userImage.value = userData.profile_picture || '/default-avatar.png';
+
+        const userRecipes = await communicationManager.getUserRecipes();
+        recipes.value = userRecipes;
+
+        const userFolders = await communicationManager.fetchUserFolders();
+        folders.value = userFolders;
+      } catch (error) {
+        console.error('Error cargando datos del usuario o recetas', error);
+      }
+    });
+
+    const updateProfile = async () => {
+      try {
+        await communicationManager.updateProfile({
+          name: user.value.name,
+          email: user.value.email,
+        });
+        alert("Perfil actualizado correctamente");
+      } catch (error) {
+        console.error('Error actualizando perfil', error);
+      }
+    };
+
+    const updatePassword = async () => {
+      if (newPassword.value !== confirmPassword.value) {
+        alert("Las contraseñas no coinciden");
+        return;
+      }
+
+      try {
+        await communicationManager.changePassword({
+          contrasena_actual: currentPassword.value,
+          nueva_contrasena: newPassword.value,
+        });
+        alert("Contraseña actualizada correctamente");
+      } catch (error) {
+        console.error('Error cambiando la contraseña', error);
+        alert('Error al cambiar la contraseña');
+      }
+    };
+
+    const createFolder = async () => {
+      if (newFolderName.value.trim() === '') return;
+
+      try {
+        await communicationManager.createFolder(newFolderName.value);
+        alert('Carpeta creada');
+        showCreateFolderInput.value = false;
+        newFolderName.value = '';
+        folders.value = await communicationManager.fetchUserFolders();
+      } catch (error) {
+        console.error('Error creando carpeta', error);
+      }
+    };
+
+    const fetchFolderRecipes = async (folderId) => {
+      try {
+        selectedFolderRecipes.value = await communicationManager.fetchFolderRecipes(folderId);
+      } catch (error) {
+        console.error('Error obteniendo recetas de la carpeta', error);
+      }
+    };
+
+    const uploadImage = async (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const formData = new FormData();
+        formData.append('profile_picture', file);
+
         try {
-          const userData = await communicationManager.getUser();
-          user.value = userData;
-          userImage.value = userData.profile_picture || '/default-avatar.png';
-  
-          const userRecipes = await communicationManager.getUserRecipes();  // Asumimos que tienes un método para obtener recetas creadas
-          recipes.value = userRecipes;
+          const response = await communicationManager.updateProfilePicture(formData);
+          userImage.value = response.profile_picture;
         } catch (error) {
-          console.error('Error cargando datos del usuario o recetas', error);
+          console.error('Error subiendo imagen de perfil', error);
         }
-      });
-  
-      const updateProfile = async () => {
-        try {
-          await communicationManager.updateProfile({
-            name: user.value.name,
-            email: user.value.email,
-          });
-          alert("Perfil actualizado correctamente");
-        } catch (error) {
-          console.error('Error actualizando perfil', error);
-        }
-      };
-  
-      const updatePassword = async () => {
-        if (newPassword.value !== confirmPassword.value) {
-          alert("Las contraseñas no coinciden");
-          return;
-        }
-  
-        try {
-          const response = await communicationManager.changePassword({
-            contrasena_actual: currentPassword.value,
-            nueva_contrasena: newPassword.value,
-          });
-          alert("Contraseña actualizada correctamente");
-        } catch (error) {
-          console.error('Error cambiando la contraseña', error);
-          alert('Error al cambiar la contraseña');
-        }
-      };
-  
-      const toggleShowCurrentPassword = () => {
-        showCurrentPassword.value = !showCurrentPassword.value;
-      };
-  
-      const toggleShowNewPassword = () => {
-        showNewPassword.value = !showNewPassword.value;
-      };
-  
-      const toggleShowConfirmPassword = () => {
-        showConfirmPassword.value = !showConfirmPassword.value;
-      };
-  
-      const uploadImage = async (event) => {
-        const file = event.target.files[0];
-        if (file) {
-          const formData = new FormData();
-          formData.append('profile_picture', file);
-  
-          try {
-            const response = await communicationManager.updateProfilePicture(formData);
-            userImage.value = response.profile_picture;
-          } catch (error) {
-            console.error('Error subiendo la imagen', error);
-          }
-        }
-      };
-  
-      return {
-        user,
-        currentPassword,
-        newPassword,
-        confirmPassword,
-        userImage,
-        recipes,
-        showEditProfile,
-        activeTab,
-        showCurrentPassword,
-        showNewPassword,
-        showConfirmPassword,
-        updateProfile,
-        updatePassword,
-        toggleShowCurrentPassword,
-        toggleShowNewPassword,
-        toggleShowConfirmPassword,
-        uploadImage,
-      };
-    },
-  };
-  </script>
-  
-  <style scoped>
-  /* Tu estilo original para el perfil */
-  .profile-container {
-    padding: 20px;
-  }
-  
-  .profile-header {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .profile-picture img {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-  
-  .profile-info {
-    margin-bottom: 20px;
-  }
-  
-  .profile-info label {
-    display: block;
-    margin-bottom: 5px;
-  }
-  
-  .profile-info input {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  
-  .profile-info button {
-    padding: 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .profile-info button:hover {
-    background-color: #0056b3;
-  }
-  
-  /* Estilos para las recetas */
-  .user-recipes {
-    margin-top: 20px;
-  }
-  
-  .recipe-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
-  }
-  
-  .recipe-card {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.3s ease-in-out;
-  }
-  
-  .recipe-card:hover {
-    transform: scale(1.05);
-  }
-  
-  .recipe-image {
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-  }
-  
-  .recipe-info {
-    padding: 10px;
-  }
-  
-  .recipe-title {
-    font-size: 1.2em;
-    font-weight: bold;
-  }
-  
-  .recipe-description {
-    font-size: 0.9em;
-    color: #666;
-  }
-  
-  /* Estilos para la vista de contraseña */
-  .password-field {
-    display: flex;
-    align-items: center;
-  }
-  
-  .password-field input {
-    width: calc(100% - 40px);
-  }
-  
-  .eye-icon {
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-left: 10px;
-  }
-  
-  .eye-icon img {
-    width: 20px;
-    height: 20px;
-  }
-  </style>
-  
+      }
+    };
+
+    const toggleShowCurrentPassword = () => showCurrentPassword.value = !showCurrentPassword.value;
+    const toggleShowNewPassword = () => showNewPassword.value = !showNewPassword.value;
+    const toggleShowConfirmPassword = () => showConfirmPassword.value = !showConfirmPassword.value;
+
+    return {
+      user,
+      currentPassword,
+      newPassword,
+      confirmPassword,
+      userImage,
+      recipes,
+      folders,
+      selectedFolderRecipes,
+      showCreateFolderInput,
+      newFolderName,
+      activeTab,
+      showEditProfile,
+      showCurrentPassword,
+      showNewPassword,
+      showConfirmPassword,
+      updateProfile,
+      updatePassword,
+      createFolder,
+      fetchFolderRecipes,
+      uploadImage,
+      toggleShowCurrentPassword,
+      toggleShowNewPassword,
+      toggleShowConfirmPassword,
+    };
+  },
+};
+</script>
+
+<style scoped>
+.profile-container {
+  padding: 20px;
+}
+.profile-header {
+  text-align: center;
+}
+.profile-header .profile-picture img {
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+}
+.profile-header h2,
+.profile-header p {
+  margin: 10px 0;
+}
+.profile-actions {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+.profile-actions button {
+  padding: 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+.profile-actions button:hover {
+  background-color: #45a049;
+}
+.edit-sections button {
+  margin: 10px;
+  padding: 10px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+.edit-sections button:hover {
+  background-color: #1e88e5;
+}
+.profile-info {
+  margin: 20px 0;
+}
+.password-field {
+  display: flex;
+  align-items: center;
+}
+.password-field input {
+  flex: 1;
+  padding: 10px;
+  margin-right: 10px;
+  font-size: 14px;
+}
+.eye-icon {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+}
+.eye-icon img {
+  width: 18px;
+  height: 18px;
+}
+.recipe-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.recipe-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  width: 200px;
+  padding: 10px;
+}
+.recipe-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+.recipe-info {
+  text-align: center;
+  margin-top: 10px;
+}
+.folders {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+}
+.folder-card {
+  background-color: #f1f1f1;
+  padding: 15px;
+  cursor: pointer;
+  text-align: center;
+  border-radius: 8px;
+}
+.saved-recipes {
+  margin-top: 20px;
+}
+</style>

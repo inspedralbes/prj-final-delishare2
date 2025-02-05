@@ -47,6 +47,9 @@ class Recipe extends Model
 {
     return $this->belongsToMany(User::class, 'recipe_user')->withPivot('saved', 'liked')->where('saved', true);
 }
-
+  public function folders()
+  {
+      return $this->belongsToMany(Folder::class, 'folder_recipe');
+  }
     
 }
