@@ -3,10 +3,10 @@
     <button class="back-button" @click="goBack">← Volver</button>
 
     <!-- Botón de guardar receta normal -->
-    <button @click="saveToSavedRecipes(recipe.id)" :disabled="isButtonDisabled">Guardar receta en Guardadas</button>
+    <button @click="saveToSavedRecipes(recipe.id)">Guardar receta en Guardadas</button>
 
     <!-- Botón de guardar receta en carpeta -->
-    <button @click="showFolderSelection = true" :disabled="isButtonDisabled">Guardar receta en mi carpeta</button>
+    <button @click="showFolderSelection = true">Guardar receta en mi carpeta</button>
 
     <!-- Selector de carpetas (mostrar solo si se activa la opción) -->
     <div v-if="showFolderSelection">
@@ -61,6 +61,7 @@
     </div>
   </div>
 </template>
+
 <script>
 import { useSavedRecipesStore } from '@/stores/gestionPinia';
 import { ref, computed } from 'vue';
@@ -84,7 +85,6 @@ export default {
       },
       comments: [],
       newComment: '',
-      isButtonDisabled: false,
       showFolderSelection: false,
       selectedFolderId: null,
       userFolders: [],
@@ -98,10 +98,6 @@ export default {
     isLiked() {
       const savedRecipesStore = useSavedRecipesStore();
       return savedRecipesStore.isRecipeLiked(this.recipe.id);
-    },
-    isButtonDisabled() {
-      // Deshabilitar si la receta está guardada o si ya le dio like
-      return this.isSaved || this.isLiked; 
     }
   },
   async created() {
@@ -171,7 +167,6 @@ export default {
   }
 };
 </script>
-
 
 <style scoped>
 button {
