@@ -325,6 +325,16 @@ deleteFolder(folderId) {
       throw error;
     });
 },
+
+  // Eliminar receta
+  deleteRecipe(recipeId) {
+    return apiClient.delete(`/recipes/${recipeId}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error eliminando receta:', error);
+        throw error;
+      });
+  },
 saveRecipeToFolder(folderId, recipeId) {
   return apiClient.post(`/folders/${folderId}/recipes/${recipeId}`)
     .then(response => response.data)

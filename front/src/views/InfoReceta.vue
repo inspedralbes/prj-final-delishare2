@@ -17,14 +17,6 @@
       <button @click="showFolderSelection = false">Cancelar</button>
     </div>
 
-    <!-- Botón de like -->
-    <button v-if="!isLiked" @click="likeRecipe(recipe.id)">
-      Dar like
-    </button>
-    <button v-if="isLiked" @click="unlikeRecipe(recipe.id)">
-      Quitar like
-    </button>
-
     <h1 class="recipe-title">{{ recipe.title }}</h1>
 
     <p><strong>Creador:</strong> {{ recipe.creador }}</p>
@@ -69,7 +61,6 @@
     </div>
   </div>
 </template>
-
 <script>
 import { useSavedRecipesStore } from '@/stores/gestionPinia';
 import { ref, computed } from 'vue';
@@ -89,6 +80,7 @@ export default {
         cook_time: 0,
         servings: 0,
         likes_count: 0,
+        creador: '',  // Añadido para manejar el creador de la receta
       },
       comments: [],
       newComment: '',
@@ -108,7 +100,8 @@ export default {
       return savedRecipesStore.isRecipeLiked(this.recipe.id);
     },
     isButtonDisabled() {
-      return this.isSaved || this.isLiked; // Deshabilitar si ya está guardada
+      // Deshabilitar si la receta está guardada o si ya le dio like
+      return this.isSaved || this.isLiked; 
     }
   },
   async created() {
@@ -149,38 +142,36 @@ export default {
     },
 
     async saveToSavedRecipes() {
-  const recipeId = this.recipe.id;  // Usamos el ID de la receta actual
-  try {
-    // Llama al método correcto para guardar o quitar la receta
-    await communicationManager.toggleSaveRecipe(recipeId);
-    alert('Receta guardada en tus favoritos');
-  } catch (error) {
-    console.error('Error al guardar receta:', error);
-  }
-
+      const recipeId = this.recipe.id;  // Usamos el ID de la receta actual
+      try {
+        // Llama al método correcto para guardar o quitar la receta
+        await communicationManager.toggleSaveRecipe(recipeId);
+        alert('Receta guardada en tus favoritos');
+      } catch (error) {
+        console.error('Error al guardar receta:', error);
+      }
     },
 
     async saveToFolder() {
-  if (!this.selectedFolderId) {
-    alert('Por favor, selecciona una carpeta');
-    return;
-  }
+      if (!this.selectedFolderId) {
+        alert('Por favor, selecciona una carpeta');
+        return;
+      }
 
-  try {
-    // Asegúrate de que estamos enviando el ID de la receta correcto
-    const recipeId = this.recipe.id;  // Usamos el ID de la receta actual
-    await communicationManager.saveRecipeToFolder(this.selectedFolderId, recipeId);
-    alert(`Receta guardada en la carpeta: ${this.userFolders.find(f => f.id === this.selectedFolderId).name}`);
-    this.showFolderSelection = false; // Cerrar selector de carpetas
-  } catch (error) {
-    console.error('Error al guardar receta en carpeta:', error);
-  }
-}
-
-
+      try {
+        // Usamos el ID de la receta y la carpeta seleccionada
+        const recipeId = this.recipe.id;  // Usamos el ID de la receta actual
+        await communicationManager.saveRecipeToFolder(this.selectedFolderId, recipeId);
+        alert(`Receta guardada en la carpeta: ${this.userFolders.find(f => f.id === this.selectedFolderId).name}`);
+        this.showFolderSelection = false; // Cerrar selector de carpetas
+      } catch (error) {
+        console.error('Error al guardar receta en carpeta:', error);
+      }
+    }
   }
 };
 </script>
+
 
 <style scoped>
 button {

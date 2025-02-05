@@ -125,6 +125,7 @@
                 <p class="recipe-description">{{ recipe.description }}</p>
               </div>
             </router-link>
+            <button @click="deleteRecipeFromFolder(recipe.id, selectedFolder.id)">Eliminar</button>
           </div>
         </div>
       </div>
@@ -132,6 +133,7 @@
         <p>La carpeta está vacía.</p>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -155,7 +157,7 @@ export default {
     const newFolderName = ref('');
     const activeTab = ref('publications');
     const showEditProfile = ref(false);
-
+    const selectedRecipes = ref([]);
     const showCurrentPassword = ref(false);
     const showNewPassword = ref(false);
     const showConfirmPassword = ref(false);
@@ -229,6 +231,17 @@ export default {
       }
     };
 
+    const deleteRecipeFromFolder = async (recipeId, folderId) => {
+      try {
+        await communicationManager.removeRecipeFromFolder(recipeId, folderId);
+        alert("Receta eliminada de la carpeta");
+        fetchFolderRecipes(folderId);
+      } catch (error) {
+        console.error('Error eliminando receta de la carpeta', error);
+        alert('Error al eliminar receta');
+      }
+    };
+
     const uploadImage = async (event) => {
       const file = event.target.files[0];
       if (file) {
@@ -268,6 +281,7 @@ export default {
       updatePassword,
       createFolder,
       fetchFolderRecipes,
+      deleteRecipeFromFolder,
       uploadImage,
       toggleShowCurrentPassword,
       toggleShowNewPassword,
