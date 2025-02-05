@@ -276,7 +276,6 @@ createFolder(folderName) {
       throw error;
     });
   },
-
 // Obtener las recetas de una carpeta
 fetchFolderRecipes(folderId) {
   return apiClient.get(`/folders/${folderId}/recipes`)
@@ -286,7 +285,7 @@ fetchFolderRecipes(folderId) {
       throw error;
     });
 },
-  
+
 
   // Guardar una receta en una carpeta
   saveRecipeToFolder(folderId, recipeId) {
@@ -297,7 +296,16 @@ fetchFolderRecipes(folderId) {
         throw error;
       });
   },
-
+ // Eliminar receta de una carpeta
+ async removeRecipeFromFolder(recipeId, folderId) {
+  try {
+    const response = await apiClient.delete(`/folders/${folderId}/recipes/${recipeId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error removing recipe from folder:', error);
+    throw error;
+  }
+},
   // Obtener las recetas guardadas por el usuario
   fetchUserSavedRecipes() {
     return apiClient.get('/user/saved-recipes')

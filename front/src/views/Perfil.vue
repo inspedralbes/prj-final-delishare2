@@ -17,20 +17,17 @@
       <div v-if="activeTab === 'profile'" class="profile-info">
         <label>Nombre:</label>
         <input type="text" v-model="user.name" />
-        
+
         <label>Email:</label>
         <input type="email" v-model="user.email" />
-        
+
         <button @click="updateProfile">Guardar cambios</button>
       </div>
 
       <div v-if="activeTab === 'password'" class="profile-info">
         <label>Contraseña Actual:</label>
         <div class="password-field">
-          <input
-            :type="showCurrentPassword ? 'text' : 'password'"
-            v-model="currentPassword"
-          />
+          <input :type="showCurrentPassword ? 'text' : 'password'" v-model="currentPassword" />
           <button @click="toggleShowCurrentPassword" class="eye-icon">
             <img v-if="showCurrentPassword" src="@/assets/images/ojoAbierto.png" alt="Mostrar contraseña" />
             <img v-if="!showCurrentPassword" src="@/assets/images/ojo.png" alt="Ocultar contraseña" />
@@ -38,10 +35,7 @@
         </div>
         <label>Nueva Contraseña:</label>
         <div class="password-field">
-          <input
-            :type="showNewPassword ? 'text' : 'password'"
-            v-model="newPassword"
-          />
+          <input :type="showNewPassword ? 'text' : 'password'" v-model="newPassword" />
           <button @click="toggleShowNewPassword" class="eye-icon">
             <img v-if="showNewPassword" src="@/assets/images/ojoAbierto.png" alt="Mostrar contraseña" />
             <img v-if="!showNewPassword" src="@/assets/images/ojo.png" alt="Ocultar contraseña" />
@@ -49,10 +43,7 @@
         </div>
         <label>Confirmar Nueva Contraseña:</label>
         <div class="password-field">
-          <input
-            :type="showConfirmPassword ? 'text' : 'password'"
-            v-model="confirmPassword"
-          />
+          <input :type="showConfirmPassword ? 'text' : 'password'" v-model="confirmPassword" />
           <button @click="toggleShowConfirmPassword" class="eye-icon">
             <img v-if="showConfirmPassword" src="@/assets/images/ojoAbierto.png" alt="Mostrar contraseña" />
             <img v-if="!showConfirmPassword" src="@/assets/images/ojo.png" alt="Ocultar contraseña" />
@@ -72,11 +63,7 @@
     <div v-if="activeTab === 'publications' && recipes.length > 0" class="user-recipes">
       <h3>Recetas creadas</h3>
       <div class="recipe-cards">
-        <div
-          class="recipe-card"
-          v-for="recipe in recipes"
-          :key="recipe.id"
-        >
+        <div class="recipe-card" v-for="recipe in recipes" :key="recipe.id">
           <router-link :to="{ name: 'InfoReceta', params: { recipeId: recipe.id } }">
             <img :src="recipe.image" :alt="recipe.title" class="recipe-image" />
             <div class="recipe-info">
@@ -88,53 +75,47 @@
       </div>
     </div>
 
-    <!-- Mostrar mis carpetas y recetas guardadas -->
-    <div v-if="activeTab === 'savedRecipes'" class="saved-recipes">
-      <input
-        v-if="showCreateFolderInput"
-        type="text"
-        v-model="newFolderName"
-        placeholder="Nombre de nueva carpeta"
-      />
-      <button v-if="showCreateFolderInput" @click="createFolder">Crear Carpeta</button>
-      <button v-else @click="showCreateFolderInput = true">Añadir Carpeta</button>
+<!-- Mostrar mis carpetas y recetas guardadas -->
+<div v-if="activeTab === 'savedRecipes'" class="saved-recipes">
+  <input v-if="showCreateFolderInput" type="text" v-model="newFolderName" placeholder="Nombre de nueva carpeta" />
+  <button v-if="showCreateFolderInput" @click="createFolder">Crear Carpeta</button>
+  <button v-else @click="showCreateFolderInput = true">Añadir Carpeta</button>
 
-      <div class="folders" v-if="folders.length > 0">
-        <div
-          class="folder-card"
-          v-for="folder in folders"
-          :key="folder.id"
-          @click="fetchFolderRecipes(folder.id)"
-        >
-          <h4>{{ folder.name }}</h4>
-        </div>
-      </div>
+  <div class="folders" v-if="folders.length > 0">
+    <div class="folder-card" v-for="folder in folders" :key="folder.id" @click="fetchFolderRecipes(folder.id)">
+      <h4>{{ folder.name }}</h4>
+      <!-- Mostrar el botón de eliminar solo si 'folder' tiene un 'id' -->
+      <button v-if="folder && folder.id" @click="deleteFolder(folder.id)">Eliminar Carpeta</button>
+    </div>
+  </div>
 
-      <div v-if="selectedFolderRecipes.length > 0" class="folder-recipes">
-        <h3>Recetas en la Carpeta</h3>
-        <div class="recipe-cards">
-          <div
-            class="recipe-card"
-            v-for="recipe in selectedFolderRecipes"
-            :key="recipe.id"
-          >
-            <router-link :to="{ name: 'InfoReceta', params: { recipeId: recipe.id } }">
-              <img :src="recipe.image" :alt="recipe.title" class="recipe-image" />
-              <div class="recipe-info">
-                <p class="recipe-title">{{ recipe.title }}</p>
-                <p class="recipe-description">{{ recipe.description }}</p>
-              </div>
-            </router-link>
-            <button @click="deleteRecipeFromFolder(recipe.id, selectedFolder.id)">Eliminar</button>
+  <!-- Mostrar las recetas dentro de la carpeta seleccionada -->
+  <div v-if="selectedFolderRecipes.length > 0" class="folder-recipes">
+    <h3>Recetas en la Carpeta</h3>
+    <div class="recipe-cards">
+      <div class="recipe-card" v-for="recipe in selectedFolderRecipes" :key="recipe.id">
+        <router-link :to="{ name: 'InfoReceta', params: { recipeId: recipe.id } }">
+          <img :src="recipe.image" :alt="recipe.title" class="recipe-image" />
+          <div class="recipe-info">
+            <p class="recipe-title">{{ recipe.title }}</p>
+            <p class="recipe-description">{{ recipe.description }}</p>
           </div>
-        </div>
-      </div>
-      <div v-else>
-        <p>La carpeta está vacía.</p>
+        </router-link>
+        <!-- Aseguramos que la carpeta seleccionada es válida antes de intentar acceder a su id -->
+        <button 
+  v-if="selectedFolder && selectedFolder.id" 
+  @click="deleteRecipeFromFolder(recipe.id, selectedFolder.id)">
+  Eliminar
+</button>
       </div>
     </div>
-
   </div>
+
+  <div v-else>
+    <p>La carpeta está vacía.</p>
+  </div>
+</div>
+</div>
 </template>
 
 <script>
@@ -153,6 +134,7 @@ export default {
     const recipes = ref([]);
     const folders = ref([]);
     const selectedFolderRecipes = ref([]);
+    const selectedFolder = ref(null); // Aquí definimos selectedFolder
     const showCreateFolderInput = ref(false);
     const newFolderName = ref('');
     const activeTab = ref('publications');
@@ -223,15 +205,29 @@ export default {
       }
     };
 
+    const deleteFolder = async (folderId) => {
+      try {
+        await communicationManager.deleteFolder(folderId);
+        alert('Carpeta eliminada');
+        folders.value = await communicationManager.fetchUserFolders();
+      } catch (error) {
+        console.error('Error eliminando la carpeta', error);
+        alert('Error al eliminar la carpeta');
+      }
+    };
+
     const fetchFolderRecipes = async (folderId) => {
       try {
         selectedFolderRecipes.value = await communicationManager.fetchFolderRecipes(folderId);
+        // Al seleccionar la carpeta, asignamos `selectedFolder` con la carpeta seleccionada
+        selectedFolder.value = folders.value.find(folder => folder.id === folderId);
       } catch (error) {
         console.error('Error obteniendo recetas de la carpeta', error);
       }
     };
 
     const deleteRecipeFromFolder = async (recipeId, folderId) => {
+      console.log("Receta ID:", recipeId, "Carpeta ID:", folderId);
       try {
         await communicationManager.removeRecipeFromFolder(recipeId, folderId);
         alert("Receta eliminada de la carpeta");
@@ -263,15 +259,16 @@ export default {
 
     return {
       user,
+      userImage,
       currentPassword,
       newPassword,
       confirmPassword,
-      userImage,
       recipes,
       folders,
       selectedFolderRecipes,
-      showCreateFolderInput,
+      selectedFolder, // Devolvemos selectedFolder
       newFolderName,
+      showCreateFolderInput,
       activeTab,
       showEditProfile,
       showCurrentPassword,
@@ -281,38 +278,45 @@ export default {
       updatePassword,
       createFolder,
       fetchFolderRecipes,
+      deleteFolder,
       deleteRecipeFromFolder,
       uploadImage,
       toggleShowCurrentPassword,
       toggleShowNewPassword,
       toggleShowConfirmPassword,
     };
-  },
+  }
 };
 </script>
+
 
 <style scoped>
 .profile-container {
   padding: 20px;
 }
+
 .profile-header {
   text-align: center;
 }
+
 .profile-header .profile-picture img {
   border-radius: 50%;
   width: 100px;
   height: 100px;
   object-fit: cover;
 }
+
 .profile-header h2,
 .profile-header p {
   margin: 10px 0;
 }
+
 .profile-actions {
   display: flex;
   justify-content: space-around;
   margin-top: 20px;
 }
+
 .profile-actions button {
   padding: 10px;
   background-color: #4caf50;
@@ -320,9 +324,11 @@ export default {
   border: none;
   cursor: pointer;
 }
+
 .profile-actions button:hover {
   background-color: #45a049;
 }
+
 .edit-sections button {
   margin: 10px;
   padding: 10px;
@@ -331,57 +337,69 @@ export default {
   border: none;
   cursor: pointer;
 }
+
 .edit-sections button:hover {
   background-color: #1e88e5;
 }
+
 .profile-info {
   margin: 20px 0;
 }
+
 .password-field {
   display: flex;
   align-items: center;
 }
+
 .password-field input {
   flex: 1;
   padding: 10px;
   margin-right: 10px;
   font-size: 14px;
 }
+
 .eye-icon {
   background: transparent;
   border: none;
   cursor: pointer;
   padding: 5px;
 }
+
 .eye-icon img {
   width: 18px;
   height: 18px;
 }
+
 .recipe-cards {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
 }
+
 .recipe-card {
   border: 1px solid #ccc;
   border-radius: 8px;
   width: 200px;
   padding: 10px;
 }
+
 .recipe-card img {
   width: 100%;
   height: 150px;
   object-fit: cover;
 }
+
 .recipe-info {
   text-align: center;
   margin-top: 10px;
 }
+
 .folders {
   display: flex;
   gap: 20px;
   margin-top: 20px;
 }
+
 .folder-card {
   background-color: #f1f1f1;
   padding: 15px;
@@ -389,6 +407,7 @@ export default {
   text-align: center;
   border-radius: 8px;
 }
+
 .saved-recipes {
   margin-top: 20px;
 }
