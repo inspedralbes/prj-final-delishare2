@@ -126,16 +126,27 @@ export default {
     },
 
     async addComment() {
-      if (!this.newComment.trim()) return;
+  if (!this.newComment.trim()) return;
 
-      try {
-        await communicationManager.addComment(this.recipe.id, this.newComment);
-        this.comments.push({ comment: this.newComment, name: 'Usuario desconocido' });
-        this.newComment = '';  // Limpiar campo
-      } catch (error) {
-        console.error('Error adding comment:', error);
-      }
-    },
+  try {
+    // Obtiene los datos del usuario autenticado
+    const user = await communicationManager.getUser(); 
+
+    // Enviar comentario al backend
+    await communicationManager.addComment(this.recipe.id, this.newComment);
+
+    // Agregar comentario al estado sin refrescar
+    this.comments.push({
+      comment: this.newComment,
+      name: user.name, // Agregar el nombre del usuario autenticado
+    });
+
+    this.newComment = '';  // Limpiar campo
+  } catch (error) {
+    console.error('Error adding comment:', error);
+  }
+},
+
 
     async saveToSavedRecipes() {
       const recipeId = this.recipe.id;  // Usamos el ID de la receta actual
