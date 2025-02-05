@@ -59,63 +59,65 @@
       <button @click="activeTab = 'savedRecipes'">Mis Guardadas</button>
     </div>
 
-    <!-- Mostrar las recetas creadas por el usuario en tarjetas -->
-    <div v-if="activeTab === 'publications' && recipes.length > 0" class="user-recipes">
-      <h3>Recetas creadas</h3>
-      <div class="recipe-cards">
-        <div class="recipe-card" v-for="recipe in recipes" :key="recipe.id">
-          <router-link :to="{ name: 'InfoReceta', params: { recipeId: recipe.id } }">
-            <img :src="recipe.image" :alt="recipe.title" class="recipe-image" />
-            <div class="recipe-info">
-              <p class="recipe-title">{{ recipe.title }}</p>
-              <p class="recipe-description">{{ recipe.description }}</p>
-            </div>
-          </router-link>
+   <!-- Mostrar las recetas creadas por el usuario en tarjetas -->
+<div v-if="activeTab === 'publications' && recipes.length > 0" class="user-recipes">
+  <h3>Recetas creadas</h3>
+  <div class="recipe-cards">
+    <div class="recipe-card" v-for="recipe in recipes" :key="recipe.id">
+      <router-link :to="{ name: 'InfoReceta', params: { recipeId: recipe.id } }">
+        <img :src="recipe.image" :alt="recipe.title" class="recipe-image" />
+        <div class="recipe-info">
+          <p class="recipe-title">{{ recipe.title }}</p>
+          <p class="recipe-description">{{ recipe.description }}</p>
+        </div>
+      </router-link>
+      <!-- Botón de eliminar receta -->
+      <button @click="deleteUserRecipe(recipe.id)">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+
+    <!-- Mostrar mis carpetas y recetas guardadas -->
+    <div v-if="activeTab === 'savedRecipes'" class="saved-recipes">
+      <input v-if="showCreateFolderInput" type="text" v-model="newFolderName" placeholder="Nombre de nueva carpeta" />
+      <button v-if="showCreateFolderInput" @click="createFolder">Crear Carpeta</button>
+      <button v-else @click="showCreateFolderInput = true">Añadir Carpeta</button>
+
+      <div class="folders" v-if="folders.length > 0">
+        <div class="folder-card" v-for="folder in folders" :key="folder.id" @click="fetchFolderRecipes(folder.id)">
+          <h4>{{ folder.name }}</h4>
+          <!-- Mostrar el botón de eliminar solo si 'folder' tiene un 'id' -->
+          <button v-if="folder && folder.id" @click="deleteFolder(folder.id)">Eliminar Carpeta</button>
         </div>
       </div>
-    </div>
 
-<!-- Mostrar mis carpetas y recetas guardadas -->
-<div v-if="activeTab === 'savedRecipes'" class="saved-recipes">
-  <input v-if="showCreateFolderInput" type="text" v-model="newFolderName" placeholder="Nombre de nueva carpeta" />
-  <button v-if="showCreateFolderInput" @click="createFolder">Crear Carpeta</button>
-  <button v-else @click="showCreateFolderInput = true">Añadir Carpeta</button>
-
-  <div class="folders" v-if="folders.length > 0">
-    <div class="folder-card" v-for="folder in folders" :key="folder.id" @click="fetchFolderRecipes(folder.id)">
-      <h4>{{ folder.name }}</h4>
-      <!-- Mostrar el botón de eliminar solo si 'folder' tiene un 'id' -->
-      <button v-if="folder && folder.id" @click="deleteFolder(folder.id)">Eliminar Carpeta</button>
-    </div>
-  </div>
-
-  <!-- Mostrar las recetas dentro de la carpeta seleccionada -->
-  <div v-if="selectedFolderRecipes.length > 0" class="folder-recipes">
-    <h3>Recetas en la Carpeta</h3>
-    <div class="recipe-cards">
-      <div class="recipe-card" v-for="recipe in selectedFolderRecipes" :key="recipe.id">
-        <router-link :to="{ name: 'InfoReceta', params: { recipeId: recipe.id } }">
-          <img :src="recipe.image" :alt="recipe.title" class="recipe-image" />
-          <div class="recipe-info">
-            <p class="recipe-title">{{ recipe.title }}</p>
-            <p class="recipe-description">{{ recipe.description }}</p>
+      <!-- Mostrar las recetas dentro de la carpeta seleccionada -->
+      <div v-if="selectedFolderRecipes.length > 0" class="folder-recipes">
+        <h3>Recetas en la Carpeta</h3>
+        <div class="recipe-cards">
+          <div class="recipe-card" v-for="recipe in selectedFolderRecipes" :key="recipe.id">
+            <router-link :to="{ name: 'InfoReceta', params: { recipeId: recipe.id } }">
+              <img :src="recipe.image" :alt="recipe.title" class="recipe-image" />
+              <div class="recipe-info">
+                <p class="recipe-title">{{ recipe.title }}</p>
+                <p class="recipe-description">{{ recipe.description }}</p>
+              </div>
+            </router-link>
+            <!-- Aseguramos que la carpeta seleccionada es válida antes de intentar acceder a su id -->
+            <button v-if="selectedFolder && selectedFolder.id"
+              @click="deleteRecipeFromFolder(recipe.id, selectedFolder.id)">
+              Eliminar
+            </button>
           </div>
-        </router-link>
-        <!-- Aseguramos que la carpeta seleccionada es válida antes de intentar acceder a su id -->
-        <button 
-  v-if="selectedFolder && selectedFolder.id" 
-  @click="deleteRecipeFromFolder(recipe.id, selectedFolder.id)">
-  Eliminar
-</button>
+        </div>
+      </div>
+
+      <div v-else>
+        <p>La carpeta está vacía.</p>
       </div>
     </div>
   </div>
-
-  <div v-else>
-    <p>La carpeta está vacía.</p>
-  </div>
-</div>
-</div>
 </template>
 
 <script>
@@ -190,6 +192,17 @@ export default {
         alert('Error al cambiar la contraseña');
       }
     };
+    const deleteUserRecipe = async (recipeId) => {
+  try {
+    await communicationManager.deleteRecipe(recipeId);
+    // Filtrar la receta eliminada de la lista de recetas
+    recipes.value = recipes.value.filter(recipe => recipe.id !== recipeId);
+    alert('Receta eliminada correctamente');
+  } catch (error) {
+    console.error('Error eliminando la receta', error);
+    alert('Error al eliminar la receta');
+  }
+};
 
     const createFolder = async () => {
       if (newFolderName.value.trim() === '') return;
@@ -266,7 +279,8 @@ export default {
       recipes,
       folders,
       selectedFolderRecipes,
-      selectedFolder, // Devolvemos selectedFolder
+      selectedFolder, 
+      deleteUserRecipe,
       newFolderName,
       showCreateFolderInput,
       activeTab,
