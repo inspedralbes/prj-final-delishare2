@@ -220,15 +220,13 @@ const communicationManager = {
         });
 },
 
-updateProfilePicture(formData) {
-    return apiClient.post('/updateProfilePicture', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-    })
-    .then(response => response.data)
-    .catch(error => {
-        console.error('Error updating profile picture:', error);
-        throw error;
-    });
+  async updateProfilePicture(img) {
+    return apiClient.put('/updateProfilePicture', img)
+        .then(response => response.data)
+        .catch(error => {
+            console.error('Error updating profile picture:', error);
+            throw error;
+        });
 },
 
 changePassword(passwordData) {

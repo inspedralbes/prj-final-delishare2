@@ -196,7 +196,7 @@ export default {
         alert("Las contraseñas no coinciden");
         return;
       }
-
+      
       try {
         await communicationManager.changePassword({
           contrasena_actual: currentPassword.value,
@@ -208,7 +208,29 @@ export default {
         alert('Error al cambiar la contraseña');
       }
     };
-
+        const uploadImage = async (event) => {
+          const file = event.target.files[0];
+          if (!file) return;
+    
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', uploadPreset);
+            try {
+              const response = await axios.put(
+                `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+                formData
+              );
+              const uploadedImageUrl = response.data.secure_url;
+              userImage.value = uploadedImageUrl;
+              console.log('Imagen subida:', uploadedImageUrl);
+    
+              await communicationManager.updateProfilePicture({ img: uploadedImageUrl });
+              
+            } catch (error) {
+              console.error('Error subiendo imagen de perfil:', error);
+            }
+          };
+    
     const createFolder = async () => {
       if (newFolderName.value.trim() === '') return;
 
@@ -228,28 +250,6 @@ export default {
         selectedFolderRecipes.value = await communicationManager.fetchFolderRecipes(folderId);
       } catch (error) {
         console.error('Error obteniendo recetas de la carpeta', error);
-      }
-    };
-
-    const uploadImage = async (event) => {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', uploadPreset);
-
-      try {
-        const response = await axios.post(
-          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-          formData
-        );
-        const uploadedImageUrl = response.data.secure_url;
-        userImage.value = uploadedImageUrl;
-
-        await communicationManager.updateProfilePicture({ profile_picture: uploadedImageUrl });
-      } catch (error) {
-        console.error('Error subiendo imagen de perfil:', error);
       }
     };
 
