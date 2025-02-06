@@ -2,9 +2,10 @@
   <div class="profile-container">
     <div class="profile-header">
       <label for="file-input" class="profile-picture">
-        <img :src="user.img" alt="Foto de perfil" />
-        <input id="file-input" type="file" @change="uploadImage" />
-      </label>
+  <img :src="user.img" alt="Foto de perfil" />
+  <input id="file-input" type="file" @change="uploadImage" style="display: none;" />
+</label>
+
       <h2>{{ user.name }}</h2>
       <p>{{ user.email }}</p>
       <button @click="showEditProfile = !showEditProfile">Editar perfil</button>
