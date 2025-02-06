@@ -92,38 +92,36 @@
         </div>
       </div>
 
-      <!-- Mostrar las recetas dentro de la carpeta seleccionada -->
-      <div v-if="selectedFolderRecipes.length > 0" class="folder-recipes">
-        <h3>Recetas en la Carpeta</h3>
-        <div class="recipe-cards">
-          <div class="recipe-card" v-for="recipe in selectedFolderRecipes" :key="recipe.id">
-            <router-link :to="{ name: 'InfoReceta', params: { recipeId: recipe.id } }">
-              <img :src="recipe.image" :alt="recipe.title" class="recipe-image" />
-              <div class="recipe-info">
-                <p class="recipe-title">{{ recipe.title }}</p>
-                <p class="recipe-description">{{ recipe.description }}</p>
-              </div>
-            </router-link>
-            <!-- Aseguramos que la carpeta seleccionada es válida antes de intentar acceder a su id -->
-            <button v-if="selectedFolder && selectedFolder.id"
-              @click="deleteRecipeFromFolder(recipe.id, selectedFolder.id)">
-              Eliminar
-            </button>
+ <!-- Mostrar las recetas dentro de la carpeta seleccionada -->
+ <div v-if="selectedFolder" class="folder-recipes">
+    <h3>Recetas en la Carpeta: {{ selectedFolder.name }}</h3>
+    <div v-if="selectedFolderRecipes.length > 0" class="recipe-cards">
+      <div class="recipe-card" v-for="recipe in selectedFolderRecipes" :key="recipe.id">
+        <router-link :to="{ name: 'InfoReceta', params: { recipeId: recipe.id } }">
+          <img :src="recipe.image" :alt="recipe.title" class="recipe-image" />
+          <div class="recipe-info">
+            <p class="recipe-title">{{ recipe.title }}</p>
+            <p class="recipe-description">{{ recipe.description }}</p>
           </div>
-        </div>
-      </div>
-
-      <div v-else>
-        <p>La carpeta está vacía.</p>
+        </router-link>
+        <button v-if="selectedFolder && selectedFolder.id"
+          @click="deleteRecipeFromFolder(recipe.id, selectedFolder.id)">
+          Eliminar
+        </button>
       </div>
     </div>
+    <div v-else>
+      <p>No hay recetas en esta carpeta.</p>
+    </div>
   </div>
-</template>
+  </div>
+</div>
 
+</template>
 <script>
 import { useAuthStore } from '@/stores/authStore';
 import communicationManager from '@/services/communicationManager';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 
 export default {
   setup() {
@@ -136,7 +134,7 @@ export default {
     const recipes = ref([]);
     const folders = ref([]);
     const selectedFolderRecipes = ref([]);
-    const selectedFolder = ref(null); // Aquí definimos selectedFolder
+    const selectedFolder = ref(null);
     const showCreateFolderInput = ref(false);
     const newFolderName = ref('');
     const activeTab = ref('publications');
@@ -156,12 +154,28 @@ export default {
         const userRecipes = await communicationManager.getUserRecipes();
         recipes.value = userRecipes;
 
-        const userFolders = await communicationManager.fetchUserFolders();
-        folders.value = userFolders;
+        // Cargar carpetas al montar el componente
+        await fetchUserFolders();
       } catch (error) {
         console.error('Error cargando datos del usuario o recetas', error);
       }
     });
+
+    // Observar cambios en activeTab para cargar carpetas cuando se selecciona "Mis Guardadas"
+    watch(activeTab, async (newTab) => {
+      if (newTab === 'savedRecipes') {
+        await fetchUserFolders();
+      }
+    });
+
+    const fetchUserFolders = async () => {
+      try {
+        const userFolders = await communicationManager.fetchUserFolders();
+        folders.value = userFolders;
+      } catch (error) {
+        console.error('Error cargando carpetas', error);
+      }
+    };
 
     const updateProfile = async () => {
       try {
@@ -192,17 +206,17 @@ export default {
         alert('Error al cambiar la contraseña');
       }
     };
+
     const deleteUserRecipe = async (recipeId) => {
-  try {
-    await communicationManager.deleteRecipe(recipeId);
-    // Filtrar la receta eliminada de la lista de recetas
-    recipes.value = recipes.value.filter(recipe => recipe.id !== recipeId);
-    alert('Receta eliminada correctamente');
-  } catch (error) {
-    console.error('Error eliminando la receta', error);
-    alert('Error al eliminar la receta');
-  }
-};
+      try {
+        await communicationManager.deleteRecipe(recipeId);
+        recipes.value = recipes.value.filter(recipe => recipe.id !== recipeId);
+        alert('Receta eliminada correctamente');
+      } catch (error) {
+        console.error('Error eliminando la receta', error);
+        alert('Error al eliminar la receta');
+      }
+    };
 
     const createFolder = async () => {
       if (newFolderName.value.trim() === '') return;
@@ -212,7 +226,7 @@ export default {
         alert('Carpeta creada');
         showCreateFolderInput.value = false;
         newFolderName.value = '';
-        folders.value = await communicationManager.fetchUserFolders();
+        await fetchUserFolders();
       } catch (error) {
         console.error('Error creando carpeta', error);
       }
@@ -222,7 +236,7 @@ export default {
       try {
         await communicationManager.deleteFolder(folderId);
         alert('Carpeta eliminada');
-        folders.value = await communicationManager.fetchUserFolders();
+        await fetchUserFolders();
       } catch (error) {
         console.error('Error eliminando la carpeta', error);
         alert('Error al eliminar la carpeta');
@@ -232,7 +246,6 @@ export default {
     const fetchFolderRecipes = async (folderId) => {
       try {
         selectedFolderRecipes.value = await communicationManager.fetchFolderRecipes(folderId);
-        // Al seleccionar la carpeta, asignamos `selectedFolder` con la carpeta seleccionada
         selectedFolder.value = folders.value.find(folder => folder.id === folderId);
       } catch (error) {
         console.error('Error obteniendo recetas de la carpeta', error);
@@ -279,7 +292,7 @@ export default {
       recipes,
       folders,
       selectedFolderRecipes,
-      selectedFolder, 
+      selectedFolder,
       deleteUserRecipe,
       newFolderName,
       showCreateFolderInput,
