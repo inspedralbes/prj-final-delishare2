@@ -118,6 +118,21 @@ class AuthController extends Controller
 
     return response()->json(['message' => 'Contraseña cambiada exitosamente']);
 }
+public function cambiarImagen(Request $request)
+{
+    $user = $request->user(); // Obtiene el usuario autenticado
+
+    // Validación del campo img (URL válida)
+    $request->validate([
+        'img' => 'required|url',
+    ]);
+
+    // Actualizar la URL de la imagen
+    $user->img = $request->img;
+    $user->save();
+
+    return response()->json(['message' => 'Imagen de perfil actualizada exitosamente']);
+}
 
     
 }

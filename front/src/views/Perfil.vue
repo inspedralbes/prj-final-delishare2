@@ -2,8 +2,8 @@
   <div class="profile-container">
     <div class="profile-header">
       <label for="file-input" class="profile-picture">
-        <img :src="userImage" alt="Foto de perfil" />
-        <input id="file-input" type="file" @change="uploadImage" hidden />
+        <img :src="user.img" alt="Foto de perfil" />
+        <input id="file-input" type="file" @change="uploadImage" />
       </label>
       <h2>{{ user.name }}</h2>
       <p>{{ user.email }}</p>
@@ -139,9 +139,11 @@
 import { useAuthStore } from '@/stores/authStore';
 import communicationManager from '@/services/communicationManager';
 import { ref, onMounted } from 'vue';
-
+import axios from 'axios';
 export default {
   setup() {
+    const cloudName = 'dt5vjbgab';
+    const uploadPreset = 'perfiles';
     const authStore = useAuthStore();
     const user = ref({ name: '', email: '' });
     const currentPassword = ref('');
@@ -165,7 +167,7 @@ export default {
       try {
         const userData = await communicationManager.getUser();
         user.value = userData;
-        userImage.value = userData.profile_picture || '/default-avatar.png';
+        userImage.value = userData.img || '/default-avatar.png';
 
         const userRecipes = await communicationManager.getUserRecipes();
         recipes.value = userRecipes;
@@ -231,16 +233,23 @@ export default {
 
     const uploadImage = async (event) => {
       const file = event.target.files[0];
-      if (file) {
-        const formData = new FormData();
-        formData.append('profile_picture', file);
+      if (!file) return;
 
-        try {
-          const response = await communicationManager.updateProfilePicture(formData);
-          userImage.value = response.profile_picture;
-        } catch (error) {
-          console.error('Error subiendo imagen de perfil', error);
-        }
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', uploadPreset);
+
+      try {
+        const response = await axios.post(
+          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+          formData
+        );
+        const uploadedImageUrl = response.data.secure_url;
+        userImage.value = uploadedImageUrl;
+
+        await communicationManager.updateProfilePicture({ profile_picture: uploadedImageUrl });
+      } catch (error) {
+        console.error('Error subiendo imagen de perfil:', error);
       }
     };
 
