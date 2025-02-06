@@ -222,11 +222,14 @@ const communicationManager = {
 
   async updateProfilePicture(img) {
     return apiClient.put('/updateProfilePicture', img)
-        .then(response => response.data)
-        .catch(error => {
-            console.error('Error updating profile picture:', error);
-            throw error;
-        });
+      .then(response => {
+        console.log('se ha subido correctamente');
+        return response.data;
+      })
+      .catch(error => {
+        console.error('Error updating profile picture:', error);
+        throw error;
+      });
 },
 
 changePassword(passwordData) {

@@ -208,29 +208,34 @@ export default {
         alert('Error al cambiar la contraseña');
       }
     };
-        const uploadImage = async (event) => {
-          const file = event.target.files[0];
-          if (!file) return;
-    
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', uploadPreset);
-            try {
-              const response = await axios.put(
-                `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-                formData
-              );
-              const uploadedImageUrl = response.data.secure_url;
-              userImage.value = uploadedImageUrl;
-              console.log('Imagen subida:', uploadedImageUrl);
-    
-              await communicationManager.updateProfilePicture({ img: uploadedImageUrl });
-              
-            } catch (error) {
-              console.error('Error subiendo imagen de perfil:', error);
-            }
-          };
-    
+    const uploadImage = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", uploadPreset);
+
+  try {
+    const response = await axios.put(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      formData
+    );
+    const uploadedImageUrl = response.data.secure_url;
+
+    // Actualizar la imagen en la referencia del usuario
+    userImage.value = uploadedImageUrl;
+    user.value.img = uploadedImageUrl; // <- Aquí se actualiza inmediatamente en la UI
+
+    await communicationManager.updateProfilePicture({ img: uploadedImageUrl });
+
+    alert("Foto de perfil actualizada correctamente");
+  } catch (error) {
+    console.error("Error subiendo imagen de perfil:", error);
+  }
+};
+
+
     const createFolder = async () => {
       if (newFolderName.value.trim() === '') return;
 
