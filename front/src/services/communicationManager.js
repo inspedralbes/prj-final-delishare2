@@ -259,6 +259,16 @@ fetchComments(recipeId) {
       throw error;
     });
 },
+// Eliminar receta
+deleteRecipe(recipeId) {
+  return apiClient.delete(`/recipes/${recipeId}`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error eliminando receta:', error);
+      throw error;
+    });
+},
+
 
 // Agregar un comentario a una receta
 addComment(recipeId, commentText) {
@@ -277,7 +287,6 @@ createFolder(folderName) {
       throw error;
     });
   },
-
 // Obtener las recetas de una carpeta
 fetchFolderRecipes(folderId) {
   return apiClient.get(`/folders/${folderId}/recipes`)
@@ -287,7 +296,7 @@ fetchFolderRecipes(folderId) {
       throw error;
     });
 },
-  
+
 
   // Guardar una receta en una carpeta
   saveRecipeToFolder(folderId, recipeId) {
@@ -298,7 +307,16 @@ fetchFolderRecipes(folderId) {
         throw error;
       });
   },
-
+ // Eliminar receta de una carpeta
+ async removeRecipeFromFolder(recipeId, folderId) {
+  try {
+    const response = await apiClient.delete(`/folders/${folderId}/recipes/${recipeId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error removing recipe from folder:', error);
+    throw error;
+  }
+},
   // Obtener las recetas guardadas por el usuario
   fetchUserSavedRecipes() {
     return apiClient.get('/user/saved-recipes')
@@ -326,6 +344,16 @@ deleteFolder(folderId) {
       throw error;
     });
 },
+
+  // Eliminar receta
+  deleteRecipe(recipeId) {
+    return apiClient.delete(`/recipes/${recipeId}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error eliminando receta:', error);
+        throw error;
+      });
+  },
 saveRecipeToFolder(folderId, recipeId) {
   return apiClient.post(`/folders/${folderId}/recipes/${recipeId}`)
     .then(response => response.data)

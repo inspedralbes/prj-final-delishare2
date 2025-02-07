@@ -3,10 +3,10 @@
     <button class="back-button" @click="goBack">← Volver</button>
 
     <!-- Botón de guardar receta normal -->
-    <button @click="saveToSavedRecipes(recipe.id)" :disabled="isButtonDisabled">Guardar receta en Guardadas</button>
+    <button @click="saveToSavedRecipes(recipe.id)">Guardar receta en Guardadas</button>
 
     <!-- Botón de guardar receta en carpeta -->
-    <button @click="showFolderSelection = true" :disabled="isButtonDisabled">Guardar receta en mi carpeta</button>
+    <button @click="showFolderSelection = true">Guardar receta en mi carpeta</button>
 
     <!-- Selector de carpetas (mostrar solo si se activa la opción) -->
     <div v-if="showFolderSelection">
@@ -16,14 +16,6 @@
       <button @click="saveToFolder">Guardar en carpeta</button>
       <button @click="showFolderSelection = false">Cancelar</button>
     </div>
-
-    <!-- Botón de like -->
-    <button v-if="!isLiked" @click="likeRecipe(recipe.id)">
-      Dar like
-    </button>
-    <button v-if="isLiked" @click="unlikeRecipe(recipe.id)">
-      Quitar like
-    </button>
 
     <h1 class="recipe-title">{{ recipe.title }}</h1>
 
@@ -89,10 +81,10 @@ export default {
         cook_time: 0,
         servings: 0,
         likes_count: 0,
+        creador: '',  // Añadido para manejar el creador de la receta
       },
       comments: [],
       newComment: '',
-      isButtonDisabled: false,
       showFolderSelection: false,
       selectedFolderId: null,
       userFolders: [],
@@ -106,9 +98,6 @@ export default {
     isLiked() {
       const savedRecipesStore = useSavedRecipesStore();
       return savedRecipesStore.isRecipeLiked(this.recipe.id);
-    },
-    isButtonDisabled() {
-      return this.isSaved || this.isLiked; // Deshabilitar si ya está guardada
     }
   },
   async created() {
@@ -137,47 +126,55 @@ export default {
     },
 
     async addComment() {
-      if (!this.newComment.trim()) return;
+  if (!this.newComment.trim()) return;
 
+  try {
+    // Obtiene los datos del usuario autenticado
+    const user = await communicationManager.getUser(); 
+
+    // Enviar comentario al backend
+    await communicationManager.addComment(this.recipe.id, this.newComment);
+
+    // Agregar comentario al estado sin refrescar
+    this.comments.push({
+      comment: this.newComment,
+      name: user.name, // Agregar el nombre del usuario autenticado
+    });
+
+    this.newComment = '';  // Limpiar campo
+  } catch (error) {
+    console.error('Error adding comment:', error);
+  }
+},
+
+
+    async saveToSavedRecipes() {
+      const recipeId = this.recipe.id;  // Usamos el ID de la receta actual
       try {
-        await communicationManager.addComment(this.recipe.id, this.newComment);
-        this.comments.push({ comment: this.newComment, name: 'Usuario desconocido' });
-        this.newComment = '';  // Limpiar campo
+        // Llama al método correcto para guardar o quitar la receta
+        await communicationManager.toggleSaveRecipe(recipeId);
+        alert('Receta guardada en tus favoritos');
       } catch (error) {
-        console.error('Error adding comment:', error);
+        console.error('Error al guardar receta:', error);
       }
     },
 
-    async saveToSavedRecipes() {
-  const recipeId = this.recipe.id;  // Usamos el ID de la receta actual
-  try {
-    // Llama al método correcto para guardar o quitar la receta
-    await communicationManager.toggleSaveRecipe(recipeId);
-    alert('Receta guardada en tus favoritos');
-  } catch (error) {
-    console.error('Error al guardar receta:', error);
-  }
-
-    },
-
     async saveToFolder() {
-  if (!this.selectedFolderId) {
-    alert('Por favor, selecciona una carpeta');
-    return;
-  }
+      if (!this.selectedFolderId) {
+        alert('Por favor, selecciona una carpeta');
+        return;
+      }
 
-  try {
-    // Asegúrate de que estamos enviando el ID de la receta correcto
-    const recipeId = this.recipe.id;  // Usamos el ID de la receta actual
-    await communicationManager.saveRecipeToFolder(this.selectedFolderId, recipeId);
-    alert(`Receta guardada en la carpeta: ${this.userFolders.find(f => f.id === this.selectedFolderId).name}`);
-    this.showFolderSelection = false; // Cerrar selector de carpetas
-  } catch (error) {
-    console.error('Error al guardar receta en carpeta:', error);
-  }
-}
-
-
+      try {
+        // Usamos el ID de la receta y la carpeta seleccionada
+        const recipeId = this.recipe.id;  // Usamos el ID de la receta actual
+        await communicationManager.saveRecipeToFolder(this.selectedFolderId, recipeId);
+        alert(`Receta guardada en la carpeta: ${this.userFolders.find(f => f.id === this.selectedFolderId).name}`);
+        this.showFolderSelection = false; // Cerrar selector de carpetas
+      } catch (error) {
+        console.error('Error al guardar receta en carpeta:', error);
+      }
+    }
   }
 };
 </script>
