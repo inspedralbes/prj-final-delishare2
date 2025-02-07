@@ -123,6 +123,7 @@
 import { useAuthStore } from '@/stores/authStore';
 import communicationManager from '@/services/communicationManager';
 import { ref, onMounted, watch } from 'vue';
+import axios from 'axios';
 
 export default {
   setup() {
@@ -294,20 +295,7 @@ export default {
       }
     };
 
-    const uploadImage = async (event) => {
-      const file = event.target.files[0];
-      if (file) {
-        const formData = new FormData();
-        formData.append('profile_picture', file);
-
-        try {
-          const response = await communicationManager.updateProfilePicture(formData);
-          userImage.value = response.profile_picture;
-        } catch (error) {
-          console.error('Error subiendo imagen de perfil', error);
-        }
-      }
-    };
+    
 
     const toggleShowCurrentPassword = () => showCurrentPassword.value = !showCurrentPassword.value;
     const toggleShowNewPassword = () => showNewPassword.value = !showNewPassword.value;
