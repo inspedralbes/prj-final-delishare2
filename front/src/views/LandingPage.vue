@@ -1,7 +1,7 @@
 <template>
   <div class="page-container">
     <header class="header">
-      <img src="@/assets/images/del.png" alt="DeliShare Logo" class="header-logo">
+      <img src="@/assets/images/del.png" alt="DeliShare Logo" class="header-logo" />
     </header>
 
     <!-- Contenedor para el carrusel futuro -->
@@ -10,8 +10,8 @@
     </div>
 
     <div class="toggle-buttons">
-      <button :class="{'active': showLikes}" @click="showLikesRecipes">Más Populares</button>
-      <button :class="{'active': !showLikes}" @click="showRecentRecipes">Más Recientes</button>
+      <button :class="{ active: showLikes }" @click="showLikesRecipes">Más Populares</button>
+      <button :class="{ active: !showLikes }" @click="showRecentRecipes">Más Recientes</button>
     </div>
 
     <div v-if="showLikes" class="likes">
@@ -19,32 +19,32 @@
         <h2>Más Likes</h2>
         <div class="carousel-container">
           <div class="recipe-carousel">
-            <div class="recipe-card" v-for="(recipe, index) in displayedLikeRecipes" :key="index">
-              <router-link :to="{ name: 'InfoReceta', params: { recipeId: recipe.id } }" class="recipe-link">
-                <img :src="recipe.image" :alt="recipe.title" class="recipe-image">
-                <div class="recipe-info">
-                  <p class="recipe-title">{{ recipe.title }}</p>
-                </div>
-              </router-link>
-            </div>
+            <!-- Se utiliza el componente RecipeCard para cada receta -->
+            <RecipeCard
+              v-for="(recipe, index) in displayedLikeRecipes"
+              :key="index"
+              :recipe-id="recipe.id"
+              :title="recipe.title"
+              :image="recipe.image"
+            />
           </div>
         </div>
       </section>
     </div>
 
-    <div v-if="!showLikes" class="recents">
+    <div v-else class="recents">
       <section class="recent-recipes">
         <h2>Más Recientes</h2>
         <div class="carousel-container">
           <div class="recipe-carousel">
-            <div class="recipe-card" v-for="(recipe, index) in displayedRecentRecipes" :key="index">
-              <router-link :to="{ name: 'InfoReceta', params: { recipeId: recipe.id } }" class="recipe-link">
-                <img :src="recipe.image" :alt="recipe.title" class="recipe-image">
-                <div class="recipe-info">
-                  <p class="recipe-title">{{ recipe.title }}</p>
-                </div>
-              </router-link>
-            </div>
+            <!-- Se utiliza el componente RecipeCard para cada receta -->
+            <RecipeCard
+              v-for="(recipe, index) in displayedRecentRecipes"
+              :key="index"
+              :recipe-id="recipe.id"
+              :title="recipe.title"
+              :image="recipe.image"
+            />
           </div>
         </div>
       </section>
@@ -54,8 +54,13 @@
 
 <script>
 import communicationManager from '@/services/communicationManager';
+import RecipeCard from '@/components/RecipeCard.vue';
 
 export default {
+  name: 'LandingPage',
+  components: {
+    RecipeCard
+  },
   data() {
     return {
       recipes: [],
@@ -72,12 +77,15 @@ export default {
       const data = await communicationManager.fetchRecipes();
       this.recipes = data;
 
+      // Ordenamos las recetas según la cantidad de likes
       this.sortedLikeRecipes = this.recipes
         .map(recipe => ({ ...recipe, totalLikes: recipe.likes_count || 0 }))
         .sort((a, b) => b.totalLikes - a.totalLikes);
 
-      this.sortedRecentRecipes = [...this.recipes]
-        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      // Ordenamos las recetas por fecha de creación
+      this.sortedRecentRecipes = [...this.recipes].sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
 
       this.updateDisplayedLikeRecipes();
       this.updateDisplayedRecentRecipes();
@@ -107,6 +115,7 @@ export default {
   }
 };
 </script>
+
 <style scoped>
 /* --- Estilos Mobile-First (Predeterminado) --- */
 .page-container {
@@ -173,45 +182,6 @@ export default {
   margin-bottom: 40px;
 }
 
-.recipe-card {
-  width: 100%;
-  max-width: 150px;
-  height: 160px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border: 2px solid #2f8394;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease-in-out;
-  background: white;
-}
-
-.recipe-card:hover {
-  transform: scale(1.05);
-}
-
-.recipe-image {
-  width: 100%;
-  height: 130px;
-  object-fit: cover;
-}
-
-.recipe-info {
-  text-align: center;
-  padding: 2px;
-  width: 100%;
-  color: black;
-  background-color: #f4f4f4;
-}
-
-.recipe-title {
-  font-weight: bold;
-  font-size: 14px;
-  margin: 0;
-}
-
 /* --- Estilos para Tablets (Pantallas > 600px) --- */
 @media (min-width: 600px) {
   .header-logo {
@@ -227,19 +197,6 @@ export default {
   .recipe-carousel {
     grid-template-columns: repeat(3, 1fr);
     gap: 15px;
-  }
-
-  .recipe-card {
-    max-width: 180px;
-    height: 180px;
-  }
-
-  .recipe-image {
-    height: 140px;
-  }
-
-  .recipe-title {
-    font-size: 15px;
   }
 }
 
@@ -270,19 +227,6 @@ export default {
   .recipe-carousel {
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
-  }
-
-  .recipe-card {
-    max-width: 200px;
-    height: 220px;
-  }
-
-  .recipe-image {
-    height: 170px;
-  }
-
-  .recipe-title {
-    font-size: 16px;
   }
 }
 </style>

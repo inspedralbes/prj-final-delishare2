@@ -1,8 +1,15 @@
 <template>
   <div class="filter-buttons">
-    <!-- Botón para las categorías -->
-    <button @click="obtenerCategorias">Categoría</button>
-    <div v-if="datos.length">
+    <!-- Botones principales en fila -->
+    <div class="button-group">
+      <button @click="toggleSubButtons('categoria')" class="button-main">Categoría</button>
+      <button @click="toggleSubButtons('cuisine')" class="button-main">Cuisine</button>
+      <button @click="toggleSubButtons('usuarios')" class="button-main">Usuarios</button>
+      <button @click="toggleSubButtons('tiempo')" class="button-main">Tiempo</button>
+    </div>
+
+    <!-- Subbotones para Categorías -->
+    <div v-if="activeButton === 'categoria'" class="subbutton-group">
       <button 
         v-for="dato in datos" 
         :key="dato.id" 
@@ -13,9 +20,8 @@
       </button>
     </div>
 
-    <!-- Botón para las cocinas -->
-    <button @click="obtenerCuisines">Cuisine</button>
-    <div v-if="cuisines.length">
+    <!-- Subbotones para Cocinas -->
+    <div v-if="activeButton === 'cuisine'" class="subbutton-group">
       <button 
         v-for="cuisine in cuisines" 
         :key="cuisine.id" 
@@ -26,9 +32,8 @@
       </button>
     </div>
 
-    <!-- Botón para los usuarios -->
-    <button @click="obtenerUsers">Usuarios</button>
-    <div v-if="usuarios.length">
+    <!-- Subbotones para Usuarios -->
+    <div v-if="activeButton === 'usuarios'" class="subbutton-group">
       <button 
         v-for="usuario in usuarios" 
         :key="usuario.id" 
@@ -39,9 +44,8 @@
       </button>
     </div>
 
-    <!-- Botón para los tiempos -->
-    <button @click="obtenerTimes">Tiempo</button>
-    <div v-if="times.length">
+    <!-- Subbotones para Tiempo -->
+    <div v-if="activeButton === 'tiempo'" class="subbutton-group">
       <button 
         v-for="time in times" 
         :key="time"
@@ -67,7 +71,7 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import communicationManager from '../services/communicationManager';
 import RecipeCard from './RecipeCard.vue';
 
@@ -82,6 +86,15 @@ export default {
     const recetas = ref([]);       // Para las recetas filtradas
     const cuisines = ref([]);      // Para las cocinas (países)
     const times = ref([]);         // Para los tiempos
+    const activeButton = ref('');   // Estado reactivo para el botón activo
+
+    // Cargar los datos al montar el componente
+    onMounted(() => {
+      obtenerCategorias();
+      obtenerCuisines();
+      obtenerUsers();
+      obtenerTimes();
+    });
 
     // Función para obtener las categorías
     const obtenerCategorias = async () => {
@@ -108,6 +121,15 @@ export default {
         times.value = response.times; // Asegúrate de usar `response.times` aquí
       } catch (error) {
         console.error('Error al obtener tiempos:', error);
+      }
+    };
+
+    // Función para obtener los usuarios
+    const obtenerUsers = async () => {
+      try {
+        usuarios.value = await communicationManager.fetchUsers();
+      } catch (error) {
+        console.error('Error al obtener usuarios:', error);
       }
     };
 
@@ -144,15 +166,6 @@ export default {
       }
     };
 
-    // Función para obtener los usuarios
-    const obtenerUsers = async () => {
-      try {
-        usuarios.value = await communicationManager.fetchUsers();
-      } catch (error) {
-        console.error('Error al obtener usuarios:', error);
-      }
-    };
-
     // Función para filtrar recetas por usuario
     const filtrarPorUsuario = async (userId) => {
       try {
@@ -161,6 +174,15 @@ export default {
         emit('filtradoPorUsuarios', true);
       } catch (error) {
         console.error('Error al filtrar recetas por usuario:', error);
+      }
+    };
+
+    // Función para alternar los subbotones
+    const toggleSubButtons = (buttonName) => {
+      if (activeButton.value === buttonName) {
+        activeButton.value = '';  // Ocultar los subbotones si el mismo botón es clickeado
+      } else {
+        activeButton.value = buttonName;  // Mostrar subbotones del botón seleccionado
       }
     };
 
@@ -178,26 +200,60 @@ export default {
       filtrarPorCuisine,
       filtrarPorUsuario,
       filtrarPorTiempo,
+      toggleSubButtons,
+      activeButton,
     };
   },
 };
 </script>
 
 <style scoped>
-.button-secondary {
-  font-size: 0.85rem;
-  padding: 8px 12px;
-  background-color: #358600;
+/* Contenedor para los botones principales alineados en fila */
+.button-group {
+  display: flex;
+  gap: 10px; /* Espacio entre botones */
+  justify-content: center;
+  margin-bottom: 20px; /* Separación debajo de los botones */
+}
+
+/* Botones principales (azul más oscuro, más pequeños, en fila) */
+.button-main {
+  font-size: 0.85rem;  /* Más pequeños */
+  padding: 8px 12px;   /* Menos espacio */
+  background-color: #0c0636; /* Azul más oscuro */
   border: none;
   color: white;
   cursor: pointer;
-  border-radius: 20px;
+  border-radius: 5px;  /* Menos redondeado */
+  display: inline-block; /* Alineados en fila */
+}
+
+.button-main:hover {
+  background-color: #322b5f; /* Azul aún más oscuro */
+}
+
+/* Botones secundarios (verde suave) */
+.button-secondary {
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  background-color: #02067d; /* Verde suave */
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+  margin: 5px 5px;
 }
 
 .button-secondary:hover {
-  background-color: #2a6b00;
+  background-color: #4545a0; /* Verde más oscuro */
 }
 
+/* Estilo de los subbotones, centrados */
+.subbutton-group {
+  margin-top: 10px;
+}
+
+/* Estilo de la lista de recetas */
 .recipe-list {
   display: grid;
   grid-template-columns: repeat(2, 1fr); 

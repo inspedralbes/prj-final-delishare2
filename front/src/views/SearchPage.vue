@@ -1,7 +1,8 @@
 <template>
   <div class="page-container">
     <header class="header">
-      <h1>Recetas Disponibles</h1>
+      <!-- Se reemplaza el título por el logo, igual que en el landingPage -->
+      <img src="@/assets/images/del.png" alt="DeliShare Logo" class="header-logo" />
     </header>
 
     <div class="search-bar">
@@ -49,7 +50,7 @@ export default {
       loading: true,
       recipes: [],
       searchQuery: '',
-      mostrarRecetasGenerales: true, // Por defecto se muestran todas
+      mostrarRecetasGenerales: true, // Se muestran todas las recetas por defecto
       tiempoFiltro: null, // Para filtrar por tiempo
     };
   },
@@ -71,17 +72,20 @@ export default {
     filtrarPorTiempo(tiempo) {
       this.tiempoFiltro = tiempo;
       this.mostrarRecetasGenerales = false;
-    }
+    },
   },
   computed: {
     filteredRecipes() {
       let recipesFilteredBySearch = this.recipes.filter(recipe =>
         recipe.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        (recipe.description && recipe.description.toLowerCase().includes(this.searchQuery.toLowerCase()))
+        (recipe.description &&
+          recipe.description.toLowerCase().includes(this.searchQuery.toLowerCase()))
       );
 
       if (this.tiempoFiltro) {
-        recipesFilteredBySearch = recipesFilteredBySearch.filter(recipe => recipe.time <= this.tiempoFiltro);
+        recipesFilteredBySearch = recipesFilteredBySearch.filter(
+          recipe => recipe.time <= this.tiempoFiltro
+        );
       }
       return recipesFilteredBySearch;
     },
@@ -90,16 +94,22 @@ export default {
 </script>
 
 <style scoped>
-/* Contenedor general con fondo similar al landingPage */
+/* Contenedor general */
 .page-container {
   text-align: center;
   padding: 20px;
   background-color: #fdfdff;
 }
 
-/* Estilo del header */
+/* Estilos del header */
 .header {
   margin-bottom: 20px;
+}
+
+/* Estilo del logo en el header (similar al landingPage) */
+.header-logo {
+  width: 200px; /* Puedes ajustar el ancho según necesites */
+  height: auto;
 }
 
 /* Estilo de la barra de búsqueda */
@@ -122,13 +132,14 @@ export default {
   color: #333;
 }
 
-/* Contenedor de las cards similar al recipe-carousel del landingPage */
+/* Contenedor de las cards con espacio extra inferior para el navbar */
 .recipe-carousel {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
   justify-items: center;
   margin-top: 20px;
+  margin-bottom: 60px; /* Espacio extra debajo de las recetas */
 }
 
 /* Tablets */
