@@ -95,7 +95,7 @@ export default {
 
 /* --- Estilo para el Botón de Eliminar --- */
 .remove-btn {
-  background-color: #ff4f58;
+  background-color: #0c0636;
   color: white;
   border: none;
   padding: 8px 12px;
@@ -107,7 +107,7 @@ export default {
 }
 
 .remove-btn:hover {
-  background-color: #ff2a37;
+  background-color:#322b5f;
 }
 
 /* --- Estilo de "No tienes recetas guardadas" --- */
