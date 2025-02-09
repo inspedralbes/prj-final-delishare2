@@ -10,7 +10,7 @@
     </div>
 
     <div class="toggle-buttons">
-      <button :class="{'active': showLikes}" @click="showLikesRecipes">Más Likeadas</button>
+      <button :class="{'active': showLikes}" @click="showLikesRecipes">Más Populares</button>
       <button :class="{'active': !showLikes}" @click="showRecentRecipes">Más Recientes</button>
     </div>
 
@@ -107,8 +107,8 @@ export default {
   }
 };
 </script>
-
 <style scoped>
+/* --- Estilos Mobile-First (Predeterminado) --- */
 .page-container {
   text-align: center;
   padding: 20px;
@@ -116,7 +116,7 @@ export default {
 }
 
 .header-logo {
-  width: 300px;
+  width: 200px;
   height: auto;
 }
 
@@ -143,11 +143,11 @@ export default {
   background: #0c0636;
   color: white;
   border: none;
-  padding: 10px 20px;
-  margin: 0 10px;
+  padding: 10px 15px;
+  margin: 0 5px;
   cursor: pointer;
   border-radius: 20px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: bold;
   transition: background 0.3s ease;
 }
@@ -169,7 +169,7 @@ export default {
 .recipe-carousel {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
+  gap: 10px;
   margin-bottom: 40px;
 }
 
@@ -210,5 +210,79 @@ export default {
   font-weight: bold;
   font-size: 14px;
   margin: 0;
+}
+
+/* --- Estilos para Tablets (Pantallas > 600px) --- */
+@media (min-width: 600px) {
+  .header-logo {
+    width: 250px;
+  }
+
+  .toggle-buttons button {
+    font-size: 16px;
+    padding: 12px 20px;
+    margin: 0 8px;
+  }
+
+  .recipe-carousel {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+  }
+
+  .recipe-card {
+    max-width: 180px;
+    height: 180px;
+  }
+
+  .recipe-image {
+    height: 140px;
+  }
+
+  .recipe-title {
+    font-size: 15px;
+  }
+}
+
+/* --- Estilos para Escritorio (Pantallas > 1024px) --- */
+@media (min-width: 1024px) {
+  .page-container {
+    max-width: 1200px;
+    margin: auto;
+  }
+
+  .header-logo {
+    width: 300px;
+  }
+
+  .toggle-buttons {
+    margin-bottom: 30px;
+  }
+
+  .toggle-buttons button {
+    font-size: 18px;
+    padding: 15px 25px;
+  }
+
+  .carousel-container {
+    padding: 20px;
+  }
+
+  .recipe-carousel {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+
+  .recipe-card {
+    max-width: 200px;
+    height: 220px;
+  }
+
+  .recipe-image {
+    height: 170px;
+  }
+
+  .recipe-title {
+    font-size: 16px;
+  }
 }
 </style>
