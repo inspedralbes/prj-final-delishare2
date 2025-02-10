@@ -139,22 +139,25 @@ export default {
     const showNewPassword = ref(false);
     const showConfirmPassword = ref(false);
 
-    // Obtener los datos del usuario y recetas creadas
     onMounted(async () => {
-      try {
-        const userData = await communicationManager.getUser();
-        user.value = userData;
-        userImage.value = userData.img || '/default-avatar.png';
+  try {
+    // Obtener los datos del usuario
+    const userData = await communicationManager.getUser();
+    user.value = userData;
+    userImage.value = userData.img || '/default-avatar.png';
+    
+    // Usar el ID del usuario para obtener las recetas
+    const userRecipes = await communicationManager.getUserRecipes(userData.id); // Aquí pasamos el ID
+    recipes.value = userRecipes;
 
-        const userRecipes = await communicationManager.getUserRecipes();
-        recipes.value = userRecipes;
+    // Cargar las carpetas
+    await fetchUserFolders();
+  } catch (error) {
+    console.error('Error cargando datos del usuario o recetas', error);
+  }
+});
 
-        // Cargar carpetas al montar el componente
-        await fetchUserFolders();
-      } catch (error) {
-        console.error('Error cargando datos del usuario o recetas', error);
-      }
-    });
+
 
     // Observar cambios en activeTab para cargar carpetas cuando se selecciona "Mis Guardadas"
     watch(activeTab, async (newTab) => {

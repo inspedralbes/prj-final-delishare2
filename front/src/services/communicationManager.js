@@ -241,8 +241,8 @@ changePassword(passwordData) {
             throw error;
         });
 },
-getUserRecipes() {
-  return apiClient.get('/user/recipes')
+getUserRecipes(id) {
+  return apiClient.get(`/user/${id}/recipes`) // Usa el ID de usuario correctamente
     .then(response => response.data)
     .catch(error => {
       console.error('Error fetching user recipes:', error);
