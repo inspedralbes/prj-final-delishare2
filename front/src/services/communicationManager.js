@@ -249,8 +249,9 @@ getUserRecipes(id) {
       throw error;
     });
 
+},
 
-},// Obtener comentarios de una receta
+
 fetchComments(recipeId) {
   return apiClient.get(`/recipes/${recipeId}/comments`)
     .then(response => response.data)
@@ -307,16 +308,17 @@ fetchFolderRecipes(folderId) {
         throw error;
       });
   },
- // Eliminar receta de una carpeta
- async removeRecipeFromFolder(recipeId, folderId) {
-  try {
-    const response = await apiClient.delete(`/folders/${folderId}/recipes/${recipeId}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error removing recipe from folder:', error);
-    throw error;
-  }
-},
+  removeRecipeFromFolder: async (recipeId, folderId) => {
+    try {
+      // Asegúrate de que la URL esté correctamente construida
+      const response = await apiClient.delete(`/folders/${folderId}/recipes/${recipeId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error eliminando receta de la carpeta', error);
+      throw error;
+    }
+  },
+  
   // Obtener las recetas guardadas por el usuario
   fetchUserSavedRecipes() {
     return apiClient.get('/user/saved-recipes')

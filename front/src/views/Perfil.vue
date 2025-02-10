@@ -54,57 +54,55 @@
       </div>
     </div>
 
-    <!-- Botones de Ver Publicaciones y Mis Guardadas -->
     <div class="profile-actions">
       <button @click="activeTab = 'publications'">Ver Publicaciones</button>
       <button @click="activeTab = 'savedRecipes'">Mis Guardadas</button>
     </div>
 
-    <!-- Mostrar las recetas creadas por el usuario en tarjetas -->
-    <div v-if="activeTab === 'publications' && recipes.length > 0" class="user-recipes">
+    <!-- Recetas creadas por el usuario -->
+    <div v-if="activeTab === 'publications'" class="user-recipes">
       <h3>Recetas creadas</h3>
       <div class="recipe-cards">
-        <RecipeCard
-          v-for="recipe in recipes"
-          :key="recipe.id"
-          :recipe-id="recipe.id"
-          :title="recipe.title"
-          :description="recipe.description"
-          :image="recipe.image"
-        />
-      </div>
-    </div>
-
-    <!-- Mostrar mis carpetas y recetas guardadas -->
-    <div v-if="activeTab === 'savedRecipes'" class="saved-recipes">
-      <input v-if="showCreateFolderInput" type="text" v-model="newFolderName" placeholder="Nombre de nueva carpeta" />
-      <button v-if="showCreateFolderInput" @click="createFolder">Crear Carpeta</button>
-      <button v-else @click="showCreateFolderInput = true">Añadir Carpeta</button>
-
-      <div class="folders" v-if="folders.length > 0">
-        <div class="folder-card" v-for="folder in folders" :key="folder.id" @click="fetchFolderRecipes(folder.id)">
-          <h4>{{ folder.name }}</h4>
-          <button v-if="folder && folder.id" @click="deleteFolder(folder.id)">Eliminar Carpeta</button>
-        </div>
-      </div>
-
-      <!-- Recetas dentro de la carpeta seleccionada -->
-      <div v-if="selectedFolderRecipes.length > 0" class="folder-recipes">
-        <h3>Recetas en la carpeta "{{ selectedFolder.name }}"</h3>
-        <div class="recipe-cards">
+        <div v-for="recipe in recipes" :key="recipe.id" class="recipe-card">
           <RecipeCard
-            v-for="recipe in selectedFolderRecipes"
-            :key="recipe.id"
             :recipe-id="recipe.id"
             :title="recipe.title"
             :description="recipe.description"
             :image="recipe.image"
           />
+          <button @click="deleteRecipe(recipe.id)" class="delete-btn">Eliminar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recetas guardadas -->
+    <div v-if="activeTab === 'savedRecipes'" class="saved-recipes">
+      <div class="folders" v-if="folders.length > 0">
+        <div class="folder-card" v-for="folder in folders" :key="folder.id" @click="fetchFolderRecipes(folder.id)">
+          <h4>{{ folder.name }}</h4>
+          <button @click.stop="deleteFolder(folder.id)">Eliminar Carpeta</button>
+        </div>
+      </div>
+
+      <div v-if="selectedFolderRecipes.length > 0" class="folder-recipes">
+        <h3>Recetas en la carpeta "{{ selectedFolder.name }}"</h3>
+        <div class="recipe-cards">
+          <div v-for="recipe in selectedFolderRecipes" :key="recipe.id" class="recipe-card">
+            <RecipeCard
+              :recipe-id="recipe.id"
+              :title="recipe.title"
+              :description="recipe.description"
+              :image="recipe.image"
+            />
+            <button @click="removeRecipeFromFolder(recipe.id, selectedFolder.id)" class="delete-btn">Eliminar</button>
+          
+          </div>
         </div>
       </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import { useAuthStore } from '@/stores/authStore';
@@ -115,7 +113,7 @@ import axios from 'axios';
 
 export default {
   components: {
-    RecipeCard // Registramos RecipeCard como un componente
+    RecipeCard 
   },
   setup() {
     const cloudName = 'dt5vjbgab';
@@ -146,9 +144,9 @@ export default {
     user.value = userData;
     userImage.value = userData.img || '/default-avatar.png';
     
-    // Usar el ID del usuario para obtener las recetas
-    const userRecipes = await communicationManager.getUserRecipes(userData.id); // Aquí pasamos el ID
-    recipes.value = userRecipes;
+    const userRecipes = await communicationManager.getUserRecipes(userData.id);
+recipes.value = userRecipes.recipes; // Accede correctamente a la lista de recetas
+
 
     // Cargar las carpetas
     await fetchUserFolders();
@@ -265,8 +263,27 @@ export default {
         alert('Error al eliminar la carpeta');
       }
     };
+    const deleteRecipe = async (recipeId) => {
+      try {
+        await communicationManager.deleteRecipe(recipeId);
+        recipes.value = recipes.value.filter(recipe => recipe.id !== recipeId);
+      } catch (error) {
+        console.error('Error eliminando receta', error);
+      }
+    };
+    const removeRecipeFromFolder = async (recipeId, folderId) => {
+  try {
+    // Asegúrate de pasar el folderId
+    await communicationManager.removeRecipeFromFolder(recipeId, folderId); 
+    selectedFolderRecipes.value = selectedFolderRecipes.value.filter(recipe => recipe.id !== recipeId);
+  } catch (error) {
+    console.error('Error eliminando receta de la carpeta', error);
+  }
+};
 
     return {
+      deleteRecipe,
+      removeRecipeFromFolder,
       user,
       userImage,
       currentPassword,
