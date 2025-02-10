@@ -51,13 +51,15 @@ export default {
 .recipe-card {
   display: flex;
   flex-direction: column;
-  width: 140px; /* Ancho más reducido */
+  width: 150px; 
+  height: 150px;
   border: 1px solid #343330;
   border-radius: 8px;
   overflow: hidden;
   text-align: center;
-  margin: 10px;
+  margin: px;
   transition: transform 0.3s ease-in-out;
+
 }
 
 .recipe-card:hover {
@@ -66,18 +68,19 @@ export default {
 
 .recipe-image {
   width: 100%;
-  height: 60%;
+  height: 55%; /* Reducir la altura de la imagen */
   object-fit: cover;
 }
 
 .recipe-content {
-  padding: 10px;
+  padding: 5px 10px; /* Reducir el padding entre contenido */
 }
 
 .recipe-content h2 {
   font-size: 14px; /* Fuente más pequeña */
   color: #343330;
   font-weight: bold;
+  margin: 5px 0; /* Reducir el margen entre el título y la descripción */
 }
 
 .recipe-content p {
@@ -86,5 +89,7 @@ export default {
   overflow: hidden; /* Para ocultar el exceso de texto */
   white-space: nowrap; /* Evitar que el texto se divida en varias líneas */
   text-overflow: ellipsis; /* Añadir los tres puntos */
+  margin: 0; /* Eliminar margen extra alrededor de la descripción */
+  padding: 0; /* Eliminar el padding en la parte inferior */
 }
 </style>
