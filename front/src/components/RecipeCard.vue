@@ -1,8 +1,9 @@
 <template>
-  <article class="recipe-card" @click="handleClick">
+  <article class="recipe-card" @click="handleClick" style="cursor: pointer;">
     <img :src="image" :alt="title" class="recipe-image" />
-    <div class="recipe-info">
-      <p class="recipe-title">{{ title }}</p>
+    <div class="recipe-content">
+      <h2>{{ title }}</h2>
+      <p class="description">{{ truncatedDescription }}</p>
     </div>
   </article>
 </template>
@@ -12,7 +13,7 @@ export default {
   name: 'RecipeCard',
   props: {
     recipeId: {
-      type: [String, Number],
+      type: String,
       required: true
     },
     title: {
@@ -21,11 +22,21 @@ export default {
     },
     description: {
       type: String,
-      default: ''
+      required: true
     },
     image: {
       type: String,
       required: true
+    }
+  },
+  computed: {
+    // Computed property to get the first 15 words of the description
+    truncatedDescription() {
+      const words = this.description.split(' ');
+      if (words.length > 15) {
+        return words.slice(0, 15).join(' ') + '...';
+      }
+      return this.description;
     }
   },
   methods: {
@@ -38,19 +49,15 @@ export default {
 
 <style scoped>
 .recipe-card {
-  width: 100%;
-  max-width: 150px;
-  height: 160px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  border: 2px solid #2f8394;
+  width: 140px; /* Ancho más reducido */
+  border: 1px solid #343330;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  margin: 10px;
   transition: transform 0.3s ease-in-out;
-  background: white;
-  cursor: pointer;
 }
 
 .recipe-card:hover {
@@ -59,49 +66,25 @@ export default {
 
 .recipe-image {
   width: 100%;
-  height: 130px;
+  height: 60%;
   object-fit: cover;
 }
 
-.recipe-info {
-  text-align: center;
-  padding: 2px;
-  width: 100%;
-  background-color: #f4f4f4;
+.recipe-content {
+  padding: 10px;
 }
 
-.recipe-title {
-  font-weight: bold;
-  font-size: 14px;
-  margin: 0;
+.recipe-content h2 {
+  font-size: 14px; /* Fuente más pequeña */
   color: #343330;
+  font-weight: bold;
 }
 
-/* Tablets */
-@media (min-width: 600px) {
-  .recipe-card {
-    max-width: 180px;
-    height: 180px;
-  }
-  .recipe-image {
-    height: 140px;
-  }
-  .recipe-title {
-    font-size: 15px;
-  }
-}
-
-/* Escritorio */
-@media (min-width: 1024px) {
-  .recipe-card {
-    max-width: 200px;
-    height: 220px;
-  }
-  .recipe-image {
-    height: 170px;
-  }
-  .recipe-title {
-    font-size: 16px;
-  }
+.recipe-content p {
+  font-size: 10px; /* Fuente más pequeña */
+  color: #666;
+  overflow: hidden; /* Para ocultar el exceso de texto */
+  white-space: nowrap; /* Evitar que el texto se divida en varias líneas */
+  text-overflow: ellipsis; /* Añadir los tres puntos */
 }
 </style>

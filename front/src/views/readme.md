@@ -5,7 +5,6 @@
         <img :src="user.img" alt="Foto de perfil" />
         <input id="file-input" type="file" @change="uploadImage" style="display: none;" />
       </label>
-
       <h2>{{ user.name }}</h2>
       <p>{{ user.email }}</p>
       <button @click="showEditProfile = !showEditProfile">Editar perfil</button>
@@ -64,14 +63,16 @@
     <div v-if="activeTab === 'publications' && recipes.length > 0" class="user-recipes">
       <h3>Recetas creadas</h3>
       <div class="recipe-cards">
-        <RecipeCard
-          v-for="recipe in recipes"
-          :key="recipe.id"
-          :recipe-id="recipe.id"
-          :title="recipe.title"
-          :description="recipe.description"
-          :image="recipe.image"
-        />
+        <div class="recipe-card" v-for="recipe in recipes" :key="recipe.id">
+          <router-link :to="{ name: 'InfoReceta', params: { recipeId: recipe.id } }">
+            <img :src="recipe.image" :alt="recipe.title" class="recipe-image" />
+            <div class="recipe-info">
+              <p class="recipe-title">{{ recipe.title }}</p>
+              <p class="recipe-description">{{ truncateDescription(recipe.description) }}</p>
+            </div>
+          </router-link>
+          <button @click="deleteUserRecipe(recipe.id)">Eliminar</button>
+        </div>
       </div>
     </div>
 
@@ -87,21 +88,6 @@
           <button v-if="folder && folder.id" @click="deleteFolder(folder.id)">Eliminar Carpeta</button>
         </div>
       </div>
-
-      <!-- Recetas dentro de la carpeta seleccionada -->
-      <div v-if="selectedFolderRecipes.length > 0" class="folder-recipes">
-        <h3>Recetas en la carpeta "{{ selectedFolder.name }}"</h3>
-        <div class="recipe-cards">
-          <RecipeCard
-            v-for="recipe in selectedFolderRecipes"
-            :key="recipe.id"
-            :recipe-id="recipe.id"
-            :title="recipe.title"
-            :description="recipe.description"
-            :image="recipe.image"
-          />
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -110,13 +96,9 @@
 import { useAuthStore } from '@/stores/authStore';
 import communicationManager from '@/services/communicationManager';
 import { ref, onMounted, watch } from 'vue';
-import RecipeCard from '@/components/RecipeCard.vue'; // Importamos el componente RecipeCard
 import axios from 'axios';
 
 export default {
-  components: {
-    RecipeCard // Registramos RecipeCard como un componente
-  },
   setup() {
     const cloudName = 'dt5vjbgab';
     const uploadPreset = 'perfiles';
@@ -128,18 +110,9 @@ export default {
     const userImage = ref('/default-avatar.png');
     const recipes = ref([]);
     const folders = ref([]);
-    const selectedFolderRecipes = ref([]);
-    const selectedFolder = ref(null);
-    const showCreateFolderInput = ref(false);
-    const newFolderName = ref('');
     const activeTab = ref('publications');
     const showEditProfile = ref(false);
-    const selectedRecipes = ref([]);
-    const showCurrentPassword = ref(false);
-    const showNewPassword = ref(false);
-    const showConfirmPassword = ref(false);
-
-    // Obtener los datos del usuario y recetas creadas
+    
     onMounted(async () => {
       try {
         const userData = await communicationManager.getUser();
@@ -148,119 +121,15 @@ export default {
 
         const userRecipes = await communicationManager.getUserRecipes();
         recipes.value = userRecipes;
-
-        // Cargar carpetas al montar el componente
-        await fetchUserFolders();
       } catch (error) {
         console.error('Error cargando datos del usuario o recetas', error);
       }
     });
 
-    // Observar cambios en activeTab para cargar carpetas cuando se selecciona "Mis Guardadas"
-    watch(activeTab, async (newTab) => {
-      if (newTab === 'savedRecipes') {
-        await fetchUserFolders();
-      }
-    });
-
-    const fetchUserFolders = async () => {
-      try {
-        const userFolders = await communicationManager.fetchUserFolders();
-        folders.value = userFolders;
-      } catch (error) {
-        console.error('Error cargando carpetas', error);
-      }
-    };
-
-    const fetchFolderRecipes = async (folderId) => {
-      try {
-        selectedFolderRecipes.value = await communicationManager.fetchFolderRecipes(folderId);
-        selectedFolder.value = folders.value.find(folder => folder.id === folderId);
-      } catch (error) {
-        console.error('Error obteniendo recetas de la carpeta', error);
-      }
-    };
-
-    const updateProfile = async () => {
-      try {
-        await communicationManager.updateProfile({
-          name: user.value.name,
-          email: user.value.email,
-        });
-        alert("Perfil actualizado correctamente");
-      } catch (error) {
-        console.error('Error actualizando perfil', error);
-      }
-    };
-
-    const updatePassword = async () => {
-      if (newPassword.value !== confirmPassword.value) {
-        alert("Las contraseñas no coinciden");
-        return;
-      }
-      
-      try {
-        await communicationManager.changePassword({
-          contrasena_actual: currentPassword.value,
-          nueva_contrasena: newPassword.value,
-        });
-        alert("Contraseña actualizada correctamente");
-      } catch (error) {
-        console.error('Error cambiando la contraseña', error);
-        alert('Error al cambiar la contraseña');
-      }
-    };
-
-    const uploadImage = async (event) => {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", uploadPreset);
-
-      try {
-        const response = await axios.put(
-          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-          formData
-        );
-        const uploadedImageUrl = response.data.secure_url;
-
-        // Actualizar la imagen en la referencia del usuario
-        userImage.value = uploadedImageUrl;
-        user.value.img = uploadedImageUrl;
-
-        await communicationManager.updateProfilePicture({ img: uploadedImageUrl });
-
-        alert("Foto de perfil actualizada correctamente");
-      } catch (error) {
-        console.error("Error subiendo imagen de perfil:", error);
-      }
-    };
-
-    const createFolder = async () => {
-      if (newFolderName.value.trim() === '') return;
-
-      try {
-        await communicationManager.createFolder(newFolderName.value);
-        alert('Carpeta creada');
-        showCreateFolderInput.value = false;
-        newFolderName.value = '';
-        await fetchUserFolders();
-      } catch (error) {
-        console.error('Error creando carpeta', error);
-      }
-    };
-
-    const deleteFolder = async (folderId) => {
-      try {
-        await communicationManager.deleteFolder(folderId);
-        alert('Carpeta eliminada');
-        await fetchUserFolders();
-      } catch (error) {
-        console.error('Error eliminando la carpeta', error);
-        alert('Error al eliminar la carpeta');
-      }
+    const truncateDescription = (description) => {
+      if (!description) return '';
+      const words = description.split(' ');
+      return words.length > 15 ? words.slice(0, 15).join(' ') + '...' : description;
     };
 
     return {
@@ -271,27 +140,55 @@ export default {
       confirmPassword,
       recipes,
       folders,
-      selectedFolderRecipes,
-      showCreateFolderInput,
-      newFolderName,
       activeTab,
       showEditProfile,
-      selectedFolder,
-      showCurrentPassword,
-      showNewPassword,
-      showConfirmPassword,
-      uploadImage,
-      updateProfile,
-      updatePassword,
-      fetchFolderRecipes,
-      createFolder,
-      deleteFolder,
+      truncateDescription
     };
-  },
+  }
 };
 </script>
 
 <style scoped>
+.profile-container {
+  padding: 20px;
+}
+
+.profile-header {
+  text-align: center;
+}
+
+.recipe-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.recipe-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  width: 200px;
+  padding: 10px;
+}
+
+.recipe-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.recipe-info {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.recipe-description {
+  font-size: 10px;
+  color: #666;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .profile-container {
   padding: 20px;
 }
@@ -412,4 +309,5 @@ export default {
 .saved-recipes {
   margin-top: 20px;
 }
+
 </style>
