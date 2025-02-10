@@ -203,26 +203,6 @@ public function filterByCuisine($id){
         'recipes' => $recipes,
     ], 200);
 }
-public function getUserRecipes()
-{
-    // Obtener el usuario autenticado
-    $user = auth()->user();
-
-    // Verificar si el usuario está autenticado
-    if ($user === null) {
-        return response()->json(['error' => 'Usuario no autenticado'], 401);
-    }
-
-    // Obtener las recetas creadas por el usuario
-    $recipes = Recipe::where('user_id', $user->id)->get();
-
-    if ($recipes->isEmpty()) {
-        return response()->json(['message' => 'No recipes found for this user'], 404);
-    }
-
-    return response()->json($recipes);
-}
-
 public function getAllUsers()
 {
     // Obtener id y nombre de los usuarios
@@ -241,6 +221,19 @@ public function filterByUser($userId)
         'recipes' => $recipes,
     ], 200);
 }
+public function getRecipesByUser(Request $request)
+{
+    // Obtener el ID del usuario autenticado
+    $userId = $request->user()->id;
+
+    // Obtener las recetas creadas por el usuario
+    $recipes = Recipe::where('user_id', $userId)->get();
+
+    return response()->json([
+        'recipes' => $recipes,
+    ], 200);
+}
+
 
 
 

@@ -7,6 +7,15 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CuisineController;
 use App\Http\Controllers\SavedRecipeController;
 use App\Http\Controllers\FolderController;
+use App\Http\Controllers\InfoUserController;
+use App\Http\Controllers\UserController;
+
+Route::get('/user/{id}/recipes', [InfoUserController::class, 'showRecipes']);
+
+
+// Usuarios
+Route::get('userInfo/{id}', [InfoUserController::class, 'show']);
+Route::get('user/{id}', [UserController::class, 'show']);
 
 // Categorías
 Route::middleware('auth:sanctum')->post('/categories', [CategoryController::class, 'store']);
@@ -14,6 +23,8 @@ Route::get('/categories', [CategoryController::class, 'index']);
 Route::middleware('auth:sanctum')->get('/categories/{id}', [CategoryController::class, 'show']);
 Route::middleware('auth:sanctum')->put('/categories/{id}', [CategoryController::class, 'update']);
 Route::middleware('auth:sanctum')->delete('/categories/{id}', [CategoryController::class, 'destroy']);
+
+Route::middleware('auth:sanctum')->get('/user/recetas', [RecipeController::class, 'getRecipesByUser']);
 
 // Cocinas
 Route::middleware('auth:sanctum')->post('/cuisines', [CuisineController::class, 'store']);
@@ -59,7 +70,6 @@ Route::middleware('auth:sanctum')->put('/updateProfilePicture', [AuthController:
 
 Route::middleware('auth:sanctum')->post('/cambiarContra', [AuthController::class, 'cambiarContra']);
 //ruta para cambiar contra- http://127.0.0.1:8000/api/cambiarContra
-Route::middleware('auth:sanctum')->get('/user/recipes', [RecipeController::class, 'getUserRecipes']);
 
 
 //Ruta para obtener todos los usuarios("Hazta hacer el filtro")
