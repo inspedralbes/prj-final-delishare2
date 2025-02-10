@@ -22,7 +22,7 @@ export default {
     },
     description: {
       type: String,
-      required: true
+      default: '',  // Agregar valor predeterminado
     },
     image: {
       type: String,
@@ -32,11 +32,13 @@ export default {
   computed: {
     // Computed property to get the first 15 words of the description
     truncatedDescription() {
-      const words = this.description.split(' ');
+      // Aseguramos que description sea una cadena antes de hacer split
+      const descriptionText = this.description || '';
+      const words = descriptionText.split(' ');
       if (words.length > 15) {
         return words.slice(0, 15).join(' ') + '...';
       }
-      return this.description;
+      return descriptionText;
     }
   },
   methods: {
@@ -59,7 +61,6 @@ export default {
   text-align: center;
   margin: px;
   transition: transform 0.3s ease-in-out;
-
 }
 
 .recipe-card:hover {

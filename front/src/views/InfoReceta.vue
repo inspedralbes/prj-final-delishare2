@@ -1,67 +1,70 @@
 <template>
   <div class="recipe-detail">
     <button class="back-button" @click="goBack">← Volver</button>
+    <button @click="toggleLike">
+      {{ isLiked ? 'Quitar Like' : 'Dar Like' }} ❤️
+    </button>
 
-    <!-- Botón de guardar receta normal -->
-    <button @click="saveToSavedRecipes(recipe.id)">Guardar receta en Guardadas</button>
+  <!-- Botón de guardar receta normal -->
+  <button @click="saveToSavedRecipes(recipe.id)">Guardar receta en Guardadas</button>
 
-    <!-- Botón de guardar receta en carpeta -->
-    <button @click="showFolderSelection = true">Guardar receta en mi carpeta</button>
+  <!-- Botón de guardar receta en carpeta -->
+  <button @click="showFolderSelection = true">Guardar receta en mi carpeta</button>
 
-    <!-- Selector de carpetas (mostrar solo si se activa la opción) -->
-    <div v-if="showFolderSelection">
-      <select v-model="selectedFolderId">
-        <option v-for="folder in userFolders" :key="folder.id" :value="folder.id">{{ folder.name }}</option>
-      </select>
-      <button @click="saveToFolder">Guardar en carpeta</button>
-      <button @click="showFolderSelection = false">Cancelar</button>
-    </div>
+  <!-- Selector de carpetas (mostrar solo si se activa la opción) -->
+  <div v-if="showFolderSelection">
+    <select v-model="selectedFolderId">
+      <option v-for="folder in userFolders" :key="folder.id" :value="folder.id">{{ folder.name }}</option>
+    </select>
+    <button @click="saveToFolder">Guardar en carpeta</button>
+    <button @click="showFolderSelection = false">Cancelar</button>
+  </div>
 
-    <h1 class="recipe-title">{{ recipe.title }}</h1>
+  <h1 class="recipe-title">{{ recipe.title }}</h1>
 
-    <p>
-      <strong>Creador:</strong>
-      <router-link :to="'/user/' + recipe.user_id">{{ recipe.creador }}</router-link>
-    </p>
+  <p>
+    <strong>Creador:</strong>
+    <router-link :to="'/user/' + recipe.user_id">{{ recipe.creador }}</router-link>
+  </p>
 
-    <div class="recipe-image-container">
-      <img :src="recipe.image" :alt="recipe.title" class="recipe-image">
-    </div>
+  <div class="recipe-image-container">
+    <img :src="recipe.image" :alt="recipe.title" class="recipe-image">
+  </div>
 
-    <div class="recipe-info">
-      <p class="recipe-description"><strong>Descripción:</strong> {{ recipe.description || 'Sin descripción' }}</p>
-      <div class="recipe-section">
-        <h2>Ingredientes</h2>
-        <ul class="ingredients-list">
-          <li v-for="(ingredient, index) in recipe.ingredients" :key="index">{{ ingredient }}</li>
-        </ul>
-      </div>
-      <div class="recipe-section">
-        <h2>Pasos</h2>
-        <ol class="steps-list">
-          <li v-for="(step, index) in recipe.steps" :key="index">{{ step }}</li>
-        </ol>
-      </div>
-      <div class="recipe-meta">
-        <p><strong>Tiempo de preparación:</strong> {{ recipe.prep_time }} mins</p>
-        <p><strong>Tiempo de cocción:</strong> {{ recipe.cook_time }} mins</p>
-        <p><strong>Porciones:</strong> {{ recipe.servings }} personas</p>
-        <p><strong>Likes:</strong> {{ recipe.likes_count }} ❤️</p>
-      </div>
-    </div>
-
-    <!-- Sección de comentarios -->
+  <div class="recipe-info">
+    <p class="recipe-description"><strong>Descripción:</strong> {{ recipe.description || 'Sin descripción' }}</p>
     <div class="recipe-section">
-      <h2>Comentarios</h2>
-      <ul class="comments-list">
-        <li v-for="(comment, index) in comments" :key="index">
-          <p><strong>{{ comment.name || 'Usuario desconocido' }}:</strong> {{ comment.comment }}</p>
-        </li>
+      <h2>Ingredientes</h2>
+      <ul class="ingredients-list">
+        <li v-for="(ingredient, index) in recipe.ingredients" :key="index">{{ ingredient }}</li>
       </ul>
-
-      <textarea v-model="newComment" placeholder="Escribe un comentario..."></textarea>
-      <button @click="addComment">Comentar</button>
     </div>
+    <div class="recipe-section">
+      <h2>Pasos</h2>
+      <ol class="steps-list">
+        <li v-for="(step, index) in recipe.steps" :key="index">{{ step }}</li>
+      </ol>
+    </div>
+    <div class="recipe-meta">
+      <p><strong>Tiempo de preparación:</strong> {{ recipe.prep_time }} mins</p>
+      <p><strong>Tiempo de cocción:</strong> {{ recipe.cook_time }} mins</p>
+      <p><strong>Porciones:</strong> {{ recipe.servings }} personas</p>
+      <p><strong>Likes:</strong> {{ recipe.likes_count }} ❤️</p>
+    </div>
+  </div>
+
+  <!-- Sección de comentarios -->
+  <div class="recipe-section">
+    <h2>Comentarios</h2>
+    <ul class="comments-list">
+      <li v-for="(comment, index) in comments" :key="index">
+        <p><strong>{{ comment.name || 'Usuario desconocido' }}:</strong> {{ comment.comment }}</p>
+      </li>
+    </ul>
+
+    <textarea v-model="newComment" placeholder="Escribe un comentario..."></textarea>
+    <button @click="addComment">Comentar</button>
+  </div>
   </div>
 </template>
 
@@ -133,26 +136,26 @@ export default {
     },
 
     async addComment() {
-  if (!this.newComment.trim()) return;
+      if (!this.newComment.trim()) return;
 
-  try {
-    // Obtiene los datos del usuario autenticado
-    const user = await communicationManager.getUser(); 
+      try {
+        // Obtiene los datos del usuario autenticado
+        const user = await communicationManager.getUser();
 
-    // Enviar comentario al backend
-    await communicationManager.addComment(this.recipe.id, this.newComment);
+        // Enviar comentario al backend
+        await communicationManager.addComment(this.recipe.id, this.newComment);
 
-    // Agregar comentario al estado sin refrescar
-    this.comments.push({
-      comment: this.newComment,
-      name: user.name, // Agregar el nombre del usuario autenticado
-    });
+        // Agregar comentario al estado sin refrescar
+        this.comments.push({
+          comment: this.newComment,
+          name: user.name, // Agregar el nombre del usuario autenticado
+        });
 
-    this.newComment = '';  // Limpiar campo
-  } catch (error) {
-    console.error('Error adding comment:', error);
-  }
-},
+        this.newComment = '';  // Limpiar campo
+      } catch (error) {
+        console.error('Error adding comment:', error);
+      }
+    },
 
 
     async saveToSavedRecipes() {
@@ -164,6 +167,13 @@ export default {
       } catch (error) {
         console.error('Error al guardar receta:', error);
       }
+    },
+    async toggleLike() {
+      const savedRecipesStore = useSavedRecipesStore();
+      await savedRecipesStore.toggleLike(this.recipe.id);
+
+      // Actualizar el contador de likes después de dar o quitar el like
+      this.recipe.likes_count += this.isLiked ? 1 : -1;
     },
 
     async saveToFolder() {

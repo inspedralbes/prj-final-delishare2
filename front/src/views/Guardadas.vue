@@ -12,6 +12,7 @@
             :recipeId="recipe.id"
             :title="recipe.title"
             :image="recipe.image" 
+            :description="recipe.description" 
           />
           
           <!-- Botón de eliminar -->

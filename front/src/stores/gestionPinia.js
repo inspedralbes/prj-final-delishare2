@@ -5,7 +5,7 @@ import communicationManager from '@/services/communicationManager';
 export const useSavedRecipesStore = defineStore('savedRecipes', {
   state: () => ({
     savedRecipes: [],  
-    likedRecipes: JSON.parse(localStorage.getItem('likedRecipes')) || [] 
+    likedRecipes: JSON.parse(localStorage.getItem('likedRecipes')) || []
   }),
 
   actions: {
@@ -37,30 +37,35 @@ export const useSavedRecipesStore = defineStore('savedRecipes', {
         console.error('Error al guardar o quitar la receta:', error);
       }
     },
+    async toggleLike(recipeId) {
+      // Verificar si la receta ya está en el estado de "likedRecipes"
+      const isLiked = this.likedRecipes.includes(recipeId);
+
+      try {
+        if (isLiked) {
+          // Si la receta ya está "likeada", la quitamos
+          await communicationManager.unlikeRecipe(recipeId);
+          this.likedRecipes = this.likedRecipes.filter(id => id !== recipeId);
+        } else {
+          // Si no está "likeada", la agregamos
+          await communicationManager.likeRecipe(recipeId);
+          this.likedRecipes.push(recipeId);
+        }
+
+        // Actualizamos el almacenamiento local para mantener los cambios persistentes
+        localStorage.setItem('likedRecipes', JSON.stringify(this.likedRecipes));
+      } catch (error) {
+        console.error('Error toggling like:', error);
+      }
+    },
 
     // Verifica si una receta está guardada
     isRecipeSaved(recipeId) {
       return this.savedRecipes.some(recipe => recipe.id === recipeId);
     },
 
-    // Verifica si una receta está en los likes
     isRecipeLiked(recipeId) {
       return this.likedRecipes.includes(recipeId);
-    },
-
-    // Agrega o elimina un like a una receta
-    toggleLike(recipeId) {
-      const index = this.likedRecipes.indexOf(recipeId);
-      if (index !== -1) {
-        // Si el like ya está presente, lo eliminamos
-        this.likedRecipes.splice(index, 1);
-      } else {
-        // Si no está, lo añadimos
-        this.likedRecipes.push(recipeId);
-      }
-
-      // guardar el estado actualizado en localStorage
-      localStorage.setItem('likedRecipes', JSON.stringify(this.likedRecipes));
     }
   },
 
