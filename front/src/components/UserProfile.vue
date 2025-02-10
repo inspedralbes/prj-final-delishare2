@@ -79,7 +79,7 @@
   
       const fetchUserData = async () => {
         try {
-          const response = await axios.get(`http://127.0.0.1:8000/api/user/${props.userId}`);
+          const response = await axios.get(`http://127.0.0.1:8000/api/userInfo/${props.userId}`);
           const data = response.data;
           user.value = {
             name: data.name,
