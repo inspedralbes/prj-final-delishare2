@@ -2,14 +2,22 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import LandingPage from '@/views/LandingPage.vue';
 import SearchPage from '@/views/SearchPage.vue';
+import Chat from '@/views/Chat.vue';
 import InfoReceta from '@/views/InfoReceta.vue';
 import AgregarReceta from '@/views/AgregarReceta.vue';
 import login from '@/components/login.vue';
 import register from '@/components/register.vue';
 import Guardadas from '@/views/Guardadas.vue';
 import { useAuthStore } from '@/stores/authStore';  // Importa el store de autenticación
+import UserProfile from '@/components/UserProfile.vue';
 
 const routes = [
+  {
+    path: '/Chat',
+    name: 'ChatBot',
+    component: Chat,
+     meta: { requiresAuth: false },
+  },
   {
     path: '/recetas',
     name: 'LandingPage',
@@ -27,6 +35,12 @@ const routes = [
     name: 'SearchPage',
     component: SearchPage,
     meta: { requiresAuth: true },
+  },
+    {
+    path: '/user/:userId',
+    name: 'UserProfile',
+    component: UserProfile,
+    props: true
   },
   {
     path: '/',
@@ -57,6 +71,7 @@ const routes = [
     component: () => import('@/views/Perfil.vue'),
     meta: { requiresAuth: true },
   },
+  
 ];
 
 const router = createRouter({
@@ -77,3 +92,4 @@ router.beforeEach((to, from, next) => {
 });
 
 export default router;
+

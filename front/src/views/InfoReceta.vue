@@ -19,7 +19,10 @@
 
     <h1 class="recipe-title">{{ recipe.title }}</h1>
 
-    <p><strong>Creador:</strong> {{ recipe.creador }}</p>
+    <p>
+      <strong>Creador:</strong>
+      <router-link :to="'/user/' + recipe.user_id">{{ recipe.creador }}</router-link>
+    </p>
 
     <div class="recipe-image-container">
       <img :src="recipe.image" :alt="recipe.title" class="recipe-image">
@@ -66,6 +69,7 @@
 import { useSavedRecipesStore } from '@/stores/gestionPinia';
 import { ref, computed } from 'vue';
 import communicationManager from '@/services/communicationManager';
+import UserProfile from '@/components/UserProfile.vue';
 
 export default {
   data() {
@@ -89,6 +93,9 @@ export default {
       selectedFolderId: null,
       userFolders: [],
     };
+  },
+  components: {
+    UserProfile
   },
   computed: {
     isSaved() {
