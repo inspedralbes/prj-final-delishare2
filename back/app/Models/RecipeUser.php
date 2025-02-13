@@ -9,7 +9,7 @@ class RecipeUser extends Model
 {
     use HasFactory;
 
-    protected $table = 'recipe_user'; // Especifica la tabla porque no sigue la convención de nombres de Laravel
+    protected $table = 'recipe_user'; 
 
     protected $fillable = ['user_id', 'recipe_id', 'saved', 'liked', 'comment'];
 

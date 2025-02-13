@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import communicationManager from '@/services/communicationManager';
-import logo from '@/assets/images/delishare.png'; // Importa la imagen
+import logo from '@/assets/images/delishare.png'; 
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -18,15 +18,12 @@ const handleRegister = async () => {
   try {
     const response = await communicationManager.register(form.value);
     console.log("Registre realitzat correctament:", response);
-    authStore.setAuth(response.token, response.user); // Ajustado: usas setAuth en vez de setToken
+    authStore.setAuth(response.token, response.user); 
     router.push('/');
   } catch (error) {
-    // Verifica si el error tiene respuesta
     if (error.response) {
-      // Si el error tiene respuesta, extraemos el mensaje de la respuesta
       console.error("Error en el registre:", error.response.data.message || 'Error desconocido');
     } else {
-      // Si el error no tiene respuesta (puede ser un error de red o del lado del cliente)
       console.error("Error de red o cliente:", error.message || 'Error desconocido');
     }
   }
@@ -37,7 +34,7 @@ const handleRegister = async () => {
 <template>
   <div class="register-container">
     <div class="register-card">
-      <img :src="logo" alt="Logo" class="register-logo"> <!-- Usa la imagen importada -->
+      <img :src="logo" alt="Logo" class="register-logo"> 
       <h3 class="register-title">Registra't !</h3>
       <form @submit.prevent="handleRegister" class="register-form">
         <div class="form-group">
@@ -83,7 +80,6 @@ const handleRegister = async () => {
   padding: 0;
 }
 
-/* Fons i contenidor principal */
 .register-container {
   background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
   min-height: 100vh;
@@ -93,7 +89,6 @@ const handleRegister = async () => {
   padding: 1rem;
 }
 
-/* Targeta de registre */
 .register-card {
   background-color: #fff;
   padding: 2rem;
@@ -104,13 +99,11 @@ const handleRegister = async () => {
   text-align: center;
 }
 
-/* Logo */
 .register-logo {
   max-width: 250px;
   margin-bottom: 1rem;
 }
 
-/* Títol */
 .register-title {
   font-size: 1.8rem;
   margin-bottom: 1.5rem;
@@ -118,14 +111,12 @@ const handleRegister = async () => {
   font-weight: 600;
 }
 
-/* Formulari */
 .register-form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-/* Camps del formulari */
 .form-group {
   width: 100%;
 }
@@ -145,7 +136,6 @@ input.form-control:focus {
   outline: none;
 }
 
-/* Botó de submit */
 .btn-submit {
   padding: 0.8rem;
   background-color: #0c0636;
@@ -163,7 +153,6 @@ input.form-control:focus {
   transform: translateY(-2px);
 }
 
-/* Enllaç a l'inici de sessió */
 .login-link {
   margin-top: 1rem;
   font-size: 0.9rem;
@@ -179,7 +168,6 @@ input.form-control:focus {
   color: #0056b3;
 }
 
-/* Media queries */
 @media (min-width: 768px) {
   .register-card {
     padding: 2.5rem;

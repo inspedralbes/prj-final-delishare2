@@ -120,7 +120,6 @@ export default {
 </script>
 
 <style scoped>
-/* --- Estils Mobile-First (Predeterminat) --- */
 .page-container {
   text-align: center;
   padding: 20px;
@@ -186,7 +185,6 @@ export default {
   margin-bottom: 40px;
 }
 
-/* --- Estils per a Tablets (Pantalles > 600px) --- */
 @media (min-width: 600px) {
   .header-logo {
     width: 250px;
@@ -204,7 +202,6 @@ export default {
   }
 }
 
-/* --- Estils per a Escriptori (Pantalles > 1024px) --- */
 @media (min-width: 1024px) {
   .page-container {
     max-width: 1200px;

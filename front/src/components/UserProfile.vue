@@ -49,7 +49,7 @@
     </div>
 
 
-    <!-- Error message display -->
+    <!-- Error -->
     <p v-if="error" class="error">{{ error }}</p>
   </div>
 </template>
@@ -78,7 +78,7 @@ export default {
       recipes_in_folders: {},
     });
     const error = ref(null);
-    const showPublications = ref(true); // Determina si se muestran las publicaciones o las carpetas
+    const showPublications = ref(true); 
 
     const fetchUserData = async () => {
       try {
@@ -163,54 +163,52 @@ export default {
 
 .user-profile .recipes {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* Dos columnas por fila en pantallas normales */
-  gap: 10px; /* Espacio entre las tarjetas */
-  justify-items: center; /* Centra las tarjetas en cada celda */
+  grid-template-columns: repeat(2, 1fr); 
+  gap: 10px; 
+  justify-items: center; 
   margin-top: 20px;
-  margin-bottom: 40px; /* Espacio entre las tarjetas y el navbar */
+  margin-bottom: 40px; 
 }
 
 
-/* Estilos para pantallas grandes */
 @media (min-width: 1024px) {
   .user-profile .recipes {
-    grid-template-columns: repeat(4, 1fr); /* Cuatro columnas por fila en pantallas grandes */
-    gap: 20px; /* Mayor espacio entre tarjetas */
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 20px; 
   }
 
   .user-profile .recipe-card {
-    width: 200px; /* Aumentamos el tamaño de las tarjetas */
-    height: 250px; /* Ajustamos la altura */
+    width: 200px;
+    height: 250px; 
     padding: 20px;
   }
 
   .user-profile .recipe-card img {
-    height: 60%; /* Ajustamos la altura de la imagen */
+    height: 60%; 
   }
 
   .user-profile .recipe-card h3 {
-    font-size: 16px; /* Aumentamos el tamaño del texto */
+    font-size: 16px;
   }
 
   .user-profile .recipe-card p {
-    font-size: 14px; /* Aumentamos el tamaño del texto */
+    font-size: 14px; 
   }
 }
 
-/* Estilos para pantallas pequeñas */
 @media (max-width: 767px) {
   .user-profile .recipes {
-    grid-template-columns: repeat(2, 1fr); /* Dos columnas por fila en pantallas pequeñas */
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .user-profile .recipe-card {
-    width: 100%; /* Las tarjetas ocupan todo el ancho disponible */
-    height: auto; /* La altura es automática */
+    width: 100%; 
+    height: auto; 
     padding: 10px;
   }
 
   .user-profile .recipe-card img {
-    height: 70%; /* Mantener la proporción de imagen */
+    height: 70%; 
   }
 
   .user-profile .recipe-card h3 {
@@ -223,8 +221,8 @@ export default {
 }
 
 .user-profile .recipe-card {
-  width: 140px; /* Ancho fijo de 140px para pantallas pequeñas */
-  height: 140px; /* Alto fijo de 140px */
+  width: 140px; 
+  height: 140px; 
   margin: 0;
   padding: 10px;
   background-color: #f9f9f9;
@@ -235,19 +233,19 @@ export default {
 
 .user-profile .recipe-card img {
   width: 100%;
-  height: 70%; /* Ajustamos la altura de la imagen */
+  height: 70%; 
   object-fit: cover;
   border-radius: 8px;
   margin-bottom: 10px;
 }
 
 .user-profile .recipe-card h3 {
-  font-size: 12px; /* Texto más pequeño para ajustarse al tamaño de la tarjeta */
+  font-size: 12px; 
   margin-bottom: 5px;
 }
 
 .user-profile .recipe-card p {
-  font-size: 10px; /* Texto aún más pequeño para ajustarse a la tarjeta */
+  font-size: 10px; 
   color: #555;
 }
 

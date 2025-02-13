@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
-    // Registro de usuario
     public function register(Request $request)
     {
         // Validación de los datos de entrada
@@ -30,13 +29,8 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        // Generar un token único y guardarlo en la base de datos (si quieres hacerlo)
         $token = $user->createToken('auth_token')->plainTextToken;
-
-        // Guarda el token en la tabla de usuarios si es necesario
         $user->update(['personal_access_token' => $token]);
-
-        // Respuesta con el usuario y el token
         return response()->json([
             'user' => [
                 'id_user' => $user->id,
@@ -80,7 +74,7 @@ class AuthController extends Controller
         // Revocar el token actual
         $user->currentAccessToken()->delete();
 
-        // Borra el token de la base de datos si lo guardaste allí
+        // Borra el token 
         $user->update(['personal_access_token' => null]);
 
         return response()->json(['message' => 'Logout exitoso'], 200);
@@ -133,18 +127,16 @@ class AuthController extends Controller
     $user->save();
 
     return response()->json(['message' => 'Contraseña cambiada exitosamente']);
-}
-public function updateProfilePicture(Request $request)
-{
-    $user = $request->user(); // Obtiene el usuario autenticado
-    // Validación del campo img (URL válida
+    }
+    public function updateProfilePicture(Request $request)
+    {
+        $user = $request->user(); 
 
-    // Actualizar la URL de la imagen
-    $user->img = $request->img;
-    $user->save();
+        $user->img = $request->img;
+        $user->save();
 
     return response()->json(['message' => 'Imagen de perfil actualizada exitosamente']);
-}
+    }
 
     
 }

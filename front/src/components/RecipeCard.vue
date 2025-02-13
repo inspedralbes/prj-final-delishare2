@@ -22,7 +22,7 @@ export default {
     },
     description: {
       type: String,
-      default: '',  // Agregar valor predeterminado
+      default: '', 
     },
     image: {
       type: String,
@@ -30,9 +30,7 @@ export default {
     }
   },
   computed: {
-    // Computed property to get the first 15 words of the description
     truncatedDescription() {
-      // Aseguramos que description sea una cadena antes de hacer split
       const descriptionText = this.description || '';
       const words = descriptionText.split(' ');
       if (words.length > 15) {
@@ -69,27 +67,27 @@ export default {
 
 .recipe-image {
   width: 100%;
-  height: 55%; /* Reducir la altura de la imagen */
+  height: 55%; 
 }
 
 .recipe-content {
-  padding: 5px 10px; /* Reducir el padding entre contenido */
+  padding: 5px 10px; 
 }
 
 .recipe-content h2 {
-  font-size: 14px; /* Fuente más pequeña */
+  font-size: 14px; 
   color: #343330;
   font-weight: bold;
-  margin: 5px 0; /* Reducir el margen entre el título y la descripción */
+  margin: 5px 0;
 }
 
 .recipe-content p {
-  font-size: 10px; /* Fuente más pequeña */
+  font-size: 10px; 
   color: #666;
-  overflow: hidden; /* Para ocultar el exceso de texto */
-  white-space: nowrap; /* Evitar que el texto se divida en varias líneas */
-  text-overflow: ellipsis; /* Añadir los tres puntos */
-  margin: 0; /* Eliminar margen extra alrededor de la descripción */
-  padding: 0; /* Eliminar el padding en la parte inferior */
+  overflow: hidden; 
+  white-space: nowrap; 
+  text-overflow: ellipsis;
+  margin: 0; 
+  padding: 0; 
 }
 </style>

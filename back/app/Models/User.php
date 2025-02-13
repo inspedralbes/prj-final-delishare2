@@ -26,14 +26,12 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    // User model
 public function savedRecipes()
 {
     return $this->belongsToMany(Recipe::class, 'recipe_user')
         ->withPivot('saved', 'liked')
-        ->wherePivot('saved', true);  // Filtro por recetas guardadas
+        ->wherePivot('saved', true);  
 }
-// En User.php
 public function folders()
 {
     return $this->hasMany(Folder::class);

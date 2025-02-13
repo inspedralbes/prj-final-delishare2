@@ -1,18 +1,18 @@
 <script setup>
 import { computed } from 'vue';
-import { useRoute } from 'vue-router';  // Importa useRoute para obtener la ruta actual
+import { useRoute } from 'vue-router';  
 import { useAuthStore } from '@/stores/authStore';
 
-const route = useRoute();  // Obtén la ruta actual
-const authStore = useAuthStore();  // Usa el store para obtener el estado de autenticación
+const route = useRoute();  
+const authStore = useAuthStore();  
 
-// Computed para verificar si la ruta actual es login o register
+// verificar si la ruta actual es login o register
 const isAuthPage = computed(() => {
-  return route.name === 'login' || route.name === 'register';  // Verifica si estamos en login o register
+  return route.name === 'login' || route.name === 'register'; 
 });
 
 const isAuthenticated = computed(() => {
-  return !!authStore.token;  // Verifica si el usuario está autenticado
+  return !!authStore.token;  
 });
 </script>
 

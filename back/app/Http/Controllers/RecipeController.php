@@ -17,10 +17,8 @@ class RecipeController extends Controller
 
     public function show($id)
     {
-        // Cargar la receta con las relaciones de usuario, categoría y cocina
         $recipe = Recipe::with(['user', 'category', 'cuisine'])->findOrFail($id);
     
-        // Agregar el nombre del creador a los datos de la receta
         $recipe->creador = $recipe->user->name; 
     
         unset($recipe->user); 
@@ -45,18 +43,13 @@ class RecipeController extends Controller
             'image' => 'nullable|string',
         ]);
     
-        // Asignar automáticamente el usuario autenticado
         $data['user_id'] = auth()->id();
     
-        // Crear la receta con los datos validados
         $recipe = Recipe::create($data);
     
         return response()->json($recipe, 201);
     }
     
-
-
-
    
 public function update(Request $request, $id)
 {
@@ -73,8 +66,8 @@ public function update(Request $request, $id)
         'prep_time' => 'required|integer',
         'cook_time' => 'required|integer',
         'servings' => 'required|integer',
-        'nutrition' => 'nullable|array',  // Handle nutrition field if available
-        'image' => 'nullable|string', // Acepta texto o se puede dejar vacío
+        'nutrition' => 'nullable|array', 
+        'image' => 'nullable|string', 
 
     ]);
 
@@ -93,7 +86,6 @@ public function update(Request $request, $id)
 {
     $userId = $request->user()->id;
     
-    // Verificar si ya existe un registro en la tabla pivot
     $recipeUser = DB::table('recipe_user')
         ->where('user_id', $userId)
         ->where('recipe_id', $recipeId)
@@ -104,13 +96,11 @@ public function update(Request $request, $id)
     }
 
     if ($recipeUser) {
-        // Si ya existe, solo actualizamos el campo 'liked'
         DB::table('recipe_user')
             ->where('user_id', $userId)
             ->where('recipe_id', $recipeId)
             ->update(['liked' => true, 'updated_at' => now()]);
     } else {
-        // Si no existe, creamos un nuevo registro
         DB::table('recipe_user')->insert([
             'user_id' => $userId,
             'recipe_id' => $recipeId,
@@ -120,7 +110,6 @@ public function update(Request $request, $id)
         ]);
     }
 
-    // Incrementamos el contador de likes de la receta
     Recipe::where('id', $recipeId)->increment('likes_count');
 
     return response()->json(['message' => 'Recipe liked successfully']);
@@ -131,7 +120,6 @@ public function unlikeRecipe(Request $request, $recipeId)
 {
     $userId = $request->user()->id;
 
-    // Verificar si el registro existe y está marcado como liked
     $recipeUser = DB::table('recipe_user')
         ->where('user_id', $userId)
         ->where('recipe_id', $recipeId)
@@ -141,13 +129,11 @@ public function unlikeRecipe(Request $request, $recipeId)
         return response()->json(['message' => 'Recipe not liked yet.'], 400);
     }
 
-    // Actualizar el registro para marcar como 'no liked'
     DB::table('recipe_user')
         ->where('user_id', $userId)
         ->where('recipe_id', $recipeId)
         ->update(['liked' => false, 'updated_at' => now()]);
 
-    // Decrementamos el contador de likes
     Recipe::where('id', $recipeId)->decrement('likes_count');
 
     return response()->json(['message' => 'Recipe unliked successfully']);
@@ -170,24 +156,20 @@ public function unlikeRecipe(Request $request, $recipeId)
             ], 200);
         }
     
-   // Obtener todos los tiempos disponibles (preparación + cocción)
    public function getAllTimes()
    {
-       // Obtener los tiempos únicos sumando prep_time y cook_time
        $times = DB::table('recipes')
            ->selectRaw('IFNULL(prep_time, 0) + IFNULL(cook_time, 0) as total_time')
            ->distinct()
-           ->pluck('total_time'); // Obtener los tiempos únicos
+           ->pluck('total_time'); 
 
        return response()->json([
            'times' => $times,
        ], 200);
    }
 
-   // Filtrar recetas por tiempo total (preparación + cocción)
    public function filterByTime($time)
    {
-       // Sumar prep_time y cook_time para filtrar correctamente las recetas
        $recipes = Recipe::whereRaw('IFNULL(prep_time, 0) + IFNULL(cook_time, 0) <= ?', [$time])
            ->get();
 
@@ -205,7 +187,6 @@ public function filterByCuisine($id){
 }
 public function getAllUsers()
 {
-    // Obtener id y nombre de los usuarios
     $users = DB::table('users')->select('id', 'name')->get();
 
     return response()->json([
@@ -223,10 +204,8 @@ public function filterByUser($userId)
 }
 public function getRecipesByUser(Request $request)
 {
-    // Obtener el ID del usuario autenticado
     $userId = $request->user()->id;
 
-    // Obtener las recetas creadas por el usuario
     $recipes = Recipe::where('user_id', $userId)->get();
 
     return response()->json([
@@ -235,13 +214,9 @@ public function getRecipesByUser(Request $request)
 }
 
 
-
-
-
 //comentario
 public function getRecipeComments($recipeId)
 {
-    // Obtener los comentarios junto con el nombre del usuario
     $comments = DB::table('recipe_user')
         ->where('recipe_id', $recipeId)
         ->whereNotNull('comment')
@@ -283,7 +258,6 @@ public function deleteComment(Request $request, $recipeId)
 {
     $userId = $request->user()->id;
 
-    // Eliminar el comentario del usuario sobre la receta
     RecipeUser::where('user_id', $userId)
         ->where('recipe_id', $recipeId)
         ->update(['comment' => null, 'updated_at' => now()]);

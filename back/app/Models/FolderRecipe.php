@@ -8,7 +8,6 @@ class FolderRecipe extends Model
 {
     use HasFactory;
 
-    // Desactivar timestamps si no se usan
     public $timestamps = false;
 
     protected $fillable = ['folder_id', 'recipe_id'];

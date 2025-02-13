@@ -5,7 +5,6 @@
   </div>
 
   <div class="guardades-container">
-    <!-- Título principal arriba -->
     
     <!-- Botones de navegación -->
     <div class="tabs">
@@ -72,7 +71,6 @@
         </p>
       </div>
 
-      <!-- Vista de carpetes (cuando no se ha seleccionado ninguna carpeta) -->
       <div v-else>
         <div>
   <button v-if="!showCreateFolderInput" @click="showCreateFolderInput = true" class="create-folder-btn">
@@ -136,7 +134,6 @@ export default {
     const newFolderName = ref('');
     const popupMessage = ref('');
 
-    // Función para mostrar popup y ocultarlo automáticamente
     const showPopup = (message) => {
       popupMessage.value = message;
       setTimeout(() => {
@@ -224,7 +221,6 @@ export default {
       }
     };
 
-    // Función para volver a la vista de carpetes
     const goBackFromFolder = () => {
       selectedFolder.value = null;
       selectedFolderRecipes.value = [];
@@ -258,12 +254,10 @@ export default {
 </script>
 
 <style scoped>
-/* Contenedor principal */
 .guardades-container {
   padding: 20px;
 }
 
-/* Popup de notificaciones */
 .popup-notification {
   position: fixed;
   top: 20px;
@@ -277,7 +271,6 @@ export default {
   animation: fadeIn 0.5s ease;
 }
 
-/* Estilos para las pestañas */
 .tabs {
   display: flex;
   gap: 20px;
@@ -300,7 +293,6 @@ export default {
   color: white;
 }
 
-/* Título */
 .title {
   text-align: center;
   font-size: 32px;
@@ -308,7 +300,6 @@ export default {
   color: #343330;
 }
 
-/* Mensaje de carga */
 .loading {
   font-size: 18px;
   color: #444;
@@ -317,7 +308,6 @@ export default {
   font-weight: bold;
 }
 
-/* Lista de receptes (guardades y de carpeta) */
 .recipe-list {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -337,7 +327,6 @@ export default {
   margin-bottom: 20px;
 }
 
-/* Botón para eliminar y otros botones de acción */
 .remove-btn {
   background-color: #0c0636;
   color: white;

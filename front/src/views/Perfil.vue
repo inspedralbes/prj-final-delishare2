@@ -16,7 +16,7 @@
       <p>{{ user.email }}</p>
     </div>
 
-    <!-- Menú emergente de ajustes con overlay -->
+    <!-- Menu de ajustes con overlay -->
     <div v-if="settingsMenuOpen" class="settings-overlay" @click="toggleSettingsMenu">
       <div class="settings-menu" @click.stop>
         <button @click="setActiveTab('image')">Canviar imatge de perfil</button>
@@ -104,7 +104,6 @@ import { ref, onMounted } from 'vue';
 import RecipeCard from '@/components/RecipeCard.vue';
 import axios from 'axios';
 
-// Importación de imágenes
 import defaultProfile from '@/assets/images/profile.svg';
 import settingsIcon from '@/assets/images/settings.svg';
 import eyeOpenIcon from '@/assets/images/eye-open.svg';
@@ -130,11 +129,7 @@ export default {
     const currentPassword = ref('');
     const showRecipes = ref(true);
     const popupMessage = ref('');
-    
-    // Estado para mostrar el popup de confirmación de cierre de sesión
     const showLogoutConfirmation = ref(false);
-
-    // Añadimos los estados de visibilidad de las contraseñas
     const showCurrentPassword = ref(false);
     const showNewPassword = ref(false);
     const showConfirmPassword = ref(false);
@@ -156,12 +151,12 @@ export default {
   try {
     await communicationManager.deleteRecipe(recipeId);
     recipes.value = recipes.value.filter(recipe => recipe.id !== recipeId);
-    popupMessage.value = "La receta se ha eliminado correctamente"; // Mostrar alerta
-    setTimeout(() => { popupMessage.value = ''; }, 3000); // Ocultar después de 3 segundos
+    popupMessage.value = "La receta se ha eliminado correctamente"; 
+    setTimeout(() => { popupMessage.value = ''; }, 3000); 
   } catch (error) {
     console.error('Error eliminando receta', error);
-    popupMessage.value = "Error al eliminar la receta"; // Mostrar alerta de error
-    setTimeout(() => { popupMessage.value = ''; }, 3000); // Ocultar después de 3 segundos
+    popupMessage.value = "Error al eliminar la receta"; 
+    setTimeout(() => { popupMessage.value = ''; }, 3000); 
   }
 };
 
@@ -185,15 +180,15 @@ const uploadImage = async (event) => {
 
     await communicationManager.updateProfilePicture({ img: uploadedImageUrl });
 
-    popupMessage.value = "Foto de perfil actualizada correctamente"; // Mostrar alerta
-    setTimeout(() => { popupMessage.value = ''; }, 3000); // Ocultar después de 3 segundos
+    popupMessage.value = "Foto de perfil actualizada correctamente";
+    setTimeout(() => { popupMessage.value = ''; }, 3000); 
 
-    activeTab.value = ''; // Resetear el formulario activo
-    showRecipes.value = true;  // Volver a mostrar las recetas
+    activeTab.value = ''; 
+    showRecipes.value = true;  
   } catch (error) {
     console.error("Error subiendo imagen de perfil:", error);
-    popupMessage.value = "Error al subir la imagen de perfil"; // Mostrar alerta de error
-    setTimeout(() => { popupMessage.value = ''; }, 3000); // Ocultar después de 3 segundos
+    popupMessage.value = "Error al subir la imagen de perfil"; 
+    setTimeout(() => { popupMessage.value = ''; }, 3000);
   }
 };
     const toggleSettingsMenu = () => {
@@ -202,7 +197,7 @@ const uploadImage = async (event) => {
 
     const setActiveTab = (tab) => {
       activeTab.value = tab;
-      showRecipes.value = false;  // Ocultar recetas cuando se abre una sección de ajustes
+      showRecipes.value = false;  
     };
 
     const togglePasswordVisibility = (field) => {
@@ -220,22 +215,22 @@ const uploadImage = async (event) => {
     await communicationManager.updateProfile({ name: newName.value, email: newEmail.value });
     user.value.name = newName.value;
     user.value.email = newEmail.value;
-    popupMessage.value = "Nombre y correo actualizados correctamente"; // Mostrar alerta
-    setTimeout(() => { popupMessage.value = ''; }, 3000); // Ocultar después de 3 segundos
+    popupMessage.value = "Nombre y correo actualizados correctamente"; 
+    setTimeout(() => { popupMessage.value = ''; }, 3000); 
     activeTab.value = '';
     settingsMenuOpen.value = false;
     showRecipes.value = true;
   } catch (error) {
     console.error('Error actualizando nombre y correo', error);
-    popupMessage.value = "Error al actualizar nombre y correo"; // Mostrar alerta de error
-    setTimeout(() => { popupMessage.value = ''; }, 3000); // Ocultar después de 3 segundos
+    popupMessage.value = "Error al actualizar nombre y correo"; 
+    setTimeout(() => { popupMessage.value = ''; }, 3000); 
   }
 };
 
 const updatePassword = async () => {
   if (newPassword.value !== confirmPassword.value) {
-    popupMessage.value = "Las contraseñas no coinciden"; // Mostrar alerta
-    setTimeout(() => { popupMessage.value = ''; }, 3000); // Ocultar después de 3 segundos
+    popupMessage.value = "Las contraseñas no coinciden"; 
+    setTimeout(() => { popupMessage.value = ''; }, 3000); 
     return;
   }
 
@@ -244,21 +239,19 @@ const updatePassword = async () => {
       contrasena_actual: currentPassword.value,
       nueva_contrasena: newPassword.value,
     });
-    popupMessage.value = "Contraseña actualizada correctamente"; // Mostrar alerta
-    setTimeout(() => { popupMessage.value = ''; }, 3000); // Ocultar después de 3 segundos
+    popupMessage.value = "Contraseña actualizada correctamente"; 
+    setTimeout(() => { popupMessage.value = ''; }, 3000); 
 
-    // Recargar las recetas después de cambiar la contraseña
     const userRecipes = await communicationManager.getUserRecipes(user.value.id);
     recipes.value = userRecipes.recipes;
 
-    // Restablecer todo y mostrar recetas
     activeTab.value = '';
     showRecipes.value = true;
   } catch (error) {
     console.error('Error actualitzant contrasenya:', error);
     if (error.response) {
-      popupMessage.value = `Error: ${error.response.data.message || 'Detalles no disponibles'}`; // Mostrar alerta de error
-      setTimeout(() => { popupMessage.value = ''; }, 3000); // Ocultar después de 3 segundos
+      popupMessage.value = `Error: ${error.response.data.message || 'Detalles no disponibles'}`; 
+      setTimeout(() => { popupMessage.value = ''; }, 3000); 
     }
   }
 };
@@ -266,23 +259,20 @@ const updatePassword = async () => {
     const cancelEdit = () => {
       settingsMenuOpen.value = false;
       activeTab.value = '';
-      showRecipes.value = true;  // Mostrar recetas al cancelar la edición
+      showRecipes.value = true;  
     };
 
-    // Mostrar el popup de confirmación antes de cerrar sesión
     const confirmLogout = () => {
       showLogoutConfirmation.value = true;
     };
 
-    // Si confirma, limpia los datos de autenticación y redirige
     const logout = () => {
       authStore.clearAuth();
       window.location.href = '/';
       console.log('Cerrando sesión...');
-      showLogoutConfirmation.value = false;  // O puedes usar this.$router.push si prefieres Vue Router
+      showLogoutConfirmation.value = false;  
     };
 
-    // Cancela la acción de cerrar sesión
     const cancelLogout = () => {
       showLogoutConfirmation.value = false;
     };
@@ -300,7 +290,7 @@ const updatePassword = async () => {
       updateName,
       updatePassword,
       cancelEdit,
-      showRecipes,  // Añadido para mostrar/ocultar recetas
+      showRecipes,  
       newName,
       newEmail,
       newPassword,
@@ -394,13 +384,11 @@ const updatePassword = async () => {
   display: flex;
   flex-direction: column;
   width: 250px;
-  /* Menú más largo */
   height: auto;
 }
 
 .settings-form {
   margin-top: 70px;
-  /* Añadido margen superior */
 }
 
 .settings-menu button {
@@ -501,10 +489,8 @@ button {
   border: 2px solid #ccc;
 }
 
-/* Estilo para el input */
 .wide-form input[type="file"] {
   width: 80%;
-  /* Ajustar tamaño */
   padding: 10px;
   border-radius: 5px;
   border: 1px solid #ccc;
@@ -514,7 +500,6 @@ button {
   cursor: pointer;
 }
 
-/* Para mejorar la apariencia del input file */
 .wide-form input[type="file"]::-webkit-file-upload-button {
   background-color: #0c0636;
   color: white;
@@ -529,7 +514,6 @@ button {
   background-color: #7582e7;
 }
 
-/* Estilo para el botón */
 .wide-form button {
   width: 80%;
   padding: 10px;
@@ -546,12 +530,10 @@ button {
   background-color: #7582e7;
 }
 
-/* Ocultar el input original */
 .custom-file-upload input[type="file"] {
   display: none;
 }
 
-/* Estilizar el label como botón */
 .custom-file-upload {
   display: inline-block;
   padding: 10px 15px;
@@ -592,7 +574,6 @@ button {
   z-index: 900;
 }
 
-/* Estilo general del popup */
 .popup-confirmation {
   position: fixed;
   top: 0;
@@ -608,7 +589,6 @@ button {
   padding: 10px;
 }
 
-/* Estilo del texto del popup */
 .popup-confirmation p {
   background-color: white;
   padding: 20px;
@@ -685,7 +665,6 @@ button {
 .cancel-btn:hover {
   background-color: #e53935;
 }
-/* Estilo del botón de aceptar */
 .popup-confirmation .confirm-btn {
   background-color: #0c0636;
   color: white;
@@ -695,7 +674,6 @@ button {
   background-color: #322b5f;
 }
 
-/* Estilo del botón de cancelar */
 .popup-confirmation .cancel-btn {
   background-color: #9c1208;
   color: white;

@@ -15,7 +15,6 @@ class Folder extends Model
         return $this->belongsTo(User::class);
     }
 
-    // Relación con el modelo Recipe
     public function recipes()
     {
         return $this->belongsToMany(Recipe::class, 'folder_recipe');

@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import communicationManager from '@/services/communicationManager';
-import logo from '@/assets/images/delishare.png'; // Importa la imagen
+import logo from '@/assets/images/delishare.png'; 
 
 const router = useRouter();
 
@@ -31,7 +31,7 @@ const handleLogin = async () => {
 <template>
   <div class="login-container">
     <div class="login-card">
-      <img :src="logo" alt="Logo" class="register-logo"> <!-- Usa la imagen importada -->
+      <img :src="logo" alt="Logo" class="register-logo"> 
 
       <h2 class="login-title">Inicia Sessió</h2>
       <form @submit.prevent="handleLogin" class="login-form">
@@ -58,7 +58,6 @@ const handleLogin = async () => {
 </template>
 
 <style scoped>
-/* Reset bàsic */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -69,7 +68,6 @@ max-width: 250px;
   margin-bottom: 1rem;
 }
 
-/* Fons i contenidor principal */
 .login-container {
   background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
   min-height: 100vh;
@@ -79,7 +77,6 @@ max-width: 250px;
   padding: 1rem;
 }
 
-/* Targeta d'inici de sessió */
 .login-card {
   background-color: #fff;
   padding: 2rem;
@@ -90,7 +87,6 @@ max-width: 250px;
   text-align: center;
 }
 
-/* Títol */
 .login-title {
   font-size: 1.8rem;
   margin-bottom: 1.5rem;
@@ -98,14 +94,13 @@ max-width: 250px;
   font-weight: 600;
 }
 
-/* Formulari */
+
 .login-form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-/* Camps del formulari */
 .login-form input {
   width: 100%;
   padding: 0.8rem;
@@ -121,7 +116,6 @@ max-width: 250px;
   outline: none;
 }
 
-/* Botó de submit */
 .btn-submit {
   padding: 0.8rem;
   background-color: #0c0636;
@@ -139,13 +133,11 @@ max-width: 250px;
   transform: translateY(-2px);
 }
 
-/* Missatge d'error */
 .error-message {
   color: red;
   margin-top: 0.5rem;
 }
 
-/* Enllaç al registre */
 .register-link {
   margin-top: 1rem;
   font-size: 0.9rem;
@@ -161,7 +153,6 @@ max-width: 250px;
   color: #322b5f;
 }
 
-/* Media queries */
 @media (min-width: 768px) {
   .login-card {
     padding: 2.5rem;
