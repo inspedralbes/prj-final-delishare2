@@ -120,6 +120,10 @@ export default {
 </script>
 
 <style scoped>
+* {
+  font-family:'Times New Roman', Times, serif;
+}
+
 .page-container {
   text-align: center;
   padding: 20px;

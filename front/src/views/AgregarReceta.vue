@@ -122,7 +122,6 @@ import axios from "axios";
 import communicationManager from "@/services/communicationManager";
 import Groq from "groq-sdk";
 
-// Inicialización de la API Groq
 const groq = new Groq({
   apiKey: import.meta.env.VITE_GROQ_API_KEY,
   dangerouslyAllowBrowser: true,
@@ -248,7 +247,7 @@ export default {
       `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
       formData
     );
-    recipe.value.image = response.data.secure_url; // Asignar la URL de la imagen directamente
+    recipe.value.image = response.data.secure_url; 
     console.log("Imagen subida correctamente:", response.data.secure_url);
   } catch (error) {
     console.error("Error al subir la imagen:", error);
@@ -317,6 +316,9 @@ export default {
 </script>
 
 <style scoped>
+* {
+  font-family:'Times New Roman', Times, serif;
+}
 .page-container {
   text-align: center;
   background-color: #fdfdff;
@@ -331,9 +333,7 @@ export default {
   border-radius: 15px;
   padding: 2rem;
   max-width: 900px;
-  /* Aumento el ancho máximo para un formulario más espacioso */
   width: 100%;
-  /* Para asegurar que el formulario ocupe todo el ancho disponible */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -391,13 +391,11 @@ textarea {
 .half-width {
   flex: 1;
   min-width: 48%;
-  /* Asegura que los inputs ocupen el 50% del espacio */
 }
 
 .third-width {
   flex: 1;
   min-width: 30%;
-  /* 33% para 3 elementos por fila */
 }
 
 .full-width-input {
@@ -511,22 +509,18 @@ textarea {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Reajustes para pantallas pequeñas */
 @media (max-width: 768px) {
   .form-row {
     flex-direction: column;
-    /* Apilar los inputs verticalmente en dispositivos pequeños */
   }
 
   .half-width,
   .third-width {
     min-width: 100%;
-    /* Hacer que los inputs ocupen todo el ancho disponible */
   }
 
   .submit-button {
     width: 100%;
-    /* Hacer el botón de enviar del mismo tamaño en pantallas pequeñas */
   }
 }
 </style>

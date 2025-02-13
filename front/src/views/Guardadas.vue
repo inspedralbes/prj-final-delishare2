@@ -254,6 +254,10 @@ export default {
 </script>
 
 <style scoped>
+* {
+  font-family:'Times New Roman', Times, serif;
+}
+
 .guardades-container {
   padding: 20px;
 }

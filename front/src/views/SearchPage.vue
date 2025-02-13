@@ -49,8 +49,8 @@ export default {
       loading: true,
       recipes: [],
       searchQuery: '',
-      mostrarRecetasGenerales: true, // Se muestran todas las recetas por defecto
-      tiempoFiltro: null, // Para filtrar por tiempo
+      mostrarRecetasGenerales: true,
+      tiempoFiltro: null, 
     };
   },
   mounted() {
@@ -93,25 +93,25 @@ export default {
 </script>
 
 <style scoped>
-/* Contenedor general */
+* {
+  font-family:'Times New Roman', Times, serif;
+}
+
 .page-container {
   text-align: center;
   padding: 20px;
   background-color: #fdfdff;
 }
 
-/* Estilos del header */
 .header {
   margin-bottom: 20px;
 }
 
-/* Estilo del logo en el header (similar al landingPage) */
 .header-logo {
-  width: 200px; /* Puedes ajustar el ancho según necesites */
+  width: 200px; 
   height: auto;
 }
 
-/* Estilo de la barra de búsqueda */
 .search-bar {
   margin: 10px 0;
 }
@@ -122,8 +122,10 @@ export default {
   border: 1px solid #ccc;
   border-radius: 20px;
 }
-
-/* Mensajes de carga y ausencia de recetas */
+.search-bar input:focus{
+  border-color: rgb(39, 39, 81);
+ outline: none; 
+}
 .loading,
 .no-recipes {
   margin: 20px 0;
@@ -131,17 +133,15 @@ export default {
   color: #333;
 }
 
-/* Contenedor de las cards con espacio extra inferior para el navbar */
 .recipe-carousel {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
   justify-items: center;
   margin-top: 20px;
-  margin-bottom: 60px; /* Espacio extra debajo de las recetas */
+  margin-bottom: 60px; 
 }
 
-/* Tablets */
 @media (min-width: 600px) {
   .recipe-carousel {
     grid-template-columns: repeat(3, 1fr);
@@ -149,7 +149,6 @@ export default {
   }
 }
 
-/* Escritorio */
 @media (min-width: 1024px) {
   .page-container {
     max-width: 1200px;

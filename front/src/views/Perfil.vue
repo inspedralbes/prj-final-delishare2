@@ -317,6 +317,9 @@ const updatePassword = async () => {
 
 
 <style scoped>
+* {
+  font-family:'Times New Roman', Times, serif;
+}
 .profile-container {
   padding: 20px;
   position: relative;
@@ -620,6 +623,7 @@ button {
   margin-bottom: 0.5rem;
   font-weight: 500;
   color: #333;
+  
 }
 
 .upload-area {
