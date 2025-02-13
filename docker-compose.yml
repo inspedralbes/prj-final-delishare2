@@ -1,6 +1,6 @@
 # Resumen:
 # 
-# Este proyecto está compuesto por varios servicios: una base de datos MySQL, un frontend en Vue.js, un backend en Laravel y un servidor Node.js.
+# Este proyecto está compuesto por varios servicios: una base de datos MySQL, un frontend en Vue.js, un backend en Laravel.
 # Cada servicio está definido en su respectiva sección de Docker Compose.
 # 
 # Para ejecutar el proyecto:
@@ -8,10 +8,9 @@
 # 1. Asegúrate de tener Docker y Docker Compose instalados en tu máquina.
 # 2. Una vez que los contenedores estén en ejecución, sigue estos pasos:
 #
-#   - Para instalar las dependencias de Node.js y Laravel:
+#   - Para instalar las dependencias de Laravel:
 #
 #     1. Navega a la carpeta `back/laravel` y ejecuta `composer install`.
-#     2. Navega a la carpeta `back/node` y ejecuta `npm install`.
 #
 #    - Para iniciar la aplicación, escribe en la terminal `docker-compose up`.
 # 
@@ -26,37 +25,39 @@ services:
   # Servicio de la base de datos MySQL
   # Proporciona una base de datos MySQL con un script de inicialización.
   db:
-    image: mysql:8.2.0  # Imagen oficial de MySQL versión 8.2.0
-    restart: always  # Reinicia automáticamente el contenedor si se detiene
+    image: mysql:8.2.0  
+    restart: always 
     environment:
       MYSQL_ROOT_PASSWORD: root  # Contraseña del usuario root
       MYSQL_DATABASE: delidelishare     # Nombre de la base de datos inicial
     ports:
-      - "3300:3306"  # Expone el puerto 3306 para conexiones externas
+      - "3300:3306"  
     volumes:
       - ./mysql_data:/var/lib/mysql  # Almacena datos de MySQL de forma persistente
   # - ./back/laravel.sql:/docker-entrypoint-initdb.d/laravel.sql  # Script de inicialización de la base de datos
 
+
+
   # Adminer para gestionar la base de datos
   # Herramienta web para administrar bases de datos MySQL.
   adminer:
-    image: adminer  # Imagen oficial de Adminer
-    restart: always  # Reinicia automáticamente el contenedor si se detiene
+    image: adminer  
+    restart: always 
     depends_on:
       - db  # Este servicio depende de la base de datos
     ports:
-      - 9094:8080  # Accesible en el puerto 9092 del host
+      - 9094:8080  
 
   # Servicio de la aplicación Vue.js
   # Proporciona un entorno para ejecutar y servir la aplicación Vue.js.
   vue-app:
-    image: node:18  # Usa la imagen oficial de Node.js versión 18
-    working_dir: /app  # Define el directorio de trabajo dentro del contenedor
+    image: node:18  # imagen oficial de Node.js v18
+    working_dir: /app  
     volumes:
-      - ./front:/app  # Montaje del código fuente del frontend como volumen
-      - /app/node_modules    # Mantiene las dependencias instaladas
+      - ./front:/app  
+      - /app/node_modules   
     ports:
-      - "5173:5173"  # Expone el servidor de desarrollo de Vue en el puerto 5173
+      - "5173:5173" 
     command: /bin/bash -c "npm install && npm run dev"
     depends_on:
       - db  # Depende de la base de datos para su funcionamiento
@@ -66,15 +67,15 @@ services:
   laravel:
     build: ./back  # Construye la imagen utilizando el Dockerfile en ./back/laravel
     volumes:
-      - ./back:/var/www/  # Montaje del código fuente de Laravel como volumen
-    working_dir: /var/www  # Define el directorio de trabajo dentro del contenedor
+      - ./back:/var/www/  
+    working_dir: /var/www  
     environment:
       - DB_HOST=db
       - DB_DATABASE=delidelishare
       - DB_USERNAME=root
       - DB_PASSWORD=root
     ports:
-      - "8000:8000"  # Expone el servidor de desarrollo de Laravel en el puerto 8000
+      - "8000:8000"  
     depends_on:
       - db  # Depende de la base de datos para su funcionamiento  
     command: bash -c "php artisan key:generate && php artisan migrate:fresh --seed && php artisan serve --host=0.0.0.0"

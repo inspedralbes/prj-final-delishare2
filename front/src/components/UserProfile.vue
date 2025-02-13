@@ -195,20 +195,19 @@ export default {
     font-size: 14px; 
   }
 }
-
-@media (max-width: 767px) {
+@media (max-width: 367px) {
   .user-profile .recipes {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr); /* Dos columnas por fila en pantallas pequeñas */
   }
 
   .user-profile .recipe-card {
-    width: 100%; 
-    height: auto; 
+    width: 100%; /* Las tarjetas ocupan todo el ancho disponible */
+    height: auto; /* La altura es automática */
     padding: 10px;
   }
 
   .user-profile .recipe-card img {
-    height: 70%; 
+    height: 70%; /* Mantener la proporción de imagen */
   }
 
   .user-profile .recipe-card h3 {
@@ -221,10 +220,9 @@ export default {
 }
 
 .user-profile .recipe-card {
-  width: 140px; 
-  height: 140px; 
-  margin: 0;
-  padding: 10px;
+  width: 150px; /* Ancho fijo de 140px para pantallas pequeñas */
+  height: 150px; /* Alto fijo de 140px */
+  
   background-color: #f9f9f9;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -233,19 +231,19 @@ export default {
 
 .user-profile .recipe-card img {
   width: 100%;
-  height: 70%; 
+  height: 70%; /* Ajustamos la altura de la imagen */
   object-fit: cover;
   border-radius: 8px;
   margin-bottom: 10px;
 }
 
 .user-profile .recipe-card h3 {
-  font-size: 12px; 
+  font-size: 12px; /* Texto más pequeño para ajustarse al tamaño de la tarjeta */
   margin-bottom: 5px;
 }
 
 .user-profile .recipe-card p {
-  font-size: 10px; 
+  font-size: 10px; /* Texto aún más pequeño para ajustarse a la tarjeta */
   color: #555;
 }
 
@@ -263,8 +261,6 @@ export default {
   color: red;
   font-weight: bold;
 }
-
- 
 
 
 </style>

@@ -6,15 +6,14 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Habilita el envío de cookies
+  withCredentials: true, 
 });
 
-// Interceptor para agregar el token a cada solicitud
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token'); // Obtiene el token
+    const token = localStorage.getItem('token'); 
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`; // Agrega el token en los headers
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -61,7 +60,7 @@ const communicationManager = {
   createRecipe(recipeData) {
     return apiClient.post('/recipes', {
       ...recipeData,
-      user_id: localStorage.getItem('user_id') // Obtiene el ID del usuario desde el almacenamiento
+      user_id: localStorage.getItem('user_id') 
     })
       .then(response => response.data)
       .catch(error => {
@@ -128,6 +127,7 @@ const communicationManager = {
       });
   },
 
+  //info de cada user
   getUser: async () => {
     try {
       const token = localStorage.getItem('token');
@@ -194,7 +194,7 @@ const communicationManager = {
   },
   // Obtener todos los tiempos disponibles
   getAllTimes() {
-    return apiClient.get('/times') // Asumiendo que la ruta es /times para obtener todos los tiempos
+    return apiClient.get('/times')
       .then(response => response.data)
       .catch(error => {
         console.error('Error fetching times:', error);
@@ -204,7 +204,7 @@ const communicationManager = {
 
   // Filtrar recetas por tiempo total (preparación + cocción)
   fetchRecipesByTime(time) {
-    return apiClient.get(`/filterByTime/${time}`) // Asumiendo que la ruta es /filterByTime/{time}
+    return apiClient.get(`/filterByTime/${time}`)
       .then(response => response.data)
       .catch(error => {
         console.error('Error filtering recipes by time:', error);
@@ -242,7 +242,7 @@ const communicationManager = {
       });
   },
   getUserRecipes(id) {
-    return apiClient.get(`/user/${id}/recipes`) // Usa el ID de usuario correctamente
+    return apiClient.get(`/user/${id}/recipes`)
       .then(response => response.data)
       .catch(error => {
         console.error('Error fetching user recipes:', error);
@@ -281,17 +281,17 @@ const communicationManager = {
       });
   },
   createFolder(folderName) {
-    return apiClient.post('/folders', { name: folderName })  // Asegúrate de que 'name' sea lo único que estás enviando
+    return apiClient.post('/folders', { name: folderName }) 
       .then(response => response.data)
       .catch(error => {
-        console.error('Error creando carpeta:', error.response ? error.response.data : error.message);  // Imprimir más detalles del error
+        console.error('Error creando carpeta:', error.response ? error.response.data : error.message); 
         throw error;
       });
   },
   // Obtener las recetas de una carpeta
   fetchFolderRecipes(folderId) {
     return apiClient.get(`/folders/${folderId}/recipes`)
-      .then(response => response.data.recipes) // Esto debe devolver las recetas correctamente
+      .then(response => response.data.recipes) 
       .catch(error => {
         console.error('Error fetching folder recipes:', error);
         throw error;
@@ -374,14 +374,13 @@ const communicationManager = {
       });
   },
   logout() {
-    const authStore = useAuthStore(); // Acceder al store de autenticación de Pinia
+    const authStore = useAuthStore(); 
     try {
-      // Llamada a API para cerrar sesión
       return apiClient.post('/logout')
         .then(() => {
-          authStore.clearAuth(); // Limpiar el estado de autenticación en Pinia
-          localStorage.removeItem('token'); // Eliminar el token de localStorage
-          window.location.href = '/login'; // Redirigir al login (si lo deseas)
+          authStore.clearAuth();
+          localStorage.removeItem('token');
+          window.location.href = '/login'; 
         })
         .catch(error => {
           console.error('Error al cerrar sesión:', error);

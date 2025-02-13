@@ -8,7 +8,7 @@ Un cop comenceu heu de canviar aquesta explicació amb la corresponent al vostre
 
 # Aquest fitxer ha de contenir com a mínim:
  * Nom dels integrants- Simran y ishaa
- * Nom del projecte- delihsare
+ * Nom del projecte- DeliShare
  * Petita descripció- Es una red social de recetas.
  * Adreça del gestor de tasques (taiga, jira, trello...)
  * Adreça del prototip gràfic del projecte (Penpot, figma, moqups...)

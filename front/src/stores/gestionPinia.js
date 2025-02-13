@@ -1,13 +1,10 @@
-
-// src/stores/gestionPinia.js
 import { defineStore } from 'pinia';
 import communicationManager from '@/services/communicationManager';
 
 export const useGestionPinia = defineStore('savedRecipes', {
   state: () => ({
     savedRecipes: [],
-    likedRecipes: JSON.parse(localStorage.getItem('likedRecipes')) || [], // Se carga desde localStorage
-    folders: [] // Almacenará las carpetas y las recetas en ellas
+    likedRecipes: JSON.parse(localStorage.getItem('likedRecipes')) || [], 
   }),
 
   actions: {
@@ -25,7 +22,6 @@ export const useGestionPinia = defineStore('savedRecipes', {
     async addToFolder(folderId, recipeId) {
       let folder = this.folders.find(f => f.id === folderId);
 
-      // Si la carpeta no existe, la creamos
       if (!folder) {
         folder = { id: folderId, recipes: [] };
         this.folders.push(folder);
@@ -41,30 +37,26 @@ export const useGestionPinia = defineStore('savedRecipes', {
       const folder = this.folders.find(f => f.id === folderId);
 
       if (folder) {
-        // Eliminamos la receta de la carpeta si existe
         const index = folder.recipes.indexOf(recipeId);
         if (index !== -1) {
           folder.recipes.splice(index, 1);
         }
 
-        // Actualizamos el backend después de quitar la receta
         await communicationManager.removeRecipeFromFolder(folderId, recipeId);
       }
     },
 
-    // Método para verificar si una receta está guardada en una carpeta
     isRecipeInFolder(folderId, recipeId) {
       const folder = this.folders.find(f => f.id === folderId);
       return folder ? folder.recipes.includes(recipeId) : false;
     },
 
-    // Método para guardar recetas en favoritos
     toggleSave(recipeId) {
       const index = this.savedRecipes.indexOf(recipeId);
       if (index > -1) {
-        this.savedRecipes.splice(index, 1); // Si ya está guardada, la eliminamos
+        this.savedRecipes.splice(index, 1); 
       } else {
-        this.savedRecipes.push(recipeId); // Si no está guardada, la agregamos
+        this.savedRecipes.push(recipeId); 
       }
     },
 
@@ -82,24 +74,17 @@ export const useGestionPinia = defineStore('savedRecipes', {
     toggleLike(recipeId) {
       const index = this.likedRecipes.indexOf(recipeId);
       if (index !== -1) {
-        // Si el like ya está presente, lo eliminamos
         this.likedRecipes.splice(index, 1);
       } else {
-        // Si no está, lo añadimos
         this.likedRecipes.push(recipeId);
       }
-
-      // Guardar el estado actualizado en localStorage
       localStorage.setItem('likedRecipes', JSON.stringify(this.likedRecipes));
     }
   },
 
   getters: {
-    // Getter para las recetas guardadas
     getSavedRecipes: (state) => state.savedRecipes,
-    // Getter para los likes de las recetas
     getLikedRecipes: (state) => state.likedRecipes,
-    // Getter para las carpetas y sus recetas
     getFolders: (state) => state.folders
   }
 });
