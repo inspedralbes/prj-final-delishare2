@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('img')->nullable(); // Agrega el campo img
+            $table->string('img')->nullable(); 
         });
     }
 
@@ -26,7 +26,7 @@ return new class extends Migration
     public function down()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('img'); // Elimina el campo img si se hace rollback
+            $table->dropColumn('img'); 
         });
     }
 };

@@ -2,10 +2,10 @@
   <div class="filter-buttons">
     <!-- Botones principales en fila -->
     <div class="button-group">
-      <button @click="toggleSubButtons('categoria')" class="button-main">Categoría</button>
-      <button @click="toggleSubButtons('cuisine')" class="button-main">Cuisine</button>
-      <button @click="toggleSubButtons('usuarios')" class="button-main">Usuarios</button>
-      <button @click="toggleSubButtons('tiempo')" class="button-main">Tiempo</button>
+      <button @click="toggleSubButtons('categoria')" class="button-main">Categoria</button>
+      <button @click="toggleSubButtons('cuisine')" class="button-main">Cuina</button>
+      <button @click="toggleSubButtons('usuarios')" class="button-main">Usuaris</button>
+      <button @click="toggleSubButtons('tiempo')" class="button-main">Temps</button>
     </div>
 
     <!-- Subbotones para Categorías -->

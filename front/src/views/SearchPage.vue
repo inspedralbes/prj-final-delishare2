@@ -1,27 +1,26 @@
 <template>
   <div class="page-container">
     <header class="header">
-      <!-- Se reemplaza el título por el logo, igual que en el landingPage -->
-      <img src="@/assets/images/del.png" alt="DeliShare Logo" class="header-logo" />
+      <!-- Es substitueix el títol per logo, igual que a la landingPage -->
     </header>
 
     <div class="search-bar">
-      <input type="text" v-model="searchQuery" placeholder="Buscar recetas..." />
+      <input type="text" v-model="searchQuery" placeholder="Cerca receptes..." />
     </div>
 
-    <!-- Componente de Botones -->
+    <!-- Componente de Botons -->
     <Botones 
       @filtradoPorCategoria="mostrarRecetasGenerales = false"
       @filtradoPorCuisine="mostrarRecetasGenerales = false"
       @filtradoPorTiempo="filtrarPorTiempo"
     />
 
-    <!-- Mostrar recetas generales solo si no hay filtros activos -->
+    <!-- Mostrar receptes generals només si no hi ha filtres actius -->
     <div v-if="mostrarRecetasGenerales">
-      <div v-if="loading" class="loading">Cargando recetas...</div>
+      <div v-if="loading" class="loading">Carregant receptes...</div>
       <div v-else>
         <div v-if="filteredRecipes.length === 0" class="no-recipes">
-          No hay recetas disponibles.
+          No hi ha receptes disponibles.
         </div>
         <div class="recipe-carousel">
           <RecipeCard
@@ -29,7 +28,7 @@
             :key="recipe.id"
             :recipeId="recipe.id"
             :title="recipe.title"
-            :description="recipe.description || 'Descripción no disponible'"
+            :description="recipe.description || 'Descripció no disponible'"
             :image="recipe.image"
           />
         </div>

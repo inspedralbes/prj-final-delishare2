@@ -1,22 +1,22 @@
 <template>
   <div class="page-container">
     <header class="header">
-      <img src="@/assets/images/del.png" alt="DeliShare Logo" class="header-logo" />
+      <img src="@/assets/images/delishare.png" alt="Logotip de DeliShare" class="header-logo" />
     </header>
 
-    <!-- Contenedor para el carrusel futuro -->
-    <div class="carousel-placeholder">
-      <p>Aquí irá el carrusel de imágenes</p>
+    <!-- Carrusel d'imatges -->
+    <div class="carousel">
+      <img :src="carouselImages[currentImage]" alt="Imatge del carrusel" class="carousel-image" />
     </div>
 
     <div class="toggle-buttons">
-      <button :class="{ active: showLikes }" @click="showLikesRecipes">Más Populares</button>
-      <button :class="{ active: !showLikes }" @click="showRecentRecipes">Más Recientes</button>
+      <button :class="{ active: showLikes }" @click="showLikesRecipes">Més populars</button>
+      <button :class="{ active: !showLikes }" @click="showRecentRecipes">Més recents</button>
     </div>
 
     <div v-if="showLikes" class="likes">
       <section class="recent-recipes">
-        <h2>Más Likes</h2>
+        <h2>Més populars</h2>
         <div class="carousel-container">
           <div class="recipe-carousel">
             <RecipeCard
@@ -24,7 +24,7 @@
               :key="index"
               :recipe-id="recipe.id"
               :title="recipe.title"
-              :description="recipe.description || 'Sin descripción disponible'" 
+              :description="recipe.description || 'Sense descripció disponible'" 
               :image="recipe.image"
             />
           </div>
@@ -34,7 +34,7 @@
 
     <div v-else class="recents">
       <section class="recent-recipes">
-        <h2>Más Recientes</h2>
+        <h2>Més recents</h2>
         <div class="carousel-container">
           <div class="recipe-carousel">
             <RecipeCard
@@ -42,7 +42,7 @@
               :key="index"
               :recipe-id="recipe.id"
               :title="recipe.title"
-              :description="recipe.description || 'Sin descripción disponible'" 
+              :description="recipe.description || 'Sense descripció disponible'" 
               :image="recipe.image"
             />
           </div>
@@ -69,46 +69,49 @@ export default {
       displayedLikeRecipes: [],
       displayedRecentRecipes: [],
       showLikes: true,
+      carouselImages: [
+        new URL('@/assets/images/carrusel/image1.jpg', import.meta.url).href,
+        new URL('@/assets/images/carrusel/image2.jpg', import.meta.url).href,
+        new URL('@/assets/images/carrusel/image3.jpg', import.meta.url).href,
+        new URL('@/assets/images/carrusel/image4.jpg', import.meta.url).href,
+        new URL('@/assets/images/carrusel/image5.jpg', import.meta.url).href
+      ],
+      currentImage: 0,
     };
   },
-
-  async created() {
-    try {
-      const data = await communicationManager.fetchRecipes();
-      this.recipes = data;
-
-      // Ordenamos las recetas según la cantidad de likes
-      this.sortedLikeRecipes = this.recipes
-        .map(recipe => ({ ...recipe, totalLikes: recipe.likes_count || 0 }))
-        .sort((a, b) => b.totalLikes - a.totalLikes);
-
-      // Ordenamos las recetas por fecha de creación
-      this.sortedRecentRecipes = [...this.recipes].sort(
-        (a, b) => new Date(b.created_at) - new Date(a.created_at)
-      );
-
-      this.updateDisplayedLikeRecipes();
-      this.updateDisplayedRecentRecipes();
-    } catch (error) {
-      console.error('Error fetching recipes from the backend:', error);
-    }
+  created() {
+    this.startCarousel();
+    this.fetchRecipes();
   },
-
   methods: {
+    startCarousel() {
+      setInterval(() => {
+        this.currentImage = (this.currentImage + 1) % this.carouselImages.length;
+      }, 3000);
+    },
+    async fetchRecipes() {
+      try {
+        const data = await communicationManager.fetchRecipes();
+        this.recipes = data;
+        this.sortedLikeRecipes = this.recipes.sort((a, b) => b.likes_count - a.likes_count);
+        this.sortedRecentRecipes = [...this.recipes].sort(
+          (a, b) => new Date(b.created_at) - new Date(a.created_at)
+        );
+        this.updateDisplayedLikeRecipes();
+        this.updateDisplayedRecentRecipes();
+      } catch (error) {
+        console.error('Error fetching recipes:', error);
+      }
+    },
     showLikesRecipes() {
       this.showLikes = true;
-      this.updateDisplayedLikeRecipes();
     },
-
     showRecentRecipes() {
       this.showLikes = false;
-      this.updateDisplayedRecentRecipes();
     },
-
     updateDisplayedLikeRecipes() {
       this.displayedLikeRecipes = this.sortedLikeRecipes;
     },
-
     updateDisplayedRecentRecipes() {
       this.displayedRecentRecipes = this.sortedRecentRecipes;
     }
@@ -117,7 +120,7 @@ export default {
 </script>
 
 <style scoped>
-/* --- Estilos Mobile-First (Predeterminado) --- */
+/* --- Estils Mobile-First (Predeterminat) --- */
 .page-container {
   text-align: center;
   padding: 20px;
@@ -145,6 +148,7 @@ export default {
 .toggle-buttons {
   display: flex;
   justify-content: center;
+  margin-top: 20px;
   margin-bottom: 20px;
 }
 
@@ -155,7 +159,7 @@ export default {
   padding: 10px 15px;
   margin: 0 5px;
   cursor: pointer;
-  border-radius: 20px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: bold;
   transition: background 0.3s ease;
@@ -182,7 +186,7 @@ export default {
   margin-bottom: 40px;
 }
 
-/* --- Estilos para Tablets (Pantallas > 600px) --- */
+/* --- Estils per a Tablets (Pantalles > 600px) --- */
 @media (min-width: 600px) {
   .header-logo {
     width: 250px;
@@ -200,7 +204,7 @@ export default {
   }
 }
 
-/* --- Estilos para Escritorio (Pantallas > 1024px) --- */
+/* --- Estils per a Escriptori (Pantalles > 1024px) --- */
 @media (min-width: 1024px) {
   .page-container {
     max-width: 1200px;
@@ -212,9 +216,10 @@ export default {
   }
 
   .toggle-buttons {
-    margin-bottom: 30px;
+    display: flex;
+    justify-content: center;
   }
-
+  
   .toggle-buttons button {
     font-size: 18px;
     padding: 15px 25px;
@@ -227,6 +232,22 @@ export default {
   .recipe-carousel {
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
+  }
+  
+  .carousel-image {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+  
+  .carousel {
+    width: 100%;
+    height: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
   }
 }
 </style>

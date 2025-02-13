@@ -1,212 +1,109 @@
 <template>
-  <div class="container">
-    <div class="glass-form">
-      <h1>Crear Nueva Receta</h1>
+  <div class="page-container">
+    <div class="form-card">
+      <h1>Crear Nova Recepta</h1>
       <div class="form-container">
         <form @submit.prevent="submitRecipe">
           <input type="hidden" v-model="recipe.user_id" />
 
-          <!-- Category and Cuisine in one row -->
           <div class="form-group form-row">
             <div class="half-width">
-              <label for="category">Categoría:</label>
-              <select
-                v-model="recipe.category_id"
-                required
-                class="full-width-input"
-              >
-                <option
-                  v-for="category in categories"
-                  :key="category.id"
-                  :value="category.id"
-                >
+              <label for="category">Categoria:</label>
+              <select v-model="recipe.category_id" required class="full-width-input">
+                <option v-for="category in categories" :key="category.id" :value="category.id">
                   {{ category.name }}
                 </option>
               </select>
             </div>
             <div class="half-width">
-              <label for="cuisine">Cocina:</label>
-              <select
-                v-model="recipe.cuisine_id"
-                required
-                class="full-width-input"
-              >
-                <option
-                  v-for="cuisine in cuisines"
-                  :key="cuisine.id"
-                  :value="cuisine.id"
-                >
+              <label for="cuisine">Cuina:</label>
+              <select v-model="recipe.cuisine_id" required class="full-width-input">
+                <option v-for="cuisine in cuisines" :key="cuisine.id" :value="cuisine.id">
                   {{ cuisine.country }}
                 </option>
               </select>
             </div>
           </div>
 
-          <!-- Title and Description -->
           <div class="form-group">
-            <label for="title">Título:</label>
-            <input
-              type="text"
-              id="title"
-              v-model="recipe.title"
-              required
-              class="full-width-input"
-            />
+            <label for="title">Títol:</label>
+            <input type="text" id="title" v-model="recipe.title" required class="full-width-input" />
           </div>
 
           <div class="form-group">
-            <label for="description">Descripción:</label>
-            <textarea
-              id="description"
-              v-model="recipe.description"
-              required
-              class="full-width-input"
-            ></textarea>
+            <label for="servings">Racions:</label>
+            <input type="number" id="servings" v-model="recipe.servings" required class="full-width-input" />
           </div>
 
-          <!-- Button to autofill the form -->
-          <button
-            type="button"
-            @click="autofillRecipe"
-            class="auto-fill-button"
-          >
-            Auto Rellenar
+          <button type="button" @click="autofillRecipe" class="auto-fill-button">
+            Omplir automàticament
           </button>
 
-          <!-- Ingredients -->
           <div class="form-group">
-            <label>Ingredientes:</label>
-            <div
-              v-for="(ingredient, index) in recipe.ingredients"
-              :key="index"
-              class="input-group"
-            >
-              <input
-                type="text"
-                v-model="recipe.ingredients[index]"
-                placeholder="Añadir ingrediente"
-                class="full-width-input"
-              />
-            </div>
-            <button type="button" @click="addIngredient" class="add-button">
-              +
-            </button>
+            <label for="description">Descripció:</label>
+            <textarea id="description" v-model="recipe.description" readonly class="full-width-input"></textarea>
           </div>
 
-          <!-- Steps -->
           <div class="form-group">
-            <label>Pasos:</label>
-            <div
-              v-for="(step, index) in recipe.steps"
-              :key="index"
-              class="input-group"
-            >
-              <input
-                type="text"
-                v-model="recipe.steps[index]"
-                placeholder="Añadir paso"
-                class="full-width-input"
-              />
+            <label>Ingredients:</label>
+            <div v-for="(ingredient, index) in recipe.ingredients" :key="index" class="input-group">
+              <input type="text" v-model="recipe.ingredients[index]" placeholder="Afegeix un ingredient"
+                class="full-width-input" />
+            </div>
+            <button type="button" @click="addIngredient" class="add-button">+</button>
+          </div>
+
+          <div class="form-group">
+            <label>Passos:</label>
+            <div v-for="(step, index) in recipe.steps" :key="index" class="input-group">
+              <input type="text" v-model="recipe.steps[index]" placeholder="Afegeix un pas" class="full-width-input" />
             </div>
             <button type="button" @click="addStep" class="add-button">+</button>
           </div>
 
-          <!-- Nutritional Information -->
           <div class="form-group">
-            <label>Información Nutricional:</label>
+            <label>Informació Nutricional:</label>
             <div class="input-group">
-              <label for="calories">Calorías:</label>
-              <input
-                type="number"
-                id="calories"
-                v-model="recipe.calories"
-                class="full-width-input"
-              />
+              <label for="calories">Calories:</label>
+              <input type="number" id="calories" v-model="recipe.calories" class="full-width-input" />
             </div>
             <div class="input-group">
-              <label for="protein">Proteínas (g):</label>
-              <input
-                type="number"
-                id="protein"
-                v-model="recipe.protein"
-                class="full-width-input"
-              />
+              <label for="protein">Proteïnes (g):</label>
+              <input type="number" id="protein" v-model="recipe.protein" class="full-width-input" />
             </div>
             <div class="input-group">
-              <label for="fats">Grasas (g):</label>
-              <input
-                type="number"
-                id="fats"
-                v-model="recipe.fats"
-                class="full-width-input"
-              />
+              <label for="fats">Greixos (g):</label>
+              <input type="number" id="fats" v-model="recipe.fats" class="full-width-input" />
             </div>
             <div class="input-group">
-              <label for="carbs">Carbohidratos (g):</label>
-              <input
-                type="number"
-                id="carbs"
-                v-model="recipe.carbs"
-                class="full-width-input"
-              />
+              <label for="carbs">Carbohidrats (g):</label>
+              <input type="number" id="carbs" v-model="recipe.carbs" class="full-width-input" />
             </div>
           </div>
 
-          <!-- Time and Portions in one row -->
           <div class="form-group form-row">
             <div class="third-width">
-              <label for="prepTime">Tiempo de Preparación (minutos):</label>
-              <input
-                type="number"
-                id="prepTime"
-                v-model="recipe.prep_time"
-                required
-                class="full-width-input"
-              />
+              <label for="prepTime">Temps de Preparació (minuts):</label>
+              <input type="number" id="prepTime" v-model="recipe.prep_time" required class="full-width-input" />
             </div>
             <div class="third-width">
-              <label for="cookTime">Tiempo de Cocción (minutos):</label>
-              <input
-                type="number"
-                id="cookTime"
-                v-model="recipe.cook_time"
-                required
-                class="full-width-input"
-              />
+              <label for="cookTime">Temps de Cocció (minuts):</label>
+              <input type="number" id="cookTime" v-model="recipe.cook_time" required class="full-width-input" />
             </div>
-            <div class="third-width">
-              <label for="servings">Porciones:</label>
-              <input
-                type="number"
-                id="servings"
-                v-model="recipe.servings"
-                required
-                class="full-width-input"
-              />
-            </div>
+
           </div>
 
-          <!-- Image Upload -->
           <div class="form-group">
-            <label for="image">Subir Imagen:</label>
-            <input
-              type="file"
-              @change="onFileChange"
-              class="full-width-input"
-            />
-            <button type="button" @click="uploadImage" class="upload-button">
-              Subir Imagen
-            </button>
-            <img
-              v-if="recipe.image"
-              :src="recipe.image"
-              alt="Imagen subida"
-              class="uploaded-image"
-            />
+            <div class="upload-image-container">
+              <label for="image" class="upload-label">Pujar Imatge:</label>
+              <div class="upload-area">
+                <input type="file" id="image" @change="onFileChange" accept="image/*" />
+                <p class="upload-instructions">Arrossega i deixa anar una imatge o fes clic per seleccionar-la.</p>
+              </div>
+              <img v-if="recipe.image" :src="recipe.image" alt="Imatge pujada" class="uploaded-image-preview" />
+            </div>
           </div>
-
-          <!-- Submit Button -->
-          <button type="submit" class="submit-button">Crear Receta</button>
+          <button type="submit" class="submit-button">Crear Recepta</button>
         </form>
       </div>
 
@@ -217,6 +114,7 @@
   </div>
 </template>
 
+
 <script>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
@@ -224,7 +122,7 @@ import axios from "axios";
 import communicationManager from "@/services/communicationManager";
 import Groq from "groq-sdk";
 
-// Initialize the Groq API
+// Inicialización de la API Groq
 const groq = new Groq({
   apiKey: import.meta.env.VITE_GROQ_API_KEY,
   dangerouslyAllowBrowser: true,
@@ -271,83 +169,65 @@ export default {
 
     const autofillRecipe = async () => {
       if (!recipe.value.category_id || !recipe.value.cuisine_id) {
-        message.value = "Select category and cuisine first.";
+        message.value = "Selecciona una categoria i una cuina primer.";
         messageClass.value = "error";
         return;
       }
 
       try {
         const userMessage = ` 
-        Please return a JSON object with the following structure: Please make sure to return **only the JSON object** with the data of the recipe, without any extra text or explanation.
-{
-  "Ingredientes": [],
-  "Pasos": [],
-  calories: 0,
-      "Calorías": 0,
-    "Grasas": 0,
-    "Proteínas": 0,
-    "Carbohidratos": 0
-  "Tiempo de Preparación (minutos)": 0,
-  "Tiempo de Cocción (minutos)": 0,
-  "Porciones": 0
-}
+    Genera un objecte JSON per a una recepta basada en aquestes dades:
+    - Nom: ${recipe.value.title}
+    - Categoria: ${categories.value.find((c) => c.id === recipe.value.category_id).name}
+    - Cuina: ${cuisines.value.find((c) => c.id === recipe.value.cuisine_id).country}
+    - Racions: ${recipe.value.servings}
 
-        Name: ${recipe.value.title}, 
-        Category: ${
-          categories.value.find((c) => c.id === recipe.value.category_id).name
-        }, 
-        Cuisine: ${
-          cuisines.value.find((c) => c.id === recipe.value.cuisine_id).country
-        }, 
-        Description: ${recipe.value.description}`;
+    Assegura't que el JSON segueix aquesta estructura sense cap text addicional:
 
-        console.log("Sending to AI:", userMessage);
+    {
+      "description": "Descripció breu de la recepta",
+      "ingredients": ["Ingredient 1", "Ingredient 2"],
+      "steps": ["Pas 1", "Pas 2"],
+      "calories": 0,
+      "fats": 0,
+      "protein": 0,
+      "carbs": 0,
+      "prep_time": 0,
+      "cook_time": 0
+    }`;
+
+        console.log("Enviant a la IA:", userMessage);
 
         const response = await groq.chat.completions.create({
           model: "llama-3.3-70b-versatile",
           messages: [{ role: "user", content: userMessage }],
+          response_format: { type: "json_object" },
         });
 
-        console.log("AI Response:", response);
+        console.log("Resposta de la IA:", response);
 
         const aiData = response.choices[0].message.content;
-        console.log("AI Data:", aiData);
 
-        try {
-          const modifiedData = aiData.substring(
-            aiData.indexOf("{"),
-            aiData.lastIndexOf("}") + 1
-          );
-          console.log("Modified Data:", modifiedData);
+        const parsedData = JSON.parse(aiData);
 
-          const parsedData = JSON.parse(modifiedData);
+        // Assignar els valors a la recepta
+        recipe.value.description = parsedData.description || "Sense descripció.";
+        recipe.value.ingredients = parsedData.ingredients || [];
+        recipe.value.steps = parsedData.steps || [];
+        recipe.value.prep_time = parsedData.prep_time || 0;
+        recipe.value.cook_time = parsedData.cook_time || 0;
+        recipe.value.calories = parsedData.calories || 0;
+        recipe.value.carbs = parsedData.carbs || 0;
+        recipe.value.fats = parsedData.fats || 0;
+        recipe.value.protein = parsedData.protein || 0;
 
-          console.log("Parsed JSON Data:", parsedData);
+        console.log("Recepta actualitzada:", recipe.value);
 
-          recipe.value.ingredients = parsedData.Ingredientes || [];
-          recipe.value.steps = parsedData.Pasos || [];
-          recipe.value.prep_time =
-            parsedData["Tiempo de Preparación (minutos)"] || 0;
-          recipe.value.calories = parsedData["Calorías"] || 0;
-          recipe.value.carbs = parsedData["Carbohidratos"] || 0;
-          recipe.value.fats = parsedData["Grasas"] || 0;
-          recipe.value.protein = parsedData["Proteínas"] || 0;
-          recipe.value.cook_time =
-            parsedData["Tiempo de Cocción (minutos)"] || 0;
-          recipe.value.servings = parsedData.Porciones || 0;
-
-          console.log("Updated Recipe:", recipe.value);
-        } catch (error) {
-          console.error("Error parsing JSON:", error);
-          console.log("Raw Data:", aiData); // Log the raw response
-
-        }
-
-        message.value = "Formulario completado automáticamente.";
+        message.value = "Formulari completat automàticament.";
         messageClass.value = "success";
       } catch (error) {
-        console.error("Error fetching AI data:", error);
-        message.value = "Error al rellenar el formulario.";
+        console.error("Error obtenint dades de la IA:", error);
+        message.value = "Error en omplir el formulari.";
         messageClass.value = "error";
       }
     };
@@ -355,9 +235,26 @@ export default {
     const addIngredient = () => recipe.value.ingredients.push("");
     const addStep = () => recipe.value.steps.push("");
 
-    const onFileChange = (e) => {
-      selectedFile.value = e.target.files[0];
-    };
+    const onFileChange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", uploadPreset);
+
+  try {
+    const response = await axios.post(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      formData
+    );
+    recipe.value.image = response.data.secure_url; // Asignar la URL de la imagen directamente
+    console.log("Imagen subida correctamente:", response.data.secure_url);
+  } catch (error) {
+    console.error("Error al subir la imagen:", error);
+  }
+};
+
 
     const uploadImage = async () => {
       if (!selectedFile.value) return;
@@ -372,35 +269,35 @@ export default {
           formData
         );
         recipe.value.image = response.data.secure_url;
-        console.log("Image uploaded successfully", response.data.secure_url);
+        console.log("Imagen subida correctamente:", response.data.secure_url);
       } catch (error) {
-        console.error("Error uploading image:", error);
+        console.error("Error al subir la imagen:", error);
       }
     };
 
     const submitRecipe = async () => {
-      if (!user.value) {
-        console.error("User not authenticated");
-        return;
-      }
+  if (!user.value) {
+    console.error("Usuario no autenticado");
+    return;
+  }
 
-      try {
-        await communicationManager.createRecipe({
-          ...recipe.value,
-          user_id: user.value.id,
-        });
+  try {
+    await communicationManager.createRecipe({
+      ...recipe.value,
+      user_id: user.value.id,
+    });
 
-        message.value = "Recipe created successfully!";
-        messageClass.value = "success";
-        console.log("Recipe created successfully");
+    message.value = "¡Receta creada con éxito!";
+    messageClass.value = "success";
+    console.log("Receta creada correctamente");
 
-        router.push({ name: "LandingPage" });
-      } catch (error) {
-        console.error("Error creating recipe:", error);
-        message.value = "Error creating recipe!";
-        messageClass.value = "error";
-      }
-    };
+    router.push({ name: "LandingPage" });
+  } catch (error) {
+    console.error("Error al crear la receta:", error);
+    message.value = "¡Error al crear la receta!";
+    messageClass.value = "error";
+  }
+};
 
     return {
       recipe,
@@ -420,39 +317,39 @@ export default {
 </script>
 
 <style scoped>
-.container {
+.page-container {
+  text-align: center;
+  background-color: #fdfdff;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
-  padding: 20px;
 }
 
-.glass-form {
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
+.form-card {
+  background: #ffffff;
   border-radius: 15px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 2rem;
+  max-width: 900px;
+  /* Aumento el ancho máximo para un formulario más espacioso */
   width: 100%;
-  margin-bottom: 70px;
+  /* Para asegurar que el formulario ocupe todo el ancho disponible */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
-  text-align: center;
   margin-bottom: 1.5rem;
   font-size: 2rem;
   color: #333;
 }
 
 .form-container {
-  overflow: hidden;
   width: 100%;
 }
 
 .form-group {
   margin-bottom: 1.5rem;
+  text-align: left;
 }
 
 label {
@@ -462,10 +359,6 @@ label {
   color: #333;
 }
 
-form {
-  width: 100%;
-}
-
 input,
 select,
 textarea {
@@ -473,7 +366,7 @@ textarea {
   padding: 0.75rem;
   border: 1px solid #ccc;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.8);
+  background: #fff;
   font-size: 1rem;
   color: #333;
   margin-bottom: 0.5rem;
@@ -491,14 +384,20 @@ textarea {
 .form-row {
   display: flex;
   gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
 }
 
 .half-width {
   flex: 1;
+  min-width: 48%;
+  /* Asegura que los inputs ocupen el 50% del espacio */
 }
 
 .third-width {
   flex: 1;
+  min-width: 30%;
+  /* 33% para 3 elementos por fila */
 }
 
 .full-width-input {
@@ -506,36 +405,40 @@ textarea {
 }
 
 .add-button,
-.upload-button {
-  padding: 0.5rem 1rem;
-  background: #3b82f6;
-  color: white;
-  border: none;
+.upload-button,
+.auto-fill-button {
+  background: transparent;
+  color: #0c0636;
+  border: 2px solid #0c0636;
+  padding: 8px 16px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 1rem;
-  margin-top: 0.5rem;
+  transition: all 0.3s ease;
 }
 
 .add-button:hover,
-.upload-button:hover {
-  background: #2563eb;
+.upload-button:hover,
+.auto-fill-button:hover {
+  background: #004080;
+  color: #fff;
 }
 
 .submit-button {
-  width: 100%;
-  padding: 0.75rem;
-  background: #10b981;
+  background-color: #0c0636;
   color: white;
-  border: none;
-  border-radius: 8px;
+  padding: 10px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 1rem;
-  margin-top: 1rem;
+  font-size: 16px;
+  border: none;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+  width: 300px;
+  margin-bottom: 50px;
 }
 
 .submit-button:hover {
-  background: #059669;
+  background: #322b5f;
 }
 
 .uploaded-image {
@@ -555,26 +458,75 @@ textarea {
 }
 
 .error {
-  color: #ef4444;
+  color: #322b5f;
+}
+.upload-image-container {
+  margin-bottom: 1.5rem;
+  text-align: center;
 }
 
-/* Responsive Design */
+.upload-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.upload-area {
+  border: 2px dashed #0c0636;
+  border-radius: 15px;
+  padding: 1.5rem;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.upload-area:hover {
+  background-color: #e6e6e6;
+  border-color: #322b5f;
+}
+
+.upload-area input[type="file"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.upload-instructions {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 0.5rem;
+}
+
+.uploaded-image-preview {
+  margin-top: 1rem;
+  max-width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Reajustes para pantallas pequeñas */
 @media (max-width: 768px) {
   .form-row {
     flex-direction: column;
+    /* Apilar los inputs verticalmente en dispositivos pequeños */
   }
 
   .half-width,
   .third-width {
+    min-width: 100%;
+    /* Hacer que los inputs ocupen todo el ancho disponible */
+  }
+
+  .submit-button {
     width: 100%;
-  }
-
-  .glass-form {
-    padding: 1rem;
-  }
-
-  h1 {
-    font-size: 1.5rem;
+    /* Hacer el botón de enviar del mismo tamaño en pantallas pequeñas */
   }
 }
 </style>

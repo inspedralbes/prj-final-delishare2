@@ -7,7 +7,6 @@ class CreateFoldersAndFolderRecipeTables extends Migration
 {
     public function up()
     {
-        // Crear la tabla 'folders'
         Schema::create('folders', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -17,7 +16,6 @@ class CreateFoldersAndFolderRecipeTables extends Migration
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
 
-        // Crear la tabla 'folder_recipe'
         Schema::create('folder_recipe', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('folder_id');

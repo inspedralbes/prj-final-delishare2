@@ -6,7 +6,7 @@
     </div>
 
     <div class="recipe-detail">
-      <button class="back-button" @click="goBack">← Tornar</button>
+      <button class="back-button" @click="goBack">← </button>
 
       <h1 class="recipe-title">{{ recipe.title }}</h1>
       <p>
@@ -78,11 +78,15 @@
         </button>
       </div>
     </div>
+    <div class="recipe-section">
 
     <div class="recipe-info">
       <p class="recipe-description">
         {{ recipe.description || 'Sense descripció' }}
       </p>
+    </div>
+      <div class="recipe-section">
+
       <button class="back-button" @click="toggleExtraInfo">
         {{ isExtraInfoVisible ? 'Amagar informació extra' : 'Informació extra' }}
       </button>
@@ -92,7 +96,7 @@
         <p><strong>Racions:</strong> {{ recipe.servings }}</p>
         <p><strong>Likes:</strong> {{ recipe.likes_count }} ❤️</p>
       </div>
-
+</div>
       <div class="recipe-section">
         <h2>Ingredients</h2>
         <ul class="ingredients-list">
@@ -109,21 +113,27 @@
           </li>
         </ol>
       </div>
+      <div class="recipe-section">
+  <div v-if="recipe.nutrition">
+    <h3>Informació Nutricional</h3>
+    <p><strong>Calories:</strong> {{ recipe.nutrition.calories || 'N/A' }}</p>
+    <p>
+      <strong>Proteïnes:</strong>
+      {{ recipe.nutrition.protein ? `${recipe.nutrition.protein}g` : 'N/A' }}
+    </p>
+    <p>
+      <strong>Carbohidrats:</strong>
+      {{ recipe.nutrition.carbs ? `${recipe.nutrition.carbs}g` : 'N/A' }}
+    </p>
+    <p>
+      <strong>Greixos:</strong>
+      {{ recipe.nutrition.fats ? `${recipe.nutrition.fats}g` : 'N/A' }}
+    </p>
+  </div>
+</div>
     </div>
 
     <div class="recipe-section">
-      <h2>Comentaris</h2>
-      <ul class="comments-list">
-        <li v-for="(comment, index) in comments" :key="index" class="comment-item">
-          <div class="comment-header">
-            <p class="comment-user">
-              <strong>{{ comment.name || 'Usuari desconegut' }}:</strong>
-            </p>
-          </div>
-          <p class="comment-text">{{ comment.comment }}</p>
-        </li>
-      </ul>
-
       <div class="comment-input-container">
         <textarea
           v-model="newComment"
@@ -132,6 +142,15 @@
         ></textarea>
         <button @click="addComment" class="comment-button">Comentar</button>
       </div>
+      <ul class="comments-list">
+        <li v-for="(comment, index) in comments" :key="index" class="comment-item">
+          <div class="comment-header">
+            <p class="comment-user">
+              <strong>{{ comment.name || 'Usuari desconegut' }} : {{comment.comment }}</strong>
+            </p>
+          </div>
+        </li>
+      </ul>
     </div>
   </div>
 </template>
@@ -373,7 +392,11 @@ export default {
 </script>
 
 <style scoped>
-/* Estils generals del component */
+
+.recipe-description{
+  margin-left: 10px;
+}
+
 .recipe-detail {
   max-width: 800px;
   margin: 20px auto;
@@ -385,8 +408,8 @@ export default {
 
 .back-button {
   background: transparent;
-  color: #004080;
-  border: 2px solid #004080;
+  color: #0c0636;
+  border: 2px solid #0c0636;
   padding: 8px 16px;
   border-radius: 8px;
   cursor: pointer;
@@ -411,9 +434,11 @@ export default {
 }
 
 .extra-info {
-  background: #f5f5f5;
-  padding: 10px;
+  background: transparent;
+  color: #004080;
+  border: 2px solid #004080;  padding: 10px;
   border-radius: 8px;
+  margin-top: 10px;
 }
 
 button {
@@ -538,10 +563,9 @@ button {
 }
 
 .recipe-section {
-  margin-top: 20px;
+  margin-top: 10px;
   padding: 20px;
   background: #fff;
-  border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -549,13 +573,13 @@ button {
   list-style: none;
   padding: 0;
   margin: 0;
+  margin-bottom: 30px;
+
 }
 
 .comment-item {
   background: #f9f9f9;
-  padding: 10px;
   border-radius: 8px;
-  margin-bottom: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -591,20 +615,19 @@ button {
 }
 
 .comment-button {
-  background-color: #004080;
+  background-color: #0c0636;
   color: white;
   padding: 10px;
   border-radius: 10px;
   cursor: pointer;
   font-size: 16px;
   border: none;
-  margin-top: 5px;
-  margin-bottom: 50px;
+  margin-top: 10px;
   transition: background-color 0.3s ease;
 }
 
 .comment-button:hover {
-  background-color: #005bb5;
+  background-color: #322b5f;
 }
 
 .creator-link {

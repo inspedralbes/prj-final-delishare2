@@ -23,7 +23,6 @@ Route::get('/categories', [CategoryController::class, 'index']);
 Route::middleware('auth:sanctum')->get('/categories/{id}', [CategoryController::class, 'show']);
 Route::middleware('auth:sanctum')->put('/categories/{id}', [CategoryController::class, 'update']);
 Route::middleware('auth:sanctum')->delete('/categories/{id}', [CategoryController::class, 'destroy']);
-
 Route::middleware('auth:sanctum')->get('/user/recetas', [RecipeController::class, 'getRecipesByUser']);
 
 // Cocinas
@@ -46,33 +45,20 @@ Route::middleware('auth:sanctum')->group(function () {
 
 });
 
-// Ruta para dar like a una receta
-Route::middleware('auth:sanctum')->post('/recipes/{id}/like', [RecipeController::class, 'likeRecipe']);
-
-// Ruta para quitar like a una receta
-Route::middleware('auth:sanctum')->post('/recipes/{id}/unlike', [RecipeController::class, 'unlikeRecipe']);
-
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Registro
+// Rutas para configuarcion de user
 Route::post('/register', [AuthController::class, 'register']);
-
 Route::post('/login', [AuthController::class, 'login']);
-
-// Rutas protegidas con autenticación
+Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/updatePerfile', [AuthController::class, 'updatePerfil']);
-});   //ruta para update peril- http://127.0.0.1:8000/api/updatePerfile
+Route::post('/updatePerfile', [AuthController::class, 'updatePerfil']);  });   
 Route::middleware('auth:sanctum')->put('/updateProfilePicture', [AuthController::class, 'updateProfilePicture']);
-//ruta para update peril- http://
-
 Route::middleware('auth:sanctum')->post('/cambiarContra', [AuthController::class, 'cambiarContra']);
-//ruta para cambiar contra- http://127.0.0.1:8000/api/cambiarContra
 
-
-//Ruta para obtener todos los usuarios("Hazta hacer el filtro")
+//Rutas para obtener todos los usuarios
 Route::get('/getAllUsers', [RecipeController::class, 'getAllUsers']);
 Route::get('/getAllRecipes', [RecipeController::class, 'getAllRecipes']);
 Route::get('/filterByCategory/{id}', [RecipeController::class, 'filterByCategory']);
@@ -81,28 +67,37 @@ Route::get('/filterByTime/{time}', [RecipeController::class, 'filterByTime']);
 Route::get('/times', [RecipeController::class, 'getAllTimes']);
 Route::get('/recipes/filterByUser/{userId}', [RecipeController::class, 'filterByUser']);
 
-
+//Rutas para guardadas
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/saved-recipes', [SavedRecipeController::class, 'index']);
     Route::post('/saved-recipes/toggle/{recipeId}', [SavedRecipeController::class, 'toggleSave']);
 });
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) { // ✅ Pasa $request como parámetro
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) { 
     return response()->json($request->user());
 });
+
+
+//comments
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/recipes/{id}/comment', [RecipeController::class, 'addComment']);
     Route::get('/recipes/{id}/comments', [RecipeController::class, 'getRecipeComments']);
     Route::delete('/recipes/{id}/comment', [RecipeController::class, 'deleteComment']);
-});// api.php
+});
 
+
+//rutas para me gustas
+Route::middleware('auth:sanctum')->post('/recipes/{id}/like', [RecipeController::class, 'likeRecipe']);
+Route::middleware('auth:sanctum')->post('/recipes/{id}/unlike', [RecipeController::class, 'unlikeRecipe']);
+
+
+//rutas para folder
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/folders', [FolderController::class, 'store']); // Crear carpeta
-    Route::post('/folders/{folderId}/recipes/{recipeId}', [FolderController::class, 'addRecipe']); // Añadir receta a carpeta
-    Route::get('/folders/{folder}', [FolderController::class, 'show']); // Mostrar carpeta
-    Route::delete('/folders/{folderId}/recipes/{recipeId}', [FolderController::class, 'removeRecipe']); // Eliminar receta de carpeta
-    Route::delete('/folders/{folderId}', [FolderController::class, 'removeFolder']); // Eliminar carpeta
-    Route::middleware('auth:sanctum')->get('/folders', [FolderController::class, 'index']);  // Obtener todas las carpetas del usuario autenticado
-
+    Route::post('/folders', [FolderController::class, 'store']); 
+    Route::post('/folders/{folderId}/recipes/{recipeId}', [FolderController::class, 'addRecipe']); 
+    Route::get('/folders/{folder}', [FolderController::class, 'show']); 
+    Route::delete('/folders/{folderId}/recipes/{recipeId}', [FolderController::class, 'removeRecipe']); 
+    Route::delete('/folders/{folderId}', [FolderController::class, 'removeFolder']);
+    Route::middleware('auth:sanctum')->get('/folders', [FolderController::class, 'index']);  
 });
 Route::middleware('auth:sanctum')->get('/folders/{folder}/recipes', [FolderController::class, 'getRecipes']);
 

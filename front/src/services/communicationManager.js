@@ -63,11 +63,11 @@ const communicationManager = {
       ...recipeData,
       user_id: localStorage.getItem('user_id') // Obtiene el ID del usuario desde el almacenamiento
     })
-    .then(response => response.data)
-    .catch(error => {
-      console.error('Error creating recipe:', error);
-      throw error;
-    });
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error creating recipe:', error);
+        throw error;
+      });
   },
 
   register(userData) {
@@ -134,7 +134,7 @@ const communicationManager = {
       if (!token) throw new Error("No token found");
 
       const response = await axios.get('http://127.0.0.1:8000/api/user', {
-          headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;
     } catch (error) {
@@ -152,7 +152,7 @@ const communicationManager = {
         throw error;
       });
   },
-  
+
   // Filtrar recetas por categoría
   fetchRecipesByCategory(categoryId) {
     return apiClient.get(`/filterByCategory/${categoryId}`)
@@ -171,7 +171,7 @@ const communicationManager = {
         throw error;
       });
   },
-  
+
 
   // Obtener recetas filtradas por el ID del usuario
   fetchRecipesByUser(userId) {
@@ -192,8 +192,8 @@ const communicationManager = {
         throw error;
       });
   },
-   // Obtener todos los tiempos disponibles
-   getAllTimes() {
+  // Obtener todos los tiempos disponibles
+  getAllTimes() {
     return apiClient.get('/times') // Asumiendo que la ruta es /times para obtener todos los tiempos
       .then(response => response.data)
       .catch(error => {
@@ -213,12 +213,12 @@ const communicationManager = {
   },
   updateProfile(userData) {
     return apiClient.post('/updatePerfile', userData)
-        .then(response => response.data)
-        .catch(error => {
-            console.error('Error updating profile:', error);
-            throw error;
-        });
-},
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error updating profile:', error);
+        throw error;
+      });
+  },
 
   async updateProfilePicture(img) {
     return apiClient.put('/updateProfilePicture', img)
@@ -230,79 +230,79 @@ const communicationManager = {
         console.error('Error updating profile picture:', error);
         throw error;
       });
-},
-
-changePassword(passwordData) {
-  
-    return apiClient.post('/cambiarContra', passwordData)
-        .then(response => response.data)
-        .catch(error => {
-            console.error('Error changing password:', error);
-            throw error;
-        });
-},
-getUserRecipes(id) {
-  return apiClient.get(`/user/${id}/recipes`) // Usa el ID de usuario correctamente
-    .then(response => response.data)
-    .catch(error => {
-      console.error('Error fetching user recipes:', error);
-      throw error;
-    });
-
-},
-
-
-fetchComments(recipeId) {
-  return apiClient.get(`/recipes/${recipeId}/comments`)
-    .then(response => response.data)
-    .catch(error => {
-      console.error('Error fetching comments:', error);
-      throw error;
-    });
-},
-// Eliminar receta
-deleteRecipe(recipeId) {
-  return apiClient.delete(`/recipes/${recipeId}`)
-    .then(response => response.data)
-    .catch(error => {
-      console.error('Error eliminando receta:', error);
-      throw error;
-    });
-},
-
-
-// Agregar un comentario a una receta
-addComment(recipeId, commentText) {
-  return apiClient.post(`/recipes/${recipeId}/comment`, { comment: commentText })  // <-- Enviar 'comment' en lugar de 'text'
-    .then(response => response.data)
-    .catch(error => {
-      console.error('Error adding comment:', error);
-      throw error;
-    });
-},
-createFolder(folderName) {
-  return apiClient.post('/folders', { name: folderName })  // Asegúrate de que 'name' sea lo único que estás enviando
-    .then(response => response.data)
-    .catch(error => {
-      console.error('Error creando carpeta:', error.response ? error.response.data : error.message);  // Imprimir más detalles del error
-      throw error;
-    });
   },
-// Obtener las recetas de una carpeta
-fetchFolderRecipes(folderId) {
-  return apiClient.get(`/folders/${folderId}/recipes`)
-    .then(response => response.data.recipes) // Esto debe devolver las recetas correctamente
-    .catch(error => {
-      console.error('Error fetching folder recipes:', error);
-      throw error;
-    });
-},
+
+  changePassword(passwordData) {
+
+    return apiClient.post('/cambiarContra', passwordData)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error changing password:', error);
+        throw error;
+      });
+  },
+  getUserRecipes(id) {
+    return apiClient.get(`/user/${id}/recipes`) // Usa el ID de usuario correctamente
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching user recipes:', error);
+        throw error;
+      });
+
+  },
+
+
+  fetchComments(recipeId) {
+    return apiClient.get(`/recipes/${recipeId}/comments`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching comments:', error);
+        throw error;
+      });
+  },
+  // Eliminar receta
+  deleteRecipe(recipeId) {
+    return apiClient.delete(`/recipes/${recipeId}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error eliminando receta:', error);
+        throw error;
+      });
+  },
+
+
+  // Agregar un comentario a una receta
+  addComment(recipeId, commentText) {
+    return apiClient.post(`/recipes/${recipeId}/comment`, { comment: commentText })  // <-- Enviar 'comment' en lugar de 'text'
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error adding comment:', error);
+        throw error;
+      });
+  },
+  createFolder(folderName) {
+    return apiClient.post('/folders', { name: folderName })  // Asegúrate de que 'name' sea lo único que estás enviando
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error creando carpeta:', error.response ? error.response.data : error.message);  // Imprimir más detalles del error
+        throw error;
+      });
+  },
+  // Obtener las recetas de una carpeta
+  fetchFolderRecipes(folderId) {
+    return apiClient.get(`/folders/${folderId}/recipes`)
+      .then(response => response.data.recipes) // Esto debe devolver las recetas correctamente
+      .catch(error => {
+        console.error('Error fetching folder recipes:', error);
+        throw error;
+      });
+  },
 
 
   // Guardar una receta en una carpeta
   saveRecipeToFolder(folderId, recipeId) {
     return apiClient.post(`/folders/${folderId}/recipes/${recipeId}`)
-    .then(response => response.data)
+      .then(response => response.data)
       .catch(error => {
         console.error('Error saving recipe to folder:', error);
         throw error;
@@ -318,7 +318,7 @@ fetchFolderRecipes(folderId) {
       throw error;
     }
   },
-  
+
   // Obtener las recetas guardadas por el usuario
   fetchUserSavedRecipes() {
     return apiClient.get('/user/saved-recipes')
@@ -338,14 +338,14 @@ fetchFolderRecipes(folderId) {
       });
   },
   // Método para eliminar una carpeta
-deleteFolder(folderId) {
-  return apiClient.delete(`/folders/${folderId}`)
-    .then(response => response.data)
-    .catch(error => {
-      console.error('Error eliminando carpeta:', error);
-      throw error;
-    });
-},
+  deleteFolder(folderId) {
+    return apiClient.delete(`/folders/${folderId}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error eliminando carpeta:', error);
+        throw error;
+      });
+  },
 
   // Eliminar receta
   deleteRecipe(recipeId) {
@@ -356,25 +356,40 @@ deleteFolder(folderId) {
         throw error;
       });
   },
-saveRecipeToFolder(folderId, recipeId) {
-  return apiClient.post(`/folders/${folderId}/recipes/${recipeId}`)
-    .then(response => response.data)
-    .catch(error => {
-      console.error('Error saving recipe to folder:', error.response ? error.response.data : error.message);
-      throw error;
-    });
-},
-// Guardar o quitar una receta de las recetas guardadas
-toggleSaveRecipe(recipeId) {
-  return apiClient.post(`/saved-recipes/toggle/${recipeId}`)
-    .then(response => response.data)
-    .catch(error => {
-      console.error('Error toggling saved recipe:', error);
-      throw error;
-    });
-}
-
-    
-};
+  saveRecipeToFolder(folderId, recipeId) {
+    return apiClient.post(`/folders/${folderId}/recipes/${recipeId}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error saving recipe to folder:', error.response ? error.response.data : error.message);
+        throw error;
+      });
+  },
+  // Guardar o quitar una receta de las recetas guardadas
+  toggleSaveRecipe(recipeId) {
+    return apiClient.post(`/saved-recipes/toggle/${recipeId}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error toggling saved recipe:', error);
+        throw error;
+      });
+  },
+  logout() {
+    const authStore = useAuthStore(); // Acceder al store de autenticación de Pinia
+    try {
+      // Llamada a API para cerrar sesión
+      return apiClient.post('/logout')
+        .then(() => {
+          authStore.clearAuth(); // Limpiar el estado de autenticación en Pinia
+          localStorage.removeItem('token'); // Eliminar el token de localStorage
+          window.location.href = '/login'; // Redirigir al login (si lo deseas)
+        })
+        .catch(error => {
+          console.error('Error al cerrar sesión:', error);
+        });
+    } catch (error) {
+      console.error('Error al intentar cerrar sesión:', error);
+    }
+  }
+}  
 
 export default communicationManager;

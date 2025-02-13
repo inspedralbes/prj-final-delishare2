@@ -70,7 +70,6 @@ export default {
 .recipe-image {
   width: 100%;
   height: 55%; /* Reducir la altura de la imagen */
-  object-fit: cover;
 }
 
 .recipe-content {

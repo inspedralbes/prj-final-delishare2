@@ -16,6 +16,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:users,name',
             'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
         ]);
 
         if ($validator->fails()) {
@@ -29,48 +30,63 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        // Generar un token único y guardarlo en el usuario
+        // Generar un token único y guardarlo en la base de datos (si quieres hacerlo)
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        // Guarda el token en la tabla de usuarios si es necesario
         $user->update(['personal_access_token' => $token]);
-        $user = User::where('name', $request->name)->first();
+
         // Respuesta con el usuario y el token
         return response()->json([
             'user' => [
-            'id_user' => $user->id,         
-            'name' => $user->name, 
-            'email' => $user->email,      
-        ],
-        'token' => $token,
-            ],201);
+                'id_user' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ],
+            'token' => $token,
+        ], 201);
     }
 
     // Login de usuario
     public function login(Request $request)
     {
-
         $user = User::where('name', $request->name)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Credenciales inválidas'], 401);
         }
 
-        if (!$user->personal_access_token) {
-            $token = $user->createToken('auth_token')->plainTextToken;
-            $user->update(['personal_access_token' => $token]);
-        } else {
-            $token = $user->personal_access_token;
-        }
+        // Generar el token si no tiene uno o usar el token actual
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        // Guarda el token en la tabla de usuarios si es necesario
+        $user->update(['personal_access_token' => $token]);
 
         return response()->json([
-        'user' => [
-        'id_user' => $user->id,         
-        'name' => $user->name, 
-        'email' => $user->email,        
-        
-    ],
-    'token' => $token,
-        ],201);
+            'user' => [
+                'id_user' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ],
+            'token' => $token,
+        ], 201);
     }
+
+    // Logout de usuario
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+
+        // Revocar el token actual
+        $user->currentAccessToken()->delete();
+
+        // Borra el token de la base de datos si lo guardaste allí
+        $user->update(['personal_access_token' => null]);
+
+        return response()->json(['message' => 'Logout exitoso'], 200);
+    }
+
+
 
     public function user(Request $request)
     {

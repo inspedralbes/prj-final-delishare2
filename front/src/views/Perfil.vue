@@ -1,323 +1,340 @@
 <template>
+  
   <div class="profile-container">
+    <!-- Popup de notificación -->
+    <div v-if="popupMessage" class="popup-notification">
+      {{ popupMessage }}
+    </div>
     <div class="profile-header">
+      <button @click="toggleSettingsMenu" class="settings-btn">
+        <img :src="settingsIcon" alt="Ajustes" class="settings-icon" />
+      </button>
       <label for="file-input" class="profile-picture">
-        <img :src="user.img" alt="Foto de perfil" />
-        <input id="file-input" type="file" @change="uploadImage" style="display: none;" />
+        <img :src="user.img || defaultProfile" alt="Foto de perfil" />
       </label>
-
       <h2>{{ user.name }}</h2>
       <p>{{ user.email }}</p>
-      <button @click="showEditProfile = !showEditProfile">Editar perfil</button>
     </div>
 
-    <div v-if="showEditProfile" class="edit-sections">
-      <button @click="activeTab = 'profile'">Editar Información</button>
-      <button @click="activeTab = 'password'">Cambiar Contraseña</button>
+    <!-- Menú emergente de ajustes con overlay -->
+    <div v-if="settingsMenuOpen" class="settings-overlay" @click="toggleSettingsMenu">
+      <div class="settings-menu" @click.stop>
+        <button @click="setActiveTab('image')">Canviar imatge de perfil</button>
+        <button @click="setActiveTab('name')">Canviar nom d'usuari i email</button>
+        <button @click="setActiveTab('password')">Canviar contrasenya</button>
+        <button @click="confirmLogout('logOut')">Tancar sessió</button>
 
-      <div v-if="activeTab === 'profile'" class="profile-info">
-        <label>Nombre:</label>
-        <input type="text" v-model="user.name" />
-
-        <label>Email:</label>
-        <input type="email" v-model="user.email" />
-
-        <button @click="updateProfile">Guardar cambios</button>
-      </div>
-
-      <div v-if="activeTab === 'password'" class="profile-info">
-        <label>Contraseña Actual:</label>
-        <div class="password-field">
-          <input :type="showCurrentPassword ? 'text' : 'password'" v-model="currentPassword" />
-          <button @click="toggleShowCurrentPassword" class="eye-icon">
-            <img v-if="showCurrentPassword" src="@/assets/images/ojoAbierto.png" alt="Mostrar contraseña" />
-            <img v-if="!showCurrentPassword" src="@/assets/images/ojo.png" alt="Ocultar contraseña" />
-          </button>
-        </div>
-        <label>Nueva Contraseña:</label>
-        <div class="password-field">
-          <input :type="showNewPassword ? 'text' : 'password'" v-model="newPassword" />
-          <button @click="toggleShowNewPassword" class="eye-icon">
-            <img v-if="showNewPassword" src="@/assets/images/ojoAbierto.png" alt="Mostrar contraseña" />
-            <img v-if="!showNewPassword" src="@/assets/images/ojo.png" alt="Ocultar contraseña" />
-          </button>
-        </div>
-        <label>Confirmar Nueva Contraseña:</label>
-        <div class="password-field">
-          <input :type="showConfirmPassword ? 'text' : 'password'" v-model="confirmPassword" />
-          <button @click="toggleShowConfirmPassword" class="eye-icon">
-            <img v-if="showConfirmPassword" src="@/assets/images/ojoAbierto.png" alt="Mostrar contraseña" />
-            <img v-if="!showConfirmPassword" src="@/assets/images/ojo.png" alt="Ocultar contraseña" />
-          </button>
-        </div>
-        <button @click="updatePassword">Cambiar Contraseña</button>
       </div>
     </div>
-
-    <div class="profile-actions">
-      <button @click="activeTab = 'publications'">Ver Publicaciones</button>
-      <button @click="activeTab = 'savedRecipes'">Mis Guardadas</button>
+    <!-- Popup de confirmación para cerrar sesión -->
+    <div v-if="showLogoutConfirmation" class="popup-confirmation">
+      <p>Estàs segur que vols tancar la sessió?</p>
+      <button @click="logout" class="confirm-btn">Si</button>
+      <button @click="cancelLogout" class="cancel-btn">Cancelar</button>
+    </div>
+     <!-- Formulario de cambio de imagen de perfil -->
+     <div v-if="activeTab === 'image'" class="settings-form wide-form">
+      <div class="upload-image-container">
+        <label for="image" class="upload-label">Pujar Imatge:</label>
+        <div class="upload-area">
+          <input type="file" id="image" @change="uploadImage" accept="image/*" />
+          <p class="upload-instructions">Arrossega i deixa anar una imatge o fes clic per seleccionar-la.</p>
+        </div>
+      </div>
+      <button @click="cancelEdit" class="cancel-btn">Cancelar</button>
     </div>
 
-    <!-- Recetas creadas por el usuario -->
-    <div v-if="activeTab === 'publications'" class="user-recipes">
-      <h3>Recetas creadas</h3>
+    <!-- Formulario de cambio de nombre y correo -->
+    <div v-if="activeTab === 'name'" class="settings-form" style="margin-top: 70px;">
+      <label for="newName">Nou nom:</label>
+      <input type="text" id="newName" v-model="newName" :placeholder="user.name" />
+      <label for="newEmail">Nou email:</label>
+      <input type="email" id="newEmail" v-model="newEmail" :placeholder="user.email" />
+      <button @click="updateName" class="submit-btn">Guardar canvis</button>
+      <button @click="cancelEdit" class="cancel-btn">Cancelar</button>
+    </div>
+
+    <!-- Formulario de cambio de contraseña -->
+    <div v-if="activeTab === 'password'" class="settings-form" style="margin-top: 70px;">
+      <label for="currentPassword">Contrasenya actual:</label>
+      <div class="password-input-container">
+        <input :type="showCurrentPassword ? 'text' : 'password'" id="currentPassword" v-model="currentPassword" />
+        <img :src="showCurrentPassword ? eyeOpenIcon : eyeClosedIcon" alt="Ver contraseña" class="password-toggle-icon"
+          @click="togglePasswordVisibility('current')" />
+      </div>
+
+      <label for="newPassword">Nova contrasenya:</label>
+      <div class="password-input-container">
+        <input :type="showNewPassword ? 'text' : 'password'" id="newPassword" v-model="newPassword" />
+        <img :src="showNewPassword ? eyeOpenIcon : eyeClosedIcon" alt="Ver contraseña" class="password-toggle-icon"
+          @click="togglePasswordVisibility('new')" />
+      </div>
+
+      <label for="confirmPassword">Confirmar nova contrasenya:</label>
+      <div class="password-input-container">
+        <input :type="showConfirmPassword ? 'text' : 'password'" id="confirmPassword" v-model="confirmPassword" />
+        <img :src="showConfirmPassword ? eyeOpenIcon : eyeClosedIcon" alt="Ver contraseña" class="password-toggle-icon"
+          @click="togglePasswordVisibility('confirm')" />
+      </div>
+
+      <button @click="updatePassword" class="submit-btn">Guardar canvis</button>
+      <button @click="cancelEdit" class="cancel-btn">Cancelar</button>
+    </div>
+
+    <!-- Sección de recetas -->
+    <div v-if="showRecipes" class="user-recipes">
+      <h3>Les meves publicacions</h3>
       <div class="recipe-cards">
-        <div v-for="recipe in recipes" :key="recipe.id" class="recipe-card">
-          <RecipeCard
-            :recipe-id="recipe.id"
-            :title="recipe.title"
-            :description="recipe.description"
-            :image="recipe.image"
-          />
-          <button @click="deleteRecipe(recipe.id)" class="delete-btn">Eliminar</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recetas guardadas -->
-    <div v-if="activeTab === 'savedRecipes'" class="saved-recipes">
-      <div class="folders" v-if="folders.length > 0">
-        <div class="folder-card" v-for="folder in folders" :key="folder.id" @click="fetchFolderRecipes(folder.id)">
-          <h4>{{ folder.name }}</h4>
-          <button @click.stop="deleteFolder(folder.id)">Eliminar Carpeta</button>
-        </div>
-      </div>
-
-      <div v-if="selectedFolderRecipes.length > 0" class="folder-recipes">
-        <h3>Recetas en la carpeta "{{ selectedFolder.name }}"</h3>
-        <div class="recipe-cards">
-          <div v-for="recipe in selectedFolderRecipes" :key="recipe.id" class="recipe-card">
-            <RecipeCard
-              :recipe-id="recipe.id"
-              :title="recipe.title"
-              :description="recipe.description"
-              :image="recipe.image"
-            />
-            <button @click="removeRecipeFromFolder(recipe.id, selectedFolder.id)" class="delete-btn">Eliminar</button>
-          
-          </div>
+        <div v-for="recipe in recipes" :key="recipe.id">
+          <RecipeCard :recipe-id="recipe.id" :title="recipe.title" :description="recipe.description"
+            :image="recipe.image" />
+          <button @click="deleteRecipe(recipe.id)" class="delete-btn">
+            <img :src="binIcon" alt="Eliminar" class="delete-icon" />
+          </button>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-
 <script>
 import { useAuthStore } from '@/stores/authStore';
 import communicationManager from '@/services/communicationManager';
-import { ref, onMounted, watch } from 'vue';
-import RecipeCard from '@/components/RecipeCard.vue'; // Importamos el componente RecipeCard
+import { ref, onMounted } from 'vue';
+import RecipeCard from '@/components/RecipeCard.vue';
 import axios from 'axios';
 
+// Importación de imágenes
+import defaultProfile from '@/assets/images/profile.svg';
+import settingsIcon from '@/assets/images/settings.svg';
+import eyeOpenIcon from '@/assets/images/eye-open.svg';
+import eyeClosedIcon from '@/assets/images/eye-closed.svg';
+import binIcon from '@/assets/images/bin.svg';
+
 export default {
-  components: {
-    RecipeCard 
-  },
+  components: { RecipeCard },
   setup() {
     const cloudName = 'dt5vjbgab';
     const uploadPreset = 'perfiles';
+    const userImage = ref('/default-avatar.png');
+
     const authStore = useAuthStore();
-    const user = ref({ name: '', email: '' });
-    const currentPassword = ref('');
+    const user = ref({ name: '', email: '', img: '/default-avatar.png' });
+    const recipes = ref([]);
+    const settingsMenuOpen = ref(false);
+    const activeTab = ref('');
+    const newName = ref('');
+    const newEmail = ref('');
     const newPassword = ref('');
     const confirmPassword = ref('');
-    const userImage = ref('/default-avatar.png');
-    const recipes = ref([]);
-    const folders = ref([]);
-    const selectedFolderRecipes = ref([]);
-    const selectedFolder = ref(null);
-    const showCreateFolderInput = ref(false);
-    const newFolderName = ref('');
-    const activeTab = ref('publications');
-    const showEditProfile = ref(false);
-    const selectedRecipes = ref([]);
+    const currentPassword = ref('');
+    const showRecipes = ref(true);
+    const popupMessage = ref('');
+    
+    // Estado para mostrar el popup de confirmación de cierre de sesión
+    const showLogoutConfirmation = ref(false);
+
+    // Añadimos los estados de visibilidad de las contraseñas
     const showCurrentPassword = ref(false);
     const showNewPassword = ref(false);
     const showConfirmPassword = ref(false);
 
     onMounted(async () => {
-  try {
-    // Obtener los datos del usuario
-    const userData = await communicationManager.getUser();
-    user.value = userData;
-    userImage.value = userData.img || '/default-avatar.png';
-    
-    const userRecipes = await communicationManager.getUserRecipes(userData.id);
-recipes.value = userRecipes.recipes; // Accede correctamente a la lista de recetas
-
-
-    // Cargar las carpetas
-    await fetchUserFolders();
-  } catch (error) {
-    console.error('Error cargando datos del usuario o recetas', error);
-  }
-});
-
-
-
-    // Observar cambios en activeTab para cargar carpetas cuando se selecciona "Mis Guardadas"
-    watch(activeTab, async (newTab) => {
-      if (newTab === 'savedRecipes') {
-        await fetchUserFolders();
+      try {
+        const userData = await communicationManager.getUser();
+        user.value = userData;
+        newName.value = userData.name;
+        newEmail.value = userData.email;
+        const userRecipes = await communicationManager.getUserRecipes(userData.id);
+        recipes.value = userRecipes.recipes;
+      } catch (error) {
+        console.error('Error cargando datos del usuario o recetas', error);
       }
     });
 
-    const fetchUserFolders = async () => {
-      try {
-        const userFolders = await communicationManager.fetchUserFolders();
-        folders.value = userFolders;
-      } catch (error) {
-        console.error('Error cargando carpetas', error);
-      }
-    };
-
-    const fetchFolderRecipes = async (folderId) => {
-      try {
-        selectedFolderRecipes.value = await communicationManager.fetchFolderRecipes(folderId);
-        selectedFolder.value = folders.value.find(folder => folder.id === folderId);
-      } catch (error) {
-        console.error('Error obteniendo recetas de la carpeta', error);
-      }
-    };
-
-    const updateProfile = async () => {
-      try {
-        await communicationManager.updateProfile({
-          name: user.value.name,
-          email: user.value.email,
-        });
-        alert("Perfil actualizado correctamente");
-      } catch (error) {
-        console.error('Error actualizando perfil', error);
-      }
-    };
-
-    const updatePassword = async () => {
-      if (newPassword.value !== confirmPassword.value) {
-        alert("Las contraseñas no coinciden");
-        return;
-      }
-      
-      try {
-        await communicationManager.changePassword({
-          contrasena_actual: currentPassword.value,
-          nueva_contrasena: newPassword.value,
-        });
-        alert("Contraseña actualizada correctamente");
-      } catch (error) {
-        console.error('Error cambiando la contraseña', error);
-        alert('Error al cambiar la contraseña');
-      }
-    };
-
-    const uploadImage = async (event) => {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", uploadPreset);
-
-      try {
-        const response = await axios.put(
-          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-          formData
-        );
-        const uploadedImageUrl = response.data.secure_url;
-
-        // Actualizar la imagen en la referencia del usuario
-        userImage.value = uploadedImageUrl;
-        user.value.img = uploadedImageUrl;
-
-        await communicationManager.updateProfilePicture({ img: uploadedImageUrl });
-
-        alert("Foto de perfil actualizada correctamente");
-      } catch (error) {
-        console.error("Error subiendo imagen de perfil:", error);
-      }
-    };
-
-    const createFolder = async () => {
-      if (newFolderName.value.trim() === '') return;
-
-      try {
-        await communicationManager.createFolder(newFolderName.value);
-        alert('Carpeta creada');
-        showCreateFolderInput.value = false;
-        newFolderName.value = '';
-        await fetchUserFolders();
-      } catch (error) {
-        console.error('Error creando carpeta', error);
-      }
-    };
-
-    const deleteFolder = async (folderId) => {
-      try {
-        await communicationManager.deleteFolder(folderId);
-        alert('Carpeta eliminada');
-        await fetchUserFolders();
-      } catch (error) {
-        console.error('Error eliminando la carpeta', error);
-        alert('Error al eliminar la carpeta');
-      }
-    };
     const deleteRecipe = async (recipeId) => {
-      try {
-        await communicationManager.deleteRecipe(recipeId);
-        recipes.value = recipes.value.filter(recipe => recipe.id !== recipeId);
-      } catch (error) {
-        console.error('Error eliminando receta', error);
-      }
-    };
-    const removeRecipeFromFolder = async (recipeId, folderId) => {
   try {
-    // Asegúrate de pasar el folderId
-    await communicationManager.removeRecipeFromFolder(recipeId, folderId); 
-    selectedFolderRecipes.value = selectedFolderRecipes.value.filter(recipe => recipe.id !== recipeId);
+    await communicationManager.deleteRecipe(recipeId);
+    recipes.value = recipes.value.filter(recipe => recipe.id !== recipeId);
+    popupMessage.value = "La receta se ha eliminado correctamente"; // Mostrar alerta
+    setTimeout(() => { popupMessage.value = ''; }, 3000); // Ocultar después de 3 segundos
   } catch (error) {
-    console.error('Error eliminando receta de la carpeta', error);
+    console.error('Error eliminando receta', error);
+    popupMessage.value = "Error al eliminar la receta"; // Mostrar alerta de error
+    setTimeout(() => { popupMessage.value = ''; }, 3000); // Ocultar después de 3 segundos
   }
 };
 
+const uploadImage = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", uploadPreset);
+
+  try {
+    const response = await axios.put(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      formData
+    );
+    const uploadedImageUrl = response.data.secure_url;
+
+    userImage.value = uploadedImageUrl;
+    user.value.img = uploadedImageUrl;
+
+    await communicationManager.updateProfilePicture({ img: uploadedImageUrl });
+
+    popupMessage.value = "Foto de perfil actualizada correctamente"; // Mostrar alerta
+    setTimeout(() => { popupMessage.value = ''; }, 3000); // Ocultar después de 3 segundos
+
+    activeTab.value = ''; // Resetear el formulario activo
+    showRecipes.value = true;  // Volver a mostrar las recetas
+  } catch (error) {
+    console.error("Error subiendo imagen de perfil:", error);
+    popupMessage.value = "Error al subir la imagen de perfil"; // Mostrar alerta de error
+    setTimeout(() => { popupMessage.value = ''; }, 3000); // Ocultar después de 3 segundos
+  }
+};
+    const toggleSettingsMenu = () => {
+      settingsMenuOpen.value = !settingsMenuOpen.value;
+    };
+
+    const setActiveTab = (tab) => {
+      activeTab.value = tab;
+      showRecipes.value = false;  // Ocultar recetas cuando se abre una sección de ajustes
+    };
+
+    const togglePasswordVisibility = (field) => {
+      if (field === 'current') {
+        showCurrentPassword.value = !showCurrentPassword.value;
+      } else if (field === 'new') {
+        showNewPassword.value = !showNewPassword.value;
+      } else if (field === 'confirm') {
+        showConfirmPassword.value = !showConfirmPassword.value;
+      }
+    };
+
+    const updateName = async () => {
+  try {
+    await communicationManager.updateProfile({ name: newName.value, email: newEmail.value });
+    user.value.name = newName.value;
+    user.value.email = newEmail.value;
+    popupMessage.value = "Nombre y correo actualizados correctamente"; // Mostrar alerta
+    setTimeout(() => { popupMessage.value = ''; }, 3000); // Ocultar después de 3 segundos
+    activeTab.value = '';
+    settingsMenuOpen.value = false;
+    showRecipes.value = true;
+  } catch (error) {
+    console.error('Error actualizando nombre y correo', error);
+    popupMessage.value = "Error al actualizar nombre y correo"; // Mostrar alerta de error
+    setTimeout(() => { popupMessage.value = ''; }, 3000); // Ocultar después de 3 segundos
+  }
+};
+
+const updatePassword = async () => {
+  if (newPassword.value !== confirmPassword.value) {
+    popupMessage.value = "Las contraseñas no coinciden"; // Mostrar alerta
+    setTimeout(() => { popupMessage.value = ''; }, 3000); // Ocultar después de 3 segundos
+    return;
+  }
+
+  try {
+    await communicationManager.changePassword({
+      contrasena_actual: currentPassword.value,
+      nueva_contrasena: newPassword.value,
+    });
+    popupMessage.value = "Contraseña actualizada correctamente"; // Mostrar alerta
+    setTimeout(() => { popupMessage.value = ''; }, 3000); // Ocultar después de 3 segundos
+
+    // Recargar las recetas después de cambiar la contraseña
+    const userRecipes = await communicationManager.getUserRecipes(user.value.id);
+    recipes.value = userRecipes.recipes;
+
+    // Restablecer todo y mostrar recetas
+    activeTab.value = '';
+    showRecipes.value = true;
+  } catch (error) {
+    console.error('Error actualitzant contrasenya:', error);
+    if (error.response) {
+      popupMessage.value = `Error: ${error.response.data.message || 'Detalles no disponibles'}`; // Mostrar alerta de error
+      setTimeout(() => { popupMessage.value = ''; }, 3000); // Ocultar después de 3 segundos
+    }
+  }
+};
+
+    const cancelEdit = () => {
+      settingsMenuOpen.value = false;
+      activeTab.value = '';
+      showRecipes.value = true;  // Mostrar recetas al cancelar la edición
+    };
+
+    // Mostrar el popup de confirmación antes de cerrar sesión
+    const confirmLogout = () => {
+      showLogoutConfirmation.value = true;
+    };
+
+    // Si confirma, limpia los datos de autenticación y redirige
+    const logout = () => {
+      authStore.clearAuth();
+      window.location.href = '/';
+      console.log('Cerrando sesión...');
+      showLogoutConfirmation.value = false;  // O puedes usar this.$router.push si prefieres Vue Router
+    };
+
+    // Cancela la acción de cerrar sesión
+    const cancelLogout = () => {
+      showLogoutConfirmation.value = false;
+    };
+
     return {
-      deleteRecipe,
-      removeRecipeFromFolder,
       user,
       userImage,
-      currentPassword,
+      recipes,
+      deleteRecipe,
+      uploadImage,
+      toggleSettingsMenu,
+      settingsMenuOpen,
+      activeTab,
+      setActiveTab,
+      updateName,
+      updatePassword,
+      cancelEdit,
+      showRecipes,  // Añadido para mostrar/ocultar recetas
+      newName,
+      newEmail,
       newPassword,
       confirmPassword,
-      recipes,
-      folders,
-      selectedFolderRecipes,
-      showCreateFolderInput,
-      newFolderName,
-      activeTab,
-      showEditProfile,
-      selectedFolder,
+      currentPassword,
+      confirmLogout,
+      logout,
+      showLogoutConfirmation,
+      cancelLogout,
       showCurrentPassword,
       showNewPassword,
       showConfirmPassword,
-      uploadImage,
-      updateProfile,
-      updatePassword,
-      fetchFolderRecipes,
-      createFolder,
-      deleteFolder,
+      togglePasswordVisibility,
+      settingsIcon,
+      eyeOpenIcon,
+      eyeClosedIcon,
+      binIcon,
+      defaultProfile,
+      popupMessage
     };
-  },
+  }
 };
 </script>
+
 
 <style scoped>
 .profile-container {
   padding: 20px;
+  position: relative;
 }
 
 .profile-header {
   text-align: center;
+  position: relative;
 }
 
 .profile-header .profile-picture img {
@@ -332,104 +349,370 @@ recipes.value = userRecipes.recipes; // Accede correctamente a la lista de recet
   margin: 10px 0;
 }
 
-.profile-actions {
+.recipe-cards {
   display: flex;
-  justify-content: space-around;
-  margin-top: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 50px;
 }
 
-.profile-actions button {
-  padding: 10px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-.profile-actions button:hover {
-  background-color: #45a049;
-}
-
-.edit-sections button {
-  margin: 10px;
-  padding: 10px;
-  background-color: #2196f3;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-.edit-sections button:hover {
-  background-color: #1e88e5;
-}
-
-.profile-info {
-  margin: 20px 0;
-}
-
-.password-field {
-  display: flex;
-  align-items: center;
-}
-
-.password-field input {
-  flex: 1;
-  padding: 10px;
-  margin-right: 10px;
-  font-size: 14px;
-}
-
-.eye-icon {
-  background: transparent;
+.delete-btn {
+  background: none;
   border: none;
   cursor: pointer;
   padding: 5px;
 }
 
-.eye-icon img {
-  width: 18px;
-  height: 18px;
+.delete-icon {
+  width: 20px;
+  height: 20px;
 }
 
-.recipe-cards {
+.settings-btn {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.settings-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.settings-menu {
+  position: absolute;
+  top: 30px;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 20px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
+  flex-direction: column;
+  width: 250px;
+  /* Menú más largo */
+  height: auto;
 }
 
-.recipe-card {
+.settings-form {
+  margin-top: 70px;
+  /* Añadido margen superior */
+}
+
+.settings-menu button {
+  padding: 12px;
+  font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 8px;
-  width: 200px;
+  background-color: #030127;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.settings-menu button:hover {
+  background-color: #322b5f;
+}
+
+.settings-form label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.settings-form input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+
+.submit-btn,
+.cancel-btn {
+  padding: 5px 15px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+  margin-right: 10px;
+}
+
+.submit-btn {
+  background-color: #0c0636;
+  color: white;
+}
+
+.submit-btn:hover {
+  background-color: #322b5f;
+}
+
+.cancel-btn {
+  background-color: #9c1208;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background-color: #e53935;
+}
+
+.password-input-container {
+  position: relative;
+  width: 100%;
+}
+
+.password-toggle-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+button {
+  background-color: #0c0636;
+  color: white;
+  border-radius: 5px;
+
+}
+
+.wide-form {
+  width: 250px;
+  height: 150px;
+  padding: 20px;
+  margin: 20px auto;
+  margin-top: 60px;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  border: 2px solid #ccc;
+}
+
+/* Estilo para el input */
+.wide-form input[type="file"] {
+  width: 80%;
+  /* Ajustar tamaño */
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background: #f5f5f5;
+  margin-top: 15px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Para mejorar la apariencia del input file */
+.wide-form input[type="file"]::-webkit-file-upload-button {
+  background-color: #0c0636;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.wide-form input[type="file"]::-webkit-file-upload-button:hover {
+  background-color: #7582e7;
+}
+
+/* Estilo para el botón */
+.wide-form button {
+  width: 80%;
+  padding: 10px;
+  margin-top: 15px;
+  background-color: #0c0636;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.wide-form button:hover {
+  background-color: #7582e7;
+}
+
+/* Ocultar el input original */
+.custom-file-upload input[type="file"] {
+  display: none;
+}
+
+/* Estilizar el label como botón */
+.custom-file-upload {
+  display: inline-block;
+  padding: 10px 15px;
+  color: #0c0636;
+  font-size: 14px;
+  border: 2px solid #0c0636;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.3s ease;
+}
+
+.custom-file-upload:hover {
+  background-color: #7582e7;
+}
+
+.popup-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #3498db;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  animation: fadeIn 0.5s ease;
+}
+
+.settings-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  z-index: 900;
+}
+
+/* Estilo general del popup */
+.popup-confirmation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
   padding: 10px;
 }
 
-.recipe-card img {
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
-}
-
-.recipe-info {
-  text-align: center;
-  margin-top: 10px;
-}
-
-.folders {
-  display: flex;
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.folder-card {
-  background-color: #f1f1f1;
-  padding: 15px;
-  cursor: pointer;
-  text-align: center;
+/* Estilo del texto del popup */
+.popup-confirmation p {
+  background-color: white;
+  padding: 20px;
   border-radius: 8px;
+  text-align: center;
+  width: 100%;
+  max-width: 300px;
 }
 
-.saved-recipes {
-  margin-top: 20px;
+.popup-confirmation button {
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  margin: 5px;
+  padding: 10px 20px;
+  transition: background-color 0.3s ease;
+  width: 100px;
+}
+.upload-image-container {
+  margin-top: -50px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.upload-label {
+  display: block;
+  margin-top: 150px;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.upload-area {
+  border: 2px dashed #0c0636;
+  border-radius: 15px;
+  padding: 1.5rem;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.upload-area:hover {
+  background-color: #e6e6e6;
+  border-color: #059669;
+}
+
+.upload-area input[type="file"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.upload-instructions {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 0.5rem;
+}
+
+.uploaded-image-preview {
+  margin-top: 1rem;
+  max-width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+.cancel-btn:hover {
+  background-color: #e53935;
+}
+/* Estilo del botón de aceptar */
+.popup-confirmation .confirm-btn {
+  background-color: #0c0636;
+  color: white;
+}
+
+.popup-confirmation .confirm-btn:hover {
+  background-color: #322b5f;
+}
+
+/* Estilo del botón de cancelar */
+.popup-confirmation .cancel-btn {
+  background-color: #9c1208;
+  color: white;
+}
+
+.popup-confirmation .cancel-btn:hover {
+  background-color: #e53935;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

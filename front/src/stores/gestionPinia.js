@@ -31,16 +31,12 @@ export const useGestionPinia = defineStore('savedRecipes', {
         this.folders.push(folder);
       }
 
-      // Comprobamos si la receta ya está en la carpeta antes de agregarla
       if (!folder.recipes.includes(recipeId)) {
         folder.recipes.push(recipeId);
 
-        // Actualizamos el backend después de agregar la receta
-        await communicationManager.saveRecipeToFolder(folderId, recipeId);
       }
     },
 
-    // Método para quitar una receta de una carpeta
     async removeFromFolder(folderId, recipeId) {
       const folder = this.folders.find(f => f.id === folderId);
 

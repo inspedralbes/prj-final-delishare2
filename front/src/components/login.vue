@@ -2,11 +2,12 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import communicationManager from '@/services/communicationManager';
+import logo from '@/assets/images/delishare.png'; // Importa la imagen
 
 const router = useRouter();
 
 const form = ref({
-  name: '',  // Nombre de usuario (no es email)
+  name: '',
   password: ''
 });
 
@@ -14,19 +15,15 @@ const errorMessage = ref('');
 
 const handleLogin = async () => {
   try {
-    // Usamos el método login de communicationManager
     const response = await communicationManager.login(form.value);
-
-    // Guardar token en localStorage
+    // Emmagatzemar el token al localStorage
     const token = response.token;
     localStorage.setItem('token', token);
-
-    // Redirigir a la landing page después de login
+    // Redirigir a la pàgina principal després d'iniciar sessió
     router.push('/recetas');
   } catch (error) {
-    console.error("Error en login:", error.response?.data);
-    // Mensaje de error en caso de fallo
-    errorMessage.value = error.response?.data?.message || "Credenciales incorrectas o token inválido.";
+    console.error("Error en iniciar sessió:", error.response?.data);
+    errorMessage.value = error.response?.data?.message || "Credencials incorrectes o token invàlid.";
   }
 };
 </script>
@@ -34,101 +31,140 @@ const handleLogin = async () => {
 <template>
   <div class="login-container">
     <div class="login-card">
-      <h2 class="login-title">Iniciar Sesión</h2>
+      <img :src="logo" alt="Logo" class="register-logo"> <!-- Usa la imagen importada -->
+
+      <h2 class="login-title">Inicia Sessió</h2>
       <form @submit.prevent="handleLogin" class="login-form">
-        <input type="text" v-model="form.name" placeholder="Nombre de usuario" required />
-        <input type="password" v-model="form.password" placeholder="Contraseña" required />
-        <button type="submit" class="btn-submit">Iniciar sesión</button>
+        <input
+          type="text"
+          v-model="form.name"
+          placeholder="Nom d'usuari"
+          required
+        />
+        <input
+          type="password"
+          v-model="form.password"
+          placeholder="Contrasenya"
+          required
+        />
+        <button type="submit" class="btn-submit">Inicia sessió</button>
       </form>
-      <p v-if="errorMessage" style="color: red;">{{ errorMessage }}</p>
+      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
       <p class="register-link">
-        ¿No tienes cuenta? <router-link to="/register">Regístrate aquí</router-link>
+        Encara no tens compte? <router-link to="/register">Registra't aquí</router-link>
       </p>
     </div>
   </div>
 </template>
 
 <style scoped>
-body {
+/* Reset bàsic */
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  height: 100vh;
-  width: 100vw;
-  font-family: 'Roboto', sans-serif;
+}
+.register-logo{
+max-width: 250px;
+  margin-bottom: 1rem;
 }
 
-/* Estilos para la pantalla de login */
+/* Fons i contenidor principal */
 .login-container {
-  background-image: url('/img/image.png');
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  padding: 1rem;
 }
 
+/* Targeta d'inici de sessió */
 .login-card {
-  background: #ffffff;
-  padding: 2rem 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
   width: 100%;
-  max-width: 350px;
   text-align: center;
 }
 
+/* Títol */
 .login-title {
-  margin-bottom: 2rem;
-  font-size: 1.6rem;
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  color: #333;
   font-weight: 600;
 }
 
+/* Formulari */
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
-input {
+/* Camps del formulari */
+.login-form input {
+  width: 100%;
   padding: 0.8rem;
-  border: 1px solid #ddd;
+  border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-input:focus {
-  border-color: #343330;
+.login-form input:focus {
+  border-color: #007BFF;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
   outline: none;
 }
 
+/* Botó de submit */
 .btn-submit {
-  background: #358600;
-  color: white;
   padding: 0.8rem;
+  background-color: #0c0636;
+  color: #fff;
   border: none;
   border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .btn-submit:hover {
-  background: #235800;
+  background-color: #322b5f;
+  transform: translateY(-2px);
 }
 
-/* Estilos para el enlace de registro */
+/* Missatge d'error */
+.error-message {
+  color: red;
+  margin-top: 0.5rem;
+}
+
+/* Enllaç al registre */
 .register-link {
   margin-top: 1rem;
   font-size: 0.9rem;
 }
 
 .register-link a {
-  color: #358600;
+  color: #007BFF;
   text-decoration: none;
-  transition: color 0.3s;
+  transition: color 0.3s ease;
 }
 
 .register-link a:hover {
-  color: #235800;
+  color: #322b5f;
+}
+
+/* Media queries */
+@media (min-width: 768px) {
+  .login-card {
+    padding: 2.5rem;
+  }
 }
 </style>
