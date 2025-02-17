@@ -5,6 +5,7 @@ export const useGestionPinia = defineStore('savedRecipes', {
   state: () => ({
     savedRecipes: [],
     likedRecipes: JSON.parse(localStorage.getItem('likedRecipes')) || [], 
+    folders: [] 
   }),
 
   actions: {
@@ -70,16 +71,16 @@ export const useGestionPinia = defineStore('savedRecipes', {
       return this.likedRecipes.includes(recipeId);
     },
 
-    // Agrega o elimina un like a una receta
-    toggleLike(recipeId) {
-      const index = this.likedRecipes.indexOf(recipeId);
-      if (index !== -1) {
-        this.likedRecipes.splice(index, 1);
-      } else {
-        this.likedRecipes.push(recipeId);
-      }
-      localStorage.setItem('likedRecipes', JSON.stringify(this.likedRecipes));
-    }
+    // Método para agregar o eliminar un like a una receta
+toggleLike(recipeId) {
+  const index = this.likedRecipes.indexOf(recipeId);
+  if (index !== -1) {
+    this.likedRecipes.splice(index, 1); // Si ya le dieron like, lo quitamos
+  } else {
+    this.likedRecipes.push(recipeId); // Si no le dieron like, lo agregamos
+  }
+  localStorage.setItem('likedRecipes', JSON.stringify(this.likedRecipes));
+}
   },
 
   getters: {

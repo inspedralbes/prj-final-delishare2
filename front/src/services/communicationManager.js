@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Configuración base de Axios
 const apiClient = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -133,7 +133,7 @@ const communicationManager = {
       const token = localStorage.getItem('token');
       if (!token) throw new Error("No token found");
 
-      const response = await axios.get('http://127.0.0.1:8000/api/user', {
+      const response = await axios.get('/api/user', {
         headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;

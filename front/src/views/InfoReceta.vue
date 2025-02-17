@@ -23,27 +23,17 @@
       <div class="button-container">
         <!-- Botó per mostrar la selecció de carpeta -->
         <button @click="checkRecipeInFolder" :disabled="isButtonDisabled">
-          <img
-            :src="getSaveCarpeta"
+          <img :src="getSaveCarpeta"
             :alt="isSavedCarpeta ? 'Treure la recepta de la carpeta' : 'Desar la recepta a la carpeta'"
-            class="button-icon"
-          />
+            class="button-icon" />
         </button>
 
         <!-- Modal per triar la carpeta -->
-        <div
-          v-if="showFolderSelection"
-          :class="{ show: showFolderSelection }"
-          class="save-options-modal"
-        >
+        <div v-if="showFolderSelection" :class="{ show: showFolderSelection }" class="save-options-modal">
           <div class="save-options-content">
             <h3>On vols desar la recepta?</h3>
             <select v-model="selectedFolderId">
-              <option
-                v-for="folder in userFolders"
-                :key="folder.id"
-                :value="folder.id"
-              >
+              <option v-for="folder in userFolders" :key="folder.id" :value="folder.id">
                 {{ folder.name }}
               </option>
             </select>
@@ -63,40 +53,34 @@
 
         <!-- Botó de desar/eliminar de guardades -->
         <button @click="saveToSavedRecipes(recipe.id)" :disabled="isButtonDisabled">
-          <img
-            :src="getSaveIcon"
+          <img :src="getSaveIcon"
             :alt="isSaved ? 'Treure la recepta de les guardades' : 'Desar la recepta a les guardades'"
-            class="button-icon"
-          />
+            class="button-icon" />
         </button>
         <button @click="toggleLike(recipe.id)">
-          <img
-            :src="getLikeIcon"
-            :alt="isLiked ? 'Treure el like' : 'Posar el like'"
-            class="button-icon"
-          />
+          <img :src="getLikeIcon" :alt="isLiked ? 'Treure el like' : 'Posar el like'" class="button-icon" />
         </button>
       </div>
     </div>
     <div class="recipe-section">
 
-    <div class="recipe-info">
-      <p class="recipe-description">
-        {{ recipe.description || 'Sense descripció' }}
-      </p>
-    </div>
+      <div class="recipe-info">
+        <p class="recipe-description">
+          {{ recipe.description || 'Sense descripció' }}
+        </p>
+      </div>
       <div class="recipe-section">
 
-      <button class="back-button" @click="toggleExtraInfo">
-        {{ isExtraInfoVisible ? 'Amagar informació extra' : 'Informació extra' }}
-      </button>
-      <div v-if="isExtraInfoVisible" class="extra-info">
-        <p><strong>Temps de preparació:</strong> {{ recipe.prep_time }} minuts</p>
-        <p><strong>Temps de cocció:</strong> {{ recipe.cook_time }} minuts</p>
-        <p><strong>Racions:</strong> {{ recipe.servings }}</p>
-        <p><strong>Likes:</strong> {{ recipe.likes_count }} ❤️</p>
+        <button class="back-button" @click="toggleExtraInfo">
+          {{ isExtraInfoVisible ? 'Amagar informació extra' : 'Informació extra' }}
+        </button>
+        <div v-if="isExtraInfoVisible" class="extra-info">
+          <p><strong>Temps de preparació:</strong> {{ recipe.prep_time }} minuts</p>
+          <p><strong>Temps de cocció:</strong> {{ recipe.cook_time }} minuts</p>
+          <p><strong>Racions:</strong> {{ recipe.servings }}</p>
+          <p><strong>Likes:</strong> {{ recipe.likes_count }} ❤️</p>
+        </div>
       </div>
-</div>
       <div class="recipe-section">
         <h2>Ingredients</h2>
         <ul class="ingredients-list">
@@ -114,39 +98,35 @@
         </ol>
       </div>
       <div class="recipe-section">
-  <div v-if="recipe.nutrition">
-    <h3>Informació Nutricional</h3>
-    <p><strong>Calories:</strong> {{ recipe.nutrition.calories || 'N/A' }}</p>
-    <p>
-      <strong>Proteïnes:</strong>
-      {{ recipe.nutrition.protein ? `${recipe.nutrition.protein}g` : 'N/A' }}
-    </p>
-    <p>
-      <strong>Carbohidrats:</strong>
-      {{ recipe.nutrition.carbs ? `${recipe.nutrition.carbs}g` : 'N/A' }}
-    </p>
-    <p>
-      <strong>Greixos:</strong>
-      {{ recipe.nutrition.fats ? `${recipe.nutrition.fats}g` : 'N/A' }}
-    </p>
-  </div>
-</div>
+        <div v-if="recipe.nutrition">
+          <h3>Informació Nutricional</h3>
+          <p><strong>Calories:</strong> {{ recipe.nutrition.calories || 'N/A' }}</p>
+          <p>
+            <strong>Proteïnes:</strong>
+            {{ recipe.nutrition.protein ? `${recipe.nutrition.protein}g` : 'N/A' }}
+          </p>
+          <p>
+            <strong>Carbohidrats:</strong>
+            {{ recipe.nutrition.carbs ? `${recipe.nutrition.carbs}g` : 'N/A' }}
+          </p>
+          <p>
+            <strong>Greixos:</strong>
+            {{ recipe.nutrition.fats ? `${recipe.nutrition.fats}g` : 'N/A' }}
+          </p>
+        </div>
+      </div>
     </div>
 
     <div class="recipe-section">
       <div class="comment-input-container">
-        <textarea
-          v-model="newComment"
-          placeholder="Escriu un comentari..."
-          class="comment-textarea"
-        ></textarea>
+        <textarea v-model="newComment" placeholder="Escriu un comentari..." class="comment-textarea"></textarea>
         <button @click="addComment" class="comment-button">Comentar</button>
       </div>
       <ul class="comments-list">
         <li v-for="(comment, index) in comments" :key="index" class="comment-item">
           <div class="comment-header">
             <p class="comment-user">
-              <strong>{{ comment.name || 'Usuari desconegut' }} : {{comment.comment }}</strong>
+              <strong>{{ comment.name || 'Usuari desconegut' }} : {{ comment.comment }}</strong>
             </p>
           </div>
         </li>
@@ -239,9 +219,8 @@ export default {
     checkRecipeInFolder() {
       const gestionPinia = useGestionPinia();
       // Verifica si la recepta ja està desada en alguna carpeta
-      const folder = gestionPinia.folders.find((f) =>
-        f.recipes.includes(this.recipe.id)
-      );
+      const folder = gestionPinia.folders?.find((f) => f.recipes.includes(this.recipe.id));
+
       if (folder) {
         this.showFolderAlert = true;
       } else {
@@ -393,10 +372,10 @@ export default {
 
 <style scoped>
 * {
-  font-family:'Times New Roman', Times, serif;
+  font-family: 'Times New Roman', Times, serif;
 }
 
-.recipe-description{
+.recipe-description {
   margin-left: 10px;
 }
 
@@ -439,7 +418,8 @@ export default {
 .extra-info {
   background: transparent;
   color: #004080;
-  border: 2px solid #004080;  padding: 10px;
+  border: 2px solid #004080;
+  padding: 10px;
   border-radius: 8px;
   margin-top: 10px;
 }
@@ -477,6 +457,7 @@ button {
     transform: translateY(-50px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -664,9 +645,9 @@ button {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1;transform: translateY(0);
   }
 }
 </style>

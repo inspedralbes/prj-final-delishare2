@@ -82,7 +82,7 @@ export default {
 
     const fetchUserData = async () => {
       try {
-        const response = await axios.get(`http://127.0.0.1:8000/api/userInfo/${props.userId}`);
+        const response = await axios.get(`/api/userInfo/${props.userId}`);
         const data = response.data;
         user.value = {
           name: data.name,

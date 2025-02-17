@@ -41,8 +41,9 @@
 
           <div class="form-group">
             <label for="description">Descripció:</label>
-            <textarea id="description" v-model="recipe.description" readonly class="full-width-input"></textarea>
+            <textarea id="description" v-model="recipe.description" class="full-width-input"></textarea>
           </div>
+
 
           <div class="form-group">
             <label>Ingredients:</label>
@@ -235,24 +236,24 @@ export default {
     const addStep = () => recipe.value.steps.push("");
 
     const onFileChange = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+      const file = e.target.files[0];
+      if (!file) return;
 
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", uploadPreset);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", uploadPreset);
 
-  try {
-    const response = await axios.post(
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-      formData
-    );
-    recipe.value.image = response.data.secure_url; 
-    console.log("Imagen subida correctamente:", response.data.secure_url);
-  } catch (error) {
-    console.error("Error al subir la imagen:", error);
-  }
-};
+      try {
+        const response = await axios.post(
+          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+          formData
+        );
+        recipe.value.image = response.data.secure_url;
+        console.log("Imagen subida correctamente:", response.data.secure_url);
+      } catch (error) {
+        console.error("Error al subir la imagen:", error);
+      }
+    };
 
 
     const uploadImage = async () => {
@@ -279,13 +280,17 @@ export default {
     console.error("Usuario no autenticado");
     return;
   }
-
   try {
     await communicationManager.createRecipe({
       ...recipe.value,
       user_id: user.value.id,
+      nutrition: {
+        calories: recipe.value.calories,
+        protein: recipe.value.protein,
+        fats: recipe.value.fats,
+        carbs: recipe.value.carbs,
+      },
     });
-
     message.value = "¡Receta creada con éxito!";
     messageClass.value = "success";
     console.log("Receta creada correctamente");
@@ -297,6 +302,7 @@ export default {
     messageClass.value = "error";
   }
 };
+
 
     return {
       recipe,
@@ -317,8 +323,9 @@ export default {
 
 <style scoped>
 * {
-  font-family:'Times New Roman', Times, serif;
+  font-family: 'Times New Roman', Times, serif;
 }
+
 .page-container {
   text-align: center;
   background-color: #fdfdff;
@@ -458,6 +465,7 @@ textarea {
 .error {
   color: #322b5f;
 }
+
 .upload-image-container {
   margin-bottom: 1.5rem;
   text-align: center;
