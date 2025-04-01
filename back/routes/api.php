@@ -101,3 +101,9 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 Route::middleware('auth:sanctum')->get('/folders/{folder}/recipes', [FolderController::class, 'getRecipes']);
 
+// Rutas para la biografía del usuario (requieren autenticación)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user/biography', [UserController::class, 'getBiography']); // sale error 404 ns porque
+    Route::post('/user/biography', [UserController::class, 'updateBiography']); // funciona bien
+    Route::delete('/user/biography', [UserController::class, 'deleteBiography']); // funciona bien
+});

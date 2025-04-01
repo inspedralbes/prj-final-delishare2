@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password');
+            $table->text('biografia')->nullable(); // Nueva columna biografía
             $table->rememberToken();
             $table->timestamps();
         });
