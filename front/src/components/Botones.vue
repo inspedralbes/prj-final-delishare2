@@ -4,7 +4,7 @@
     <div class="button-group">
       <button @click="toggleSubButtons('categoria')" class="button-main">Categoria</button>
       <button @click="toggleSubButtons('cuisine')" class="button-main">Cuina</button>
-      <button @click="toggleSubButtons('usuarios')" class="button-main">Usuaris</button>
+   
       <button @click="toggleSubButtons('tiempo')" class="button-main">Temps</button>
     </div>
 
