@@ -373,6 +373,23 @@ const communicationManager = {
         throw error;
       });
   },
+  toggleLike(recipeId) {
+    return apiClient.post(`/recipes/${recipeId}/like`)
+        .then(response => response.data)
+        .catch(error => {
+            console.error('Error toggling like:', error);
+            throw error;
+        });
+},
+
+getLikes(recipeId) {
+    return apiClient.get(`/recipes/${recipeId}/likes`)
+        .then(response => response.data)
+        .catch(error => {
+            console.error('Error getting likes:', error);
+            throw error;
+        });
+},
   logout() {
     const authStore = useAuthStore(); 
     try {

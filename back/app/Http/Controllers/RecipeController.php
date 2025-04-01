@@ -138,7 +138,67 @@ public function unlikeRecipe(Request $request, $recipeId)
 
     return response()->json(['message' => 'Recipe unliked successfully']);
 }
+public function toggleLike(Request $request, $recipeId)
+{
+    $userId = $request->user()->id;
+    
+    $recipeUser = DB::table('recipe_user')
+        ->where('user_id', $userId)
+        ->where('recipe_id', $recipeId)
+        ->first();
 
+    if ($recipeUser && $recipeUser->liked) {
+        // Si ya existe y tiene like, quitamos el like
+        DB::table('recipe_user')
+            ->where('user_id', $userId)
+            ->where('recipe_id', $recipeId)
+            ->update(['liked' => false, 'updated_at' => now()]);
+
+        Recipe::where('id', $recipeId)->decrement('likes_count');
+
+        return response()->json([
+            'message' => 'Recipe unliked successfully', 
+            'liked' => false,
+            'likes_count' => Recipe::find($recipeId)->likes_count
+        ]);
+    } else {
+        // Si no existe o no tiene like, añadimos like
+        if ($recipeUser) {
+            DB::table('recipe_user')
+                ->where('user_id', $userId)
+                ->where('recipe_id', $recipeId)
+                ->update(['liked' => true, 'updated_at' => now()]);
+        } else {
+            DB::table('recipe_user')->insert([
+                'user_id' => $userId,
+                'recipe_id' => $recipeId,
+                'liked' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        Recipe::where('id', $recipeId)->increment('likes_count');
+
+        return response()->json([
+            'message' => 'Recipe liked successfully', 
+            'liked' => true,
+            'likes_count' => Recipe::find($recipeId)->likes_count
+        ]);
+    }
+}
+
+public function getLikes($recipeId)
+{
+    return response()->json([
+        'likes_count' => Recipe::find($recipeId)->likes_count,
+        'is_liked' => auth()->check() && DB::table('recipe_user')
+            ->where('user_id', auth()->id())
+            ->where('recipe_id', $recipeId)
+            ->where('liked', true)
+            ->exists()
+    ]);
+}
 
     public function getAllRecipes()
     {

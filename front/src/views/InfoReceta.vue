@@ -324,17 +324,30 @@ export default {
       }
     },
     async toggleLike(recipeId) {
-      const gestionPinia = useGestionPinia();
-      await gestionPinia.toggleLike(recipeId);
-      // Actualitzem el comptador segons el nou estat
-      if (this.isLiked) {
-        this.recipe.likes_count++;
-        this.showPopup('Has posat el like');
-      } else {
-        this.recipe.likes_count--;
-        this.showPopup('Like tret');
-      }
-    },
+    try {
+        const response = await communicationManager.toggleLike(recipeId);
+        
+        // Actualiza Pinia
+        const gestionPinia = useGestionPinia();
+        gestionPinia.toggleLike(recipeId);
+        
+        // Actualiza el contador directamente desde la respuesta
+        this.recipe.likes_count = response.likes_count;
+        
+        // Muestra el popup correspondiente
+        this.showPopup(response.liked ? 'Has posat el like' : 'Like tret');
+        
+        // Opcional: Actualiza periódicamente (cada 30 segundos)
+        if (!this.likesInterval) {
+            this.likesInterval = setInterval(async () => {
+                const likesData = await communicationManager.getLikes(recipeId);
+                this.recipe.likes_count = likesData.likes_count;
+            }, 30000);
+        }
+    } catch (error) {
+        console.error('Error al dar like:', error);
+    }
+},
     toggleExtraInfo() {
       this.isExtraInfoVisible = !this.isExtraInfoVisible;
     },
