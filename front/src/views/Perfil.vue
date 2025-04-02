@@ -5,16 +5,18 @@
     <div v-if="popupMessage" class="popup-notification">
       {{ popupMessage }}
     </div>
-    <div class="profile-header">
-      <button @click="toggleSettingsMenu" class="settings-btn">
-        <img :src="settingsIcon" alt="Ajustes" class="settings-icon" />
-      </button>
-      <label for="file-input" class="profile-picture">
-        <img :src="user.img || defaultProfile" alt="Foto de perfil" />
-      </label>
-      <h2>{{ user.name }}</h2>
-      <p>{{ user.email }}</p>
-    </div>
+<!-- Cambia esta parte en el template -->
+<div class="profile-header">
+  <button @click="toggleSettingsMenu" class="settings-btn">
+    <img :src="settingsIcon" alt="Ajustes" class="settings-icon" />
+  </button>
+  <label for="file-input" class="profile-picture">
+    <img :src="user.img || defaultProfile" alt="Foto de perfil" />
+  </label>
+  <h2>{{ user.name }}</h2>
+  <!-- Cambia el email por la bio -->
+  <p class="user-bio">{{ user.bio || 'No hay biografía disponible' }}</p>
+</div>
 
     <!-- Menu de ajustes con overlay -->
     <div v-if="settingsMenuOpen" class="settings-overlay" @click="toggleSettingsMenu">
@@ -43,16 +45,20 @@
       </div>
       <button @click="cancelEdit" class="cancel-btn">Cancelar</button>
     </div>
-
-    <!-- Formulario de cambio de nombre y correo -->
     <div v-if="activeTab === 'name'" class="settings-form" style="margin-top: 70px;">
-      <label for="newName">Nou nom:</label>
-      <input type="text" id="newName" v-model="newName" :placeholder="user.name" />
-      <label for="newEmail">Nou email:</label>
-      <input type="email" id="newEmail" v-model="newEmail" :placeholder="user.email" />
-      <button @click="updateName" class="submit-btn">Guardar canvis</button>
-      <button @click="cancelEdit" class="cancel-btn">Cancelar</button>
-    </div>
+  <label for="newName">Nou nom:</label>
+  <input type="text" id="newName" v-model="newName" :placeholder="user.name" />
+  
+  <label for="newEmail">Nou email:</label>
+  <input type="email" id="newEmail" v-model="newEmail" :placeholder="user.email" />
+  
+  <label for="newBio">Biografia:</label>
+  <textarea id="newBio" v-model="newBio" :placeholder="user.bio || 'Afegeix una biografia...'" rows="4"></textarea>
+  
+  <button @click="updateProfile" class="submit-btn">Guardar canvis</button>
+  <button @click="cancelEdit" class="cancel-btn">Cancelar</button>
+</div>
+
 
     <!-- Formulario de cambio de contraseña -->
     <div v-if="activeTab === 'password'" class="settings-form" style="margin-top: 70px;">
@@ -133,6 +139,8 @@ export default {
     const showCurrentPassword = ref(false);
     const showNewPassword = ref(false);
     const showConfirmPassword = ref(false);
+    const newBio = ref('');
+
 
     onMounted(async () => {
       try {
@@ -140,6 +148,7 @@ export default {
         user.value = userData;
         newName.value = userData.name;
         newEmail.value = userData.email;
+        newBio.value = userData.bio || ''; 
         const userRecipes = await communicationManager.getUserRecipes(userData.id);
         recipes.value = userRecipes.recipes;
       } catch (error) {
@@ -210,19 +219,25 @@ const uploadImage = async (event) => {
       }
     };
 
-    const updateName = async () => {
+      // Cambiar updateName por updateProfile para incluir la bio
+const updateProfile = async () => {
   try {
-    await communicationManager.updateProfile({ name: newName.value, email: newEmail.value });
+    await communicationManager.updateProfile({ 
+      name: newName.value, 
+      email: newEmail.value,
+      bio: newBio.value 
+    });
     user.value.name = newName.value;
     user.value.email = newEmail.value;
-    popupMessage.value = "Nombre y correo actualizados correctamente"; 
+    user.value.bio = newBio.value;
+    popupMessage.value = "Perfil actualizado correctamente"; 
     setTimeout(() => { popupMessage.value = ''; }, 3000); 
     activeTab.value = '';
     settingsMenuOpen.value = false;
     showRecipes.value = true;
   } catch (error) {
-    console.error('Error actualizando nombre y correo', error);
-    popupMessage.value = "Error al actualizar nombre y correo"; 
+    console.error('Error actualizando perfil', error);
+    popupMessage.value = "Error al actualizar perfil"; 
     setTimeout(() => { popupMessage.value = ''; }, 3000); 
   }
 };
@@ -287,7 +302,8 @@ const updatePassword = async () => {
       settingsMenuOpen,
       activeTab,
       setActiveTab,
-      updateName,
+      newBio,
+      updateProfile,
       updatePassword,
       cancelEdit,
       showRecipes,  
@@ -625,7 +641,15 @@ button {
   color: #333;
   
 }
-
+.user-bio {
+  max-width: 80%;
+  margin: 0 auto;
+  padding: 10px;
+  font-style: italic;
+  color: #555;
+  line-height: 1.4;
+  white-space: pre-line; /* Para mantener los saltos de línea */
+}
 .upload-area {
   border: 2px dashed #0c0636;
   border-radius: 15px;
