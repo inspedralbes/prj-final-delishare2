@@ -20,7 +20,7 @@ const handleLogin = async () => {
     const token = response.token;
     localStorage.setItem('token', token);
     // Redirigir a la pàgina principal després d'iniciar sessió
-    router.push('/recetas');
+    router.push('/');
   } catch (error) {
     console.error("Error en iniciar sessió:", error.response?.data);
     errorMessage.value = error.response?.data?.message || "Credencials incorrectes o token invàlid.";
