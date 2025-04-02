@@ -82,62 +82,7 @@ public function update(Request $request, $id)
         $recipe->delete();
         return response()->json(['message' => 'Recipe deleted successfully']);
     }
-    public function likeRecipe(Request $request, $recipeId)
-{
-    $userId = $request->user()->id;
-    
-    $recipeUser = DB::table('recipe_user')
-        ->where('user_id', $userId)
-        ->where('recipe_id', $recipeId)
-        ->first();
-
-    if ($recipeUser && $recipeUser->liked) {
-        return response()->json(['message' => 'You already liked this recipe.'], 400);
-    }
-
-    if ($recipeUser) {
-        DB::table('recipe_user')
-            ->where('user_id', $userId)
-            ->where('recipe_id', $recipeId)
-            ->update(['liked' => true, 'updated_at' => now()]);
-    } else {
-        DB::table('recipe_user')->insert([
-            'user_id' => $userId,
-            'recipe_id' => $recipeId,
-            'liked' => true,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-    }
-
-    Recipe::where('id', $recipeId)->increment('likes_count');
-
-    return response()->json(['message' => 'Recipe liked successfully']);
-}
-
-
-public function unlikeRecipe(Request $request, $recipeId)
-{
-    $userId = $request->user()->id;
-
-    $recipeUser = DB::table('recipe_user')
-        ->where('user_id', $userId)
-        ->where('recipe_id', $recipeId)
-        ->first();
-
-    if (!$recipeUser || !$recipeUser->liked) {
-        return response()->json(['message' => 'Recipe not liked yet.'], 400);
-    }
-
-    DB::table('recipe_user')
-        ->where('user_id', $userId)
-        ->where('recipe_id', $recipeId)
-        ->update(['liked' => false, 'updated_at' => now()]);
-
-    Recipe::where('id', $recipeId)->decrement('likes_count');
-
-    return response()->json(['message' => 'Recipe unliked successfully']);
-}
+ 
 public function toggleLike(Request $request, $recipeId)
 {
     $userId = $request->user()->id;

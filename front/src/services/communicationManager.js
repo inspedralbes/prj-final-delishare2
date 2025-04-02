@@ -107,26 +107,6 @@ const communicationManager = {
       });
   },
 
-  // Método para dar like
-  likeRecipe(recipeId) {
-    return apiClient.post(`/recipes/${recipeId}/like`)
-      .then(response => response.data)
-      .catch(error => {
-        console.error('Error liking recipe:', error);
-        throw error;
-      });
-  },
-
-  // Método para quitar like
-  unlikeRecipe(recipeId) {
-    return apiClient.post(`/recipes/${recipeId}/unlike`)
-      .then(response => response.data)
-      .catch(error => {
-        console.error('Error unliking recipe:', error);
-        throw error;
-      });
-  },
-
   //info de cada user
   getUser: async () => {
     try {

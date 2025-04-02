@@ -1,3 +1,4 @@
+
 import { defineStore } from 'pinia';
 import communicationManager from '@/services/communicationManager';
 
@@ -8,7 +9,6 @@ export const useGestionPinia = defineStore('savedRecipes', {
   }),
 
   actions: {
-    // Método para cargar las recetas guardadas desde el backend
     async loadSavedRecipes() {
       try {
         const recipes = await communicationManager.getSavedRecipes();
@@ -60,17 +60,14 @@ export const useGestionPinia = defineStore('savedRecipes', {
       }
     },
 
-    // Verifica si una receta está guardada
     isRecipeSaved(recipeId) {
       return this.savedRecipes.some(recipe => recipe.id === recipeId);
     },
 
-    // Verifica si una receta está en los likes
     isRecipeLiked(recipeId) {
       return this.likedRecipes.includes(recipeId);
     },
 
-    // Agrega o elimina un like a una receta
     toggleLike(recipeId) {
       const index = this.likedRecipes.indexOf(recipeId);
       if (index !== -1) {
