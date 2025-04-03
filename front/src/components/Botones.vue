@@ -4,7 +4,6 @@
     <div class="button-group">
       <button @click="toggleSubButtons('categoria')" class="button-main">Categoria</button>
       <button @click="toggleSubButtons('cuisine')" class="button-main">Cuina</button>
-      <button @click="toggleSubButtons('usuarios')" class="button-main">Usuaris</button>
       <button @click="toggleSubButtons('tiempo')" class="button-main">Temps</button>
     </div>
 
@@ -32,17 +31,6 @@
       </button>
     </div>
 
-    <!-- Subbotones para Usuarios -->
-    <div v-if="activeButton === 'usuarios'" class="subbutton-group">
-      <button 
-        v-for="usuario in usuarios" 
-        :key="usuario.id" 
-        class="button-secondary"
-        @click="filtrarPorUsuario(usuario.id)"
-      >
-        {{ usuario.name }}
-      </button>
-    </div>
 
     <!-- Subbotones para Tiempo -->
     <div v-if="activeButton === 'tiempo'" class="subbutton-group">
@@ -82,7 +70,6 @@ export default {
   setup(_, { emit }) {
     // Variables reactivas para almacenar los datos
     const datos = ref([]);         // Para las categorías
-    const usuarios = ref([]);      // Para los usuarios
     const recetas = ref([]);       // Para las recetas filtradas
     const cuisines = ref([]);      // Para las cocinas (países)
     const times = ref([]);         // Para los tiempos
@@ -92,7 +79,6 @@ export default {
     onMounted(() => {
       obtenerCategorias();
       obtenerCuisines();
-      obtenerUsers();
       obtenerTimes();
     });
 
@@ -124,14 +110,7 @@ export default {
       }
     };
 
-    // Función para obtener los usuarios
-    const obtenerUsers = async () => {
-      try {
-        usuarios.value = await communicationManager.fetchUsers();
-      } catch (error) {
-        console.error('Error al obtener usuarios:', error);
-      }
-    };
+  
 
     // Función para filtrar por tiempo
     const filtrarPorTiempo = async (time) => {
@@ -166,16 +145,7 @@ export default {
       }
     };
 
-    // Función para filtrar recetas por usuario
-    const filtrarPorUsuario = async (userId) => {
-      try {
-        const response = await communicationManager.fetchRecipesByUser(userId);
-        recetas.value = response.recipes;
-        emit('filtradoPorUsuarios', true);
-      } catch (error) {
-        console.error('Error al filtrar recetas por usuario:', error);
-      }
-    };
+
 
     // Función para alternar los subbotones
     const toggleSubButtons = (buttonName) => {
@@ -188,17 +158,14 @@ export default {
 
     return {
       datos,
-      usuarios,
       recetas,
       cuisines,
       times,
       obtenerCategorias,
       obtenerCuisines,
-      obtenerUsers,
       obtenerTimes,
       filtrarPorCategoria,
       filtrarPorCuisine,
-      filtrarPorUsuario,
       filtrarPorTiempo,
       toggleSubButtons,
       activeButton,

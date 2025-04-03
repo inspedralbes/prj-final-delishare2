@@ -153,15 +153,7 @@ const communicationManager = {
   },
 
 
-  // Obtener recetas filtradas por el ID del usuario
-  fetchRecipesByUser(userId) {
-    return apiClient.get(`/recipes/filterByUser/${userId}`)
-      .then(response => response.data)
-      .catch(error => {
-        console.error('Error fetching recipes by user:', error);
-        throw error;
-      });
-  },
+
 
   // Obtener recetas filtradas por el ID de la cocina
   fetchRecipesByCuisine(cuisineId) {

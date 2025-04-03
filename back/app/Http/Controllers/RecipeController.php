@@ -200,13 +200,7 @@ public function getAllUsers()
 }
 
 
-public function filterByUser($userId)
-{
-    $recipes = Recipe::where('user_id', $userId)->get();
-    return response()->json([
-        'recipes' => $recipes,
-    ], 200);
-}
+
 public function getRecipesByUser(Request $request)
 {
     $userId = $request->user()->id;
