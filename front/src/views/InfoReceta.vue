@@ -1,6 +1,13 @@
 <template>
-  <div>
-    <!-- Popup de notificacions -->
+  <div v-if="!authStore.token" class="auth-error-container">
+    <div class="auth-error-message">
+      <p>Debes iniciar sesión para ver los detalles de esta receta</p>
+      <button @click="goToLogin">Ir a Login</button>
+    </div>
+  </div>
+  
+  <div v-else>
+        <!-- Popup de notificacions -->
     <div v-if="popupMessage" class="popup-notification">
       {{ popupMessage }}
     </div>
@@ -154,7 +161,6 @@
     </div>
   </div>
 </template>
-
 <script>
 import folder1 from '@/assets/images/folder1.png';
 import folder2 from '@/assets/images/folder2.png';
@@ -165,8 +171,13 @@ import like from '@/assets/images/like.png';
 import { useGestionPinia } from '@/stores/gestionPinia';
 import communicationManager from '@/services/communicationManager';
 import UserProfile from '@/components/UserProfile.vue';
+import { useAuthStore } from '@/stores/authStore';
 
 export default {
+  setup() {
+    const authStore = useAuthStore();
+    return { authStore };
+  },
   data() {
     return {
       recipe: {
@@ -188,10 +199,11 @@ export default {
       userFolders: [],
       isExtraInfoVisible: false,
       isButtonDisabled: false,
-      isSavedCarpeta: false, // Estat per controlar si la recepta està desada a la carpeta
+      isSavedCarpeta: false,
       showFolderSelection: false,
-      showFolderAlert: false, // Variable per mostrar el popup d'alerta
-      popupMessage: '', // Missatge a mostrar en el popup
+      showFolderAlert: false,
+      popupMessage: '',
+      likesInterval: null
     };
   },
   components: {
@@ -209,7 +221,6 @@ export default {
     },
     isSaved() {
       const gestionPinia = useGestionPinia();
-      // Verifica si la recepta està desada al store
       return gestionPinia.getSavedRecipes.includes(this.recipe.id);
     },
     isLiked() {
@@ -218,27 +229,78 @@ export default {
     },
   },
   async created() {
-    const recipeId = this.$route.params.recipeId;
-    try {
-      const data = await communicationManager.fetchRecipeDetails(recipeId);
-      this.recipe = data;
-      await this.loadComments();
-      this.userFolders = await communicationManager.fetchUserFolders();
-    } catch (error) {
-      console.error('Error fetching recipe details:', error);
+    this.setupAuthWatcher();
+    await this.checkAuthAndLoadData();
+  },
+  beforeUnmount() {
+    if (this.likesInterval) {
+      clearInterval(this.likesInterval);
     }
   },
   methods: {
-    // Mètode per mostrar el popup de notificacions
+    setupAuthWatcher() {
+      this.$watch(
+        () => this.authStore.token,
+        (newToken) => {
+          if (newToken && this.$route.params.recipeId) {
+            this.loadRecipeData();
+          } else if (!newToken) {
+            this.redirectToLogin();
+          }
+        }
+      );
+    },
+    
+    async checkAuthAndLoadData() {
+      if (!this.authStore.token) {
+        this.redirectToLogin();
+        return;
+      }
+      await this.loadRecipeData();
+    },
+    
+    redirectToLogin() {
+      this.$router.push({ 
+        name: 'LandingPage',
+        query: { 
+          authError: 'Debes iniciar sesión para ver detalles de recetas',
+          redirect: this.$route.fullPath
+        }
+      });
+    },
+    
+    async loadRecipeData() {
+      try {
+        const recipeId = String(this.$route.params.recipeId);
+        const data = await communicationManager.fetchRecipeDetails(recipeId);
+        this.recipe = data;
+        await this.loadComments();
+        this.userFolders = await communicationManager.fetchUserFolders();
+      } catch (error) {
+        console.error("Error loading recipe:", error);
+        if (error.message.includes('Unauthorized')) {
+          this.authStore.clearAuth();
+          this.redirectToLogin();
+        }
+      }
+    },
+    
+    goToLogin() {
+      this.$router.push({ 
+        name: 'login',
+        query: { redirect: this.$route.fullPath }
+      });
+    },
+
     showPopup(message) {
       this.popupMessage = message;
       setTimeout(() => {
         this.popupMessage = '';
-      }, 5000); // S'oculta als 5 segons
+      }, 5000);
     },
+    
     checkRecipeInFolder() {
       const gestionPinia = useGestionPinia();
-      // Verifica si la recepta ja està desada en alguna carpeta
       const folder = gestionPinia.folders.find((f) =>
         f.recipes.includes(this.recipe.id)
       );
@@ -248,22 +310,25 @@ export default {
         this.showFolderSelection = true;
       }
     },
+    
     addToAnotherFolder() {
-      // Tanca el popup i mostra el modal per triar una altra carpeta
       this.showFolderAlert = false;
       this.showFolderSelection = true;
       this.selectedFolderId = null;
     },
+    
     cancelAddToFolder() {
-      // Tanca el popup sense fer canvis
       this.showFolderAlert = false;
     },
+    
     hideModal() {
       this.showFolderSelection = false;
     },
+    
     goBack() {
       this.$router.go(-1);
     },
+    
     async loadComments() {
       try {
         const data = await communicationManager.fetchComments(this.recipe.id);
@@ -272,26 +337,24 @@ export default {
         console.error('Error fetching comments:', error);
       }
     },
+    
     async saveToSavedRecipes() {
       const recipeId = this.recipe.id;
       try {
-        // Guardem o eliminem la recepta segons el seu estat actual
         const wasSaved = this.isSaved;
         await communicationManager.toggleSaveRecipe(recipeId);
 
-        // Actualitzem l'estat al store
         const savedRecipesStore = useGestionPinia();
         savedRecipesStore.toggleSave(recipeId);
 
-        if (wasSaved) {
-          this.showPopup('Recepta eliminada de les guardades');
-        } else {
-          this.showPopup('Recepta desada a les teves guardades');
-        }
+        this.showPopup(wasSaved ? 
+          'Recepta eliminada de les guardades' : 
+          'Recepta desada a les teves guardades');
       } catch (error) {
         console.error('Error al guardar la recepta:', error);
       }
     },
+    
     async toggleSave(recipeId) {
       this.isButtonDisabled = true;
       try {
@@ -304,6 +367,7 @@ export default {
         this.isButtonDisabled = false;
       }
     },
+    
     async addComment() {
       if (!this.newComment.trim()) return;
 
@@ -317,41 +381,38 @@ export default {
         });
 
         this.newComment = '';
-        // Mostra popup en afegir un comentari
         this.showPopup('Comentari afegit');
       } catch (error) {
         console.error('Error en afegir el comentari:', error);
       }
     },
+    
     async toggleLike(recipeId) {
-    try {
+      try {
         const response = await communicationManager.toggleLike(recipeId);
         
-        // Actualiza Pinia
         const gestionPinia = useGestionPinia();
         gestionPinia.toggleLike(recipeId);
         
-        // Actualiza el contador directamente desde la respuesta
         this.recipe.likes_count = response.likes_count;
         
-        // Muestra el popup correspondiente
         this.showPopup(response.liked ? 'Has posat el like' : 'Like tret');
         
-        // Opcional: Actualiza periódicamente (cada 30 segundos)
         if (!this.likesInterval) {
-            this.likesInterval = setInterval(async () => {
-                const likesData = await communicationManager.getLikes(recipeId);
-                this.recipe.likes_count = likesData.likes_count;
-            }, 30000);
+          this.likesInterval = setInterval(async () => {
+            const likesData = await communicationManager.getLikes(recipeId);
+            this.recipe.likes_count = likesData.likes_count;
+          }, 30000);
         }
-    } catch (error) {
+      } catch (error) {
         console.error('Error al dar like:', error);
-    }
-},
+      }
+    },
+    
     toggleExtraInfo() {
       this.isExtraInfoVisible = !this.isExtraInfoVisible;
     },
-    // Desar recepta a la carpeta
+    
     async saveToFolder() {
       if (!this.selectedFolderId) {
         this.showPopup('Si us plau, selecciona una carpeta');
@@ -377,10 +438,8 @@ export default {
           recipeId
         );
         gestionPinia.addToFolder(this.selectedFolderId, recipeId);
-        this.isSavedCarpeta = gestionPinia.isRecipeInFolder(
-          this.selectedFolderId,
-          recipeId
-        );
+        this.isSavedCarpeta = true;
+        
         const folderName = this.userFolders.find(
           (f) => f.id === this.selectedFolderId
         ).name;
@@ -392,7 +451,6 @@ export default {
     },
   },
   watch: {
-    // Actualitza l'estat de isSavedCarpeta quan es canvia la carpeta seleccionada
     selectedFolderId(newFolderId) {
       const savedRecipesStore = useGestionPinia();
       this.isSavedCarpeta = savedRecipesStore.isRecipeInFolder(
@@ -405,6 +463,45 @@ export default {
 </script>
 
 <style scoped>
+.auth-error-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.auth-error-message {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+  padding: 20px;
+  border-radius: 5px;
+  text-align: center;
+  max-width: 400px;
+}
+
+.auth-error-message button {
+  background-color: #721c24;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+.auth-error {
+  padding: 20px;
+  background: #ffebee;
+  color: #c62828;
+  text-align: center;
+  margin: 20px;
+  border-radius: 4px;
+}
+
+.auth-error a {
+  color: #d32f2f;
+  font-weight: bold;
+}
 * {
   font-family:'Times New Roman', Times, serif;
 }

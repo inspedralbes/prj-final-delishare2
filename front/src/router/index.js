@@ -18,23 +18,18 @@ const routes = [
     component: Chat,
      meta: { requiresAuth: false },
   },
-  {
-    path: '/recetas',
-    name: 'LandingPage',
-    component: LandingPage,
-    meta: { requiresAuth: true },
-  },
+
   {
     path: '/agregar',
     name: 'AgregarReceta',
     component: AgregarReceta,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: false },
   },
   {
     path: '/search',
     name: 'SearchPage',
     component: SearchPage,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: false },
   },
     {
     path: '/user/:userId',
@@ -43,9 +38,15 @@ const routes = [
     props: true
   },
   {
-    path: '/',
+    path: '/login',
     name: 'login',
     component: login,
+  },
+  {
+    path: '/',
+    name: 'LandingPage', // Cambiado para que la ruta raíz muestre LandingPage
+    component: LandingPage,
+    meta: { requiresAuth: false }
   },
   {
     path: '/register',
@@ -63,13 +64,13 @@ const routes = [
     path: '/guardar',
     name: 'Guardadas',
     component: Guardadas,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: false },
   },
   {
     path: '/perfil',
     name: 'Perfil',
     component: () => import('@/views/Perfil.vue'),
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: false },
   },
   
 ];
@@ -79,17 +80,19 @@ const router = createRouter({
   routes,
 });
 
-// Verificación de autenticación antes de cada ruta
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
   
-  // Si la ruta requiere autenticación y no hay token, redirige a login
   if (to.meta.requiresAuth && !authStore.token) {
-    next({ name: 'login' });
+    // Para InfoReceta, permitimos que el componente maneje la lógica
+    if (to.name === 'InfoReceta') {
+      next();
+    } else {
+      next({ name: 'login' });
+    }
   } else {
     next();
   }
 });
-
 export default router;
 

@@ -34,6 +34,7 @@ Route::middleware('auth:sanctum')->get('/cuisines/{id}', [CuisineController::cla
 Route::middleware('auth:sanctum')->put('/cuisines/{id}', [CuisineController::class, 'update']);
 Route::middleware('auth:sanctum')->delete('/cuisines/{id}', [CuisineController::class, 'destroy']);
 
+Route::get('/recipes', [RecipeController::class, 'index']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -41,7 +42,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/recipes', [RecipeController::class, 'store']);
     Route::put('/recipes/{id}', [RecipeController::class, 'update']);
     Route::delete('/recipes/{id}', [RecipeController::class, 'destroy']);
-    Route::get('/recipes', [RecipeController::class, 'index']);
     Route::post('/recipes/{recipe}/like', [RecipeController::class, 'toggleLike']);
     Route::get('/recipes/{recipe}/likes', [RecipeController::class, 'getLikes']);});
 

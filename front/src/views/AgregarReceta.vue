@@ -1,119 +1,130 @@
+vue
+Copy
 <template>
   <div class="page-container">
-    <div class="form-card">
-      <h1>Crear Nova Recepta</h1>
-      <div class="form-container">
-        <form @submit.prevent="submitRecipe">
-          <input type="hidden" v-model="recipe.user_id" />
+    <!-- Mostrar contenido solo si está autenticado -->
+    <div v-if="authStore.isAuthenticated">
+      <div class="form-card">
+        <h1>Crear Nova Recepta</h1>
+        <div class="form-container">
+          <form @submit.prevent="submitRecipe">
+            <input type="hidden" v-model="recipe.user_id" />
 
-          <div class="form-group form-row">
-            <div class="half-width">
-              <label for="category">Categoria:</label>
-              <select v-model="recipe.category_id" required class="full-width-input">
-                <option v-for="category in categories" :key="category.id" :value="category.id">
-                  {{ category.name }}
-                </option>
-              </select>
-            </div>
-            <div class="half-width">
-              <label for="cuisine">Cuina:</label>
-              <select v-model="recipe.cuisine_id" required class="full-width-input">
-                <option v-for="cuisine in cuisines" :key="cuisine.id" :value="cuisine.id">
-                  {{ cuisine.country }}
-                </option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="title">Títol:</label>
-            <input type="text" id="title" v-model="recipe.title" required class="full-width-input" />
-          </div>
-
-          <div class="form-group">
-            <label for="servings">Racions:</label>
-            <input type="number" id="servings" v-model="recipe.servings" required class="full-width-input" />
-          </div>
-
-          <button type="button" @click="autofillRecipe" class="auto-fill-button">
-            Omplir automàticament
-          </button>
-
-          <div class="form-group">
-            <label for="description">Descripció:</label>
-            <textarea id="description" v-model="recipe.description" readonly class="full-width-input"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Ingredients:</label>
-            <div v-for="(ingredient, index) in recipe.ingredients" :key="index" class="input-group">
-              <input type="text" v-model="recipe.ingredients[index]" placeholder="Afegeix un ingredient"
-                class="full-width-input" />
-            </div>
-            <button type="button" @click="addIngredient" class="add-button">+</button>
-          </div>
-
-          <div class="form-group">
-            <label>Passos:</label>
-            <div v-for="(step, index) in recipe.steps" :key="index" class="input-group">
-              <input type="text" v-model="recipe.steps[index]" placeholder="Afegeix un pas" class="full-width-input" />
-            </div>
-            <button type="button" @click="addStep" class="add-button">+</button>
-          </div>
-
-          <div class="form-group">
-            <label>Informació Nutricional:</label>
-            <div class="input-group">
-              <label for="calories">Calories:</label>
-              <input type="number" id="calories" v-model="recipe.calories" class="full-width-input" />
-            </div>
-            <div class="input-group">
-              <label for="protein">Proteïnes (g):</label>
-              <input type="number" id="protein" v-model="recipe.protein" class="full-width-input" />
-            </div>
-            <div class="input-group">
-              <label for="fats">Greixos (g):</label>
-              <input type="number" id="fats" v-model="recipe.fats" class="full-width-input" />
-            </div>
-            <div class="input-group">
-              <label for="carbs">Carbohidrats (g):</label>
-              <input type="number" id="carbs" v-model="recipe.carbs" class="full-width-input" />
-            </div>
-          </div>
-
-          <div class="form-group form-row">
-            <div class="third-width">
-              <label for="prepTime">Temps de Preparació (minuts):</label>
-              <input type="number" id="prepTime" v-model="recipe.prep_time" required class="full-width-input" />
-            </div>
-            <div class="third-width">
-              <label for="cookTime">Temps de Cocció (minuts):</label>
-              <input type="number" id="cookTime" v-model="recipe.cook_time" required class="full-width-input" />
-            </div>
-
-          </div>
-
-          <div class="form-group">
-            <div class="upload-image-container">
-              <label for="image" class="upload-label">Pujar Imatge:</label>
-              <div class="upload-area">
-                <input type="file" id="image" @change="onFileChange" accept="image/*" />
-                <p class="upload-instructions">Arrossega i deixa anar una imatge o fes clic per seleccionar-la.</p>
+            <div class="form-group form-row">
+              <div class="half-width">
+                <label for="category">Categoria:</label>
+                <select v-model="recipe.category_id" required class="full-width-input">
+                  <option v-for="category in categories" :key="category.id" :value="category.id">
+                    {{ category.name }}
+                  </option>
+                </select>
               </div>
-              <img v-if="recipe.image" :src="recipe.image" alt="Imatge pujada" class="uploaded-image-preview" />
+              <div class="half-width">
+                <label for="cuisine">Cuina:</label>
+                <select v-model="recipe.cuisine_id" required class="full-width-input">
+                  <option v-for="cuisine in cuisines" :key="cuisine.id" :value="cuisine.id">
+                    {{ cuisine.country }}
+                  </option>
+                </select>
+              </div>
             </div>
-          </div>
-          <button type="submit" class="submit-button">Crear Recepta</button>
-        </form>
-      </div>
 
-      <div v-if="message" :class="messageClass" class="message-container">
-        {{ message }}
+            <div class="form-group">
+              <label for="title">Títol:</label>
+              <input type="text" id="title" v-model="recipe.title" required class="full-width-input" />
+            </div>
+
+            <div class="form-group">
+              <label for="servings">Racions:</label>
+              <input type="number" id="servings" v-model="recipe.servings" required class="full-width-input" />
+            </div>
+
+            <button type="button" @click="autofillRecipe" class="auto-fill-button">
+              Omplir automàticament
+            </button>
+
+            <div class="form-group">
+              <label for="description">Descripció:</label>
+              <textarea id="description" v-model="recipe.description" readonly class="full-width-input"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Ingredients:</label>
+              <div v-for="(ingredient, index) in recipe.ingredients" :key="index" class="input-group">
+                <input type="text" v-model="recipe.ingredients[index]" placeholder="Afegeix un ingredient"
+                  class="full-width-input" />
+              </div>
+              <button type="button" @click="addIngredient" class="add-button">+</button>
+            </div>
+
+            <div class="form-group">
+              <label>Passos:</label>
+              <div v-for="(step, index) in recipe.steps" :key="index" class="input-group">
+                <input type="text" v-model="recipe.steps[index]" placeholder="Afegeix un pas" class="full-width-input" />
+              </div>
+              <button type="button" @click="addStep" class="add-button">+</button>
+            </div>
+
+            <div class="form-group">
+              <label>Informació Nutricional:</label>
+              <div class="input-group">
+                <label for="calories">Calories:</label>
+                <input type="number" id="calories" v-model="recipe.calories" class="full-width-input" />
+              </div>
+              <div class="input-group">
+                <label for="protein">Proteïnes (g):</label>
+                <input type="number" id="protein" v-model="recipe.protein" class="full-width-input" />
+              </div>
+              <div class="input-group">
+                <label for="fats">Greixos (g):</label>
+                <input type="number" id="fats" v-model="recipe.fats" class="full-width-input" />
+              </div>
+              <div class="input-group">
+                <label for="carbs">Carbohidrats (g):</label>
+                <input type="number" id="carbs" v-model="recipe.carbs" class="full-width-input" />
+              </div>
+            </div>
+
+            <div class="form-group form-row">
+              <div class="third-width">
+                <label for="prepTime">Temps de Preparació (minuts):</label>
+                <input type="number" id="prepTime" v-model="recipe.prep_time" required class="full-width-input" />
+              </div>
+              <div class="third-width">
+                <label for="cookTime">Temps de Cocció (minuts):</label>
+                <input type="number" id="cookTime" v-model="recipe.cook_time" required class="full-width-input" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="upload-image-container">
+                <label for="image" class="upload-label">Pujar Imatge:</label>
+                <div class="upload-area">
+                  <input type="file" id="image" @change="onFileChange" accept="image/*" />
+                  <p class="upload-instructions">Arrossega i deixa anar una imatge o fes clic per seleccionar-la.</p>
+                </div>
+                <img v-if="recipe.image" :src="recipe.image" alt="Imatge pujada" class="uploaded-image-preview" />
+              </div>
+            </div>
+            <button type="submit" class="submit-button">Crear Recepta</button>
+          </form>
+        </div>
+
+        <div v-if="message" :class="messageClass" class="message-container">
+          {{ message }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Mostrar mensaje de login requerido si no está autenticado -->
+    <div v-else class="auth-required-container">
+      <div class="auth-required-message">
+        <p>Per crear una recepta, has d'iniciar sessió</p>
+        <button @click="goToLogin" class="login-button">Iniciar Sessió</button>
       </div>
     </div>
   </div>
 </template>
-
 
 <script>
 import { ref, onMounted } from "vue";
@@ -121,6 +132,7 @@ import { useRouter } from "vue-router";
 import axios from "axios";
 import communicationManager from "@/services/communicationManager";
 import Groq from "groq-sdk";
+import { useAuthStore } from '@/stores/authStore';
 
 const groq = new Groq({
   apiKey: import.meta.env.VITE_GROQ_API_KEY,
@@ -133,6 +145,7 @@ const uploadPreset = "ejemplo1";
 export default {
   setup() {
     const router = useRouter();
+    const authStore = useAuthStore();
     const user = ref(null);
     const categories = ref([]);
     const cuisines = ref([]);
@@ -156,11 +169,20 @@ export default {
     const message = ref("");
     const messageClass = ref("");
 
+    const goToLogin = () => {
+      router.push({ 
+        name: 'login',
+        query: { redirect: router.currentRoute.value.fullPath }
+      });
+    };
+
     onMounted(async () => {
       try {
-        user.value = await communicationManager.getUser();
-        categories.value = await communicationManager.fetchCategories();
-        cuisines.value = await communicationManager.fetchCuisines();
+        if (authStore.isAuthenticated) {
+          user.value = await communicationManager.getUser();
+          categories.value = await communicationManager.fetchCategories();
+          cuisines.value = await communicationManager.fetchCuisines();
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -235,31 +257,11 @@ export default {
     const addStep = () => recipe.value.steps.push("");
 
     const onFileChange = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", uploadPreset);
-
-  try {
-    const response = await axios.post(
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-      formData
-    );
-    recipe.value.image = response.data.secure_url; 
-    console.log("Imagen subida correctamente:", response.data.secure_url);
-  } catch (error) {
-    console.error("Error al subir la imagen:", error);
-  }
-};
-
-
-    const uploadImage = async () => {
-      if (!selectedFile.value) return;
+      const file = e.target.files[0];
+      if (!file) return;
 
       const formData = new FormData();
-      formData.append("file", selectedFile.value);
+      formData.append("file", file);
       formData.append("upload_preset", uploadPreset);
 
       try {
@@ -267,7 +269,7 @@ export default {
           `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
           formData
         );
-        recipe.value.image = response.data.secure_url;
+        recipe.value.image = response.data.secure_url; 
         console.log("Imagen subida correctamente:", response.data.secure_url);
       } catch (error) {
         console.error("Error al subir la imagen:", error);
@@ -275,30 +277,31 @@ export default {
     };
 
     const submitRecipe = async () => {
-  if (!user.value) {
-    console.error("Usuario no autenticado");
-    return;
-  }
+      if (!authStore.isAuthenticated || !user.value) {
+        console.error("Usuario no autenticado");
+        return;
+      }
 
-  try {
-    await communicationManager.createRecipe({
-      ...recipe.value,
-      user_id: user.value.id,
-    });
+      try {
+        await communicationManager.createRecipe({
+          ...recipe.value,
+          user_id: user.value.id,
+        });
 
-    message.value = "¡Receta creada con éxito!";
-    messageClass.value = "success";
-    console.log("Receta creada correctamente");
+        message.value = "¡Receta creada con éxito!";
+        messageClass.value = "success";
+        console.log("Receta creada correctamente");
 
-    router.push({ name: "LandingPage" });
-  } catch (error) {
-    console.error("Error al crear la receta:", error);
-    message.value = "¡Error al crear la receta!";
-    messageClass.value = "error";
-  }
-};
+        router.push({ name: "LandingPage" });
+      } catch (error) {
+        console.error("Error al crear la receta:", error);
+        message.value = "¡Error al crear la receta!";
+        messageClass.value = "error";
+      }
+    };
 
     return {
+      authStore,
       recipe,
       categories,
       cuisines,
@@ -306,16 +309,54 @@ export default {
       addIngredient,
       addStep,
       onFileChange,
-      uploadImage,
       submitRecipe,
       message,
       messageClass,
+      goToLogin
     };
   },
 };
 </script>
 
 <style scoped>
+/* Estilos para el mensaje de login requerido */
+.auth-required-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 70vh;
+}
+
+.auth-required-message {
+  text-align: center;
+  background-color: #f8f9fa;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 100%;
+}
+
+.auth-required-message p {
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.login-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+}
+
+.login-button:hover {
+  background-color: #45a049;
+}
 * {
   font-family:'Times New Roman', Times, serif;
 }

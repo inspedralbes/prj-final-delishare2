@@ -8,10 +8,9 @@ const apiClient = axios.create({
   },
   withCredentials: true, 
 });
-
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token'); 
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -19,6 +18,8 @@ apiClient.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+
+
 
 const communicationManager = {
   fetchRecipes() {
@@ -47,16 +48,18 @@ const communicationManager = {
         throw error;
       });
   },
-
   fetchRecipeDetails(recipeId) {
-    return apiClient.get(`/recipes/${recipeId}`)
+    // Asegúrate de que recipeId sea string si tu backend lo espera así
+    return apiClient.get(`/recipes/${String(recipeId)}`)
       .then(response => response.data)
       .catch(error => {
+        if (error.response?.status === 401) {
+          throw new Error('Unauthorized - Please login');
+        }
         console.error('Error fetching recipe details:', error);
         throw error;
       });
   },
-
   createRecipe(recipeData) {
     return apiClient.post('/recipes', {
       ...recipeData,
@@ -118,7 +121,6 @@ const communicationManager = {
       });
       return response.data;
     } catch (error) {
-      console.error("Error fetching user:", error);
       throw error;
     }
   },
