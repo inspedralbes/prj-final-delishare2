@@ -75,7 +75,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return response()->json($request->user());
 });
 
-
+Route::get('/ingredients', [RecipeController::class, 'getAllIngredients']);
+Route::get('/filterByIngredients', [RecipeController::class, 'filterByIngredients']);  // Nueva ruta para filtrar por ingredientes
 //comments
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/recipes/{id}/comment', [RecipeController::class, 'addComment']);
