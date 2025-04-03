@@ -86,6 +86,17 @@ class AuthController extends Controller
             'user' => $user,
         ]);
     }
+        
+    public function updateProfilePicture(Request $request)
+    {
+        $user = $request->user(); 
+
+        $user->img = $request->img;
+        $user->save();
+
+    return response()->json(['message' => 'Imagen de perfil actualizada exitosamente']);
+    }
+
     public function logout(Request $request)
 {
     $user = $request->user();  // Obtener al usuario autenticado
