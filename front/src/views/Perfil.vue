@@ -16,7 +16,7 @@
           <img :src="user.img || defaultProfile" alt="Foto de perfil" />
         </label>
         <h2>{{ user.name }}</h2>
-        <p>{{ user.email }}</p>
+        <p class="user-bio">{{ user.bio || 'No hay biografia disponible' }}</p>
       </div>
 
       <!-- Menu de ajustes con overlay -->
@@ -47,13 +47,18 @@
         <button @click="cancelEdit" class="cancel-btn">Cancelar</button>
       </div>
 
-      <!-- Formulario de cambio de nombre y correo -->
       <div v-if="activeTab === 'name'" class="settings-form" style="margin-top: 70px;">
         <label for="newName">Nou nom:</label>
         <input type="text" id="newName" v-model="newName" :placeholder="user.name" />
+
         <label for="newEmail">Nou email:</label>
         <input type="email" id="newEmail" v-model="newEmail" :placeholder="user.email" />
-        <button @click="updateName" class="submit-btn">Guardar canvis</button>
+
+        <label for="newBio">Biografia:</label>
+        <textarea id="newBio" v-model="newBio" :placeholder="user.bio || 'Afegeix una biografia...'"
+          rows="4"></textarea>
+
+        <button @click="updateProfile" class="submit-btn">Guardar canvis</button>
         <button @click="cancelEdit" class="cancel-btn">Cancelar</button>
       </div>
 
@@ -131,7 +136,7 @@ export default {
 
     const authStore = useAuthStore();
     const router = useRouter();
-    
+
     const user = ref({ name: '', email: '', img: '/default-avatar.png' });
     const recipes = ref([]);
     const settingsMenuOpen = ref(false);
@@ -147,21 +152,22 @@ export default {
     const showCurrentPassword = ref(false);
     const showNewPassword = ref(false);
     const showConfirmPassword = ref(false);
+    const newBio = ref('');
 
     const goToLogin = () => {
-      router.push({ 
+      router.push({
         name: 'login',
         query: { redirect: router.currentRoute.value.fullPath }
       });
     };
 
-    const loadUserData = async () => {
+     onMounted ( async () => {
       try {
         const userData = await communicationManager.getUser();
         user.value = userData;
         newName.value = userData.name;
         newEmail.value = userData.email;
-        newBio.value = userData.bio || ''; 
+        newBio.value = userData.bio || '';
         const userRecipes = await communicationManager.getUserRecipes(userData.id);
         recipes.value = userRecipes.recipes;
       } catch (error) {
@@ -231,28 +237,28 @@ export default {
       }
     };
 
-      // Cambiar updateName por updateProfile para incluir la bio
-const updateProfile = async () => {
-  try {
-    await communicationManager.updateProfile({ 
-      name: newName.value, 
-      email: newEmail.value,
-      bio: newBio.value 
-    });
-    user.value.name = newName.value;
-    user.value.email = newEmail.value;
-    user.value.bio = newBio.value;
-    popupMessage.value = "Perfil actualizado correctamente"; 
-    setTimeout(() => { popupMessage.value = ''; }, 3000); 
-    activeTab.value = '';
-    settingsMenuOpen.value = false;
-    showRecipes.value = true;
-  } catch (error) {
-    console.error('Error actualizando perfil', error);
-    popupMessage.value = "Error al actualizar perfil"; 
-    setTimeout(() => { popupMessage.value = ''; }, 3000); 
-  }
-};
+    // Cambiar updateName por updateProfile para incluir la bio
+    const updateProfile = async () => {
+      try {
+        await communicationManager.updateProfile({
+          name: newName.value,
+          email: newEmail.value,
+          bio: newBio.value
+        });
+        user.value.name = newName.value;
+        user.value.email = newEmail.value;
+        user.value.bio = newBio.value;
+        popupMessage.value = "Perfil actualizado correctamente";
+        setTimeout(() => { popupMessage.value = ''; }, 3000);
+        activeTab.value = '';
+        settingsMenuOpen.value = false;
+        showRecipes.value = true;
+      } catch (error) {
+        console.error('Error actualizando perfil', error);
+        popupMessage.value = "Error al actualizar perfil";
+        setTimeout(() => { popupMessage.value = ''; }, 3000);
+      }
+    };
 
     const updatePassword = async () => {
       if (newPassword.value !== confirmPassword.value) {
@@ -316,7 +322,7 @@ const updateProfile = async () => {
       updateProfile,
       updatePassword,
       cancelEdit,
-      showRecipes,  
+      showRecipes,
       newName,
       newEmail,
       newPassword,
@@ -334,10 +340,8 @@ const updateProfile = async () => {
       binIcon,
       defaultProfile,
       goToLogin,
-      // [Asegúrate de incluir todos los métodos que usas en el template]
       toggleSettingsMenu,
       setActiveTab,
-      updateName,
       updatePassword,
       cancelEdit,
       confirmLogout,
@@ -390,6 +394,7 @@ const updateProfile = async () => {
 .login-button:hover {
   background-color: #45a049;
 }
+
 * {
   font-family: 'Times New Roman', Times, serif;
 }
@@ -700,6 +705,7 @@ button {
   color: #333;
 
 }
+
 .user-bio {
   max-width: 80%;
   margin: 0 auto;
@@ -707,8 +713,10 @@ button {
   font-style: italic;
   color: #555;
   line-height: 1.4;
-  white-space: pre-line; /* Para mantener los saltos de línea */
+  white-space: pre-line;
+  /* Para mantener los saltos de línea */
 }
+
 .upload-area {
   border: 2px dashed #0c0636;
   border-radius: 15px;
