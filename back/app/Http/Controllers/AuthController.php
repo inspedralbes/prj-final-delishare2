@@ -110,4 +110,26 @@ class AuthController extends Controller
     return response()->json(['message' => 'Logout exitoso'], 200);
 }
 
+public function cambiarContra(Request $request)
+{
+    $user = $request->user();
+
+    // Validación de los campos
+    $request->validate([
+        'contrasena_actual' => 'required',
+        'nueva_contrasena' => 'required|min:8',
+    ]);
+
+    // Verificar que la contraseña actual coincida
+    if (!Hash::check($request->contrasena_actual, $user->password)) {
+        return response()->json(['message' => 'Contraseña actual incorrecta'], 403);
+    }
+
+    // Cambiar la contraseña
+    $user->password = Hash::make($request->nueva_contrasena);
+    $user->save();
+
+    return response()->json(['message' => 'Contraseña cambiada exitosamente']);
+    }
+
 }
