@@ -251,6 +251,49 @@ public function addComment(Request $request, $recipeId)
     ]);
 }
 
+public function getAllIngredients()
+{
+    // Obtener todas las recetas con solo el campo de ingredientes
+    $recipes = Recipe::select('ingredients')->get();
+    
+    // Array para almacenar todos los ingredientes
+    $allIngredients = [];
+    
+    // Recorrer cada receta y extraer los ingredientes
+    foreach ($recipes as $recipe) {
+        $ingredients = $recipe->ingredients;
+        
+        // Si es un string, intentar decodificar como JSON
+        if (is_string($ingredients)) {
+            $decoded = json_decode($ingredients, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $ingredients = $decoded;
+            } else {
+                // Si no es JSON válido, continuar con la siguiente receta
+                continue;
+            }
+        }
+        
+        // Si es un array, agregar los ingredientes
+        if (is_array($ingredients)) {
+            $allIngredients = array_merge($allIngredients, $ingredients);
+        }
+    }
+    
+    // Limpiar ingredientes: eliminar espacios en blanco, valores vacíos y duplicados
+    $cleanedIngredients = array_map('trim', $allIngredients);
+    $cleanedIngredients = array_filter($cleanedIngredients);
+    $uniqueIngredients = array_unique($cleanedIngredients);
+    
+    // Ordenar alfabéticamente
+    sort($uniqueIngredients);
+    
+    return response()->json([
+        'success' => true,
+        'count' => count($uniqueIngredients),
+        'ingredients' => array_values($uniqueIngredients) // reindexar array
+    ], 200);
+}
 
 // Eliminar un comentario
 public function deleteComment(Request $request, $recipeId)

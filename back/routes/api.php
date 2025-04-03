@@ -82,7 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/recipes/{id}/comments', [RecipeController::class, 'getRecipeComments']);
     Route::delete('/recipes/{id}/comment', [RecipeController::class, 'deleteComment']);
 });
-
+Route::get('/ingredients', [RecipeController::class, 'getAllIngredients']);
 
 //rutas para me gustas
 Route::middleware('auth:sanctum')->post('/recipes/{id}/like', [RecipeController::class, 'likeRecipe']);
