@@ -12,7 +12,6 @@ use App\Http\Controllers\UserController;
 
 Route::get('/user/{id}/recipes', [InfoUserController::class, 'showRecipes']);
 
-
 // Usuarios
 Route::get('userInfo/{id}', [InfoUserController::class, 'show']);
 Route::get('user/{id}', [UserController::class, 'show']);
@@ -34,8 +33,6 @@ Route::middleware('auth:sanctum')->get('/cuisines/{id}', [CuisineController::cla
 Route::middleware('auth:sanctum')->put('/cuisines/{id}', [CuisineController::class, 'update']);
 Route::middleware('auth:sanctum')->delete('/cuisines/{id}', [CuisineController::class, 'destroy']);
 
-
-
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/recipes/{id}', [RecipeController::class, 'show']);
     Route::post('/recipes', [RecipeController::class, 'store']);
@@ -43,30 +40,33 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/recipes/{id}', [RecipeController::class, 'destroy']);
     Route::get('/recipes', [RecipeController::class, 'index']);
     Route::post('/recipes/{recipe}/like', [RecipeController::class, 'toggleLike']);
-    Route::get('/recipes/{recipe}/likes', [RecipeController::class, 'getLikes']);});
+    Route::get('/recipes/{recipe}/likes', [RecipeController::class, 'getLikes']);
+});
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Rutas para configuarcion de user
+// Rutas para configuración de user
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 Route::middleware('auth:sanctum')->group(function () {
-Route::post('/updatePerfile', [AuthController::class, 'updatePerfil']);  });   
+    Route::post('/updatePerfile', [AuthController::class, 'updatePerfil']);  
+});   
 Route::middleware('auth:sanctum')->put('/updateProfilePicture', [AuthController::class, 'updateProfilePicture']);
 Route::middleware('auth:sanctum')->post('/cambiarContra', [AuthController::class, 'cambiarContra']);
 
-//Rutas para obtener todos los usuarios
+// Rutas para obtener todos los usuarios
 Route::get('/getAllUsers', [RecipeController::class, 'getAllUsers']);
 Route::get('/getAllRecipes', [RecipeController::class, 'getAllRecipes']);
 Route::get('/filterByCategory/{id}', [RecipeController::class, 'filterByCategory']);
 Route::get('/filterByCuisine/{id}', [RecipeController::class, 'filterByCuisine']);
 Route::get('/filterByTime/{time}', [RecipeController::class, 'filterByTime']);
 Route::get('/times', [RecipeController::class, 'getAllTimes']);
+Route::get('/filterByIngredients', [RecipeController::class, 'filterByIngredients']);  // Nueva ruta para filtrar por ingredientes
 
-//Rutas para guardadas
+// Rutas para guardadas
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/saved-recipes', [SavedRecipeController::class, 'index']);
     Route::post('/saved-recipes/toggle/{recipeId}', [SavedRecipeController::class, 'toggleSave']);
@@ -75,8 +75,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return response()->json($request->user());
 });
 
-
-//comments
+// Comments
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/recipes/{id}/comment', [RecipeController::class, 'addComment']);
     Route::get('/recipes/{id}/comments', [RecipeController::class, 'getRecipeComments']);
@@ -84,12 +83,11 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 Route::get('/ingredients', [RecipeController::class, 'getAllIngredients']);
 
-//rutas para me gustas
+// Rutas para me gustas
 Route::middleware('auth:sanctum')->post('/recipes/{id}/like', [RecipeController::class, 'likeRecipe']);
 Route::middleware('auth:sanctum')->post('/recipes/{id}/unlike', [RecipeController::class, 'unlikeRecipe']);
 
-
-//rutas para folder
+// Rutas para carpeta
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/folders', [FolderController::class, 'store']); 
     Route::post('/folders/{folderId}/recipes/{recipeId}', [FolderController::class, 'addRecipe']); 
@@ -99,4 +97,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('auth:sanctum')->get('/folders', [FolderController::class, 'index']);  
 });
 Route::middleware('auth:sanctum')->get('/folders/{folder}/recipes', [FolderController::class, 'getRecipes']);
-

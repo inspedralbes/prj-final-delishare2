@@ -199,6 +199,24 @@ public function getAllUsers()
     ], 200);
 }
 
+public function filterByIngredients(Request $request)
+{
+    $request->validate([
+        'ingredients' => 'required|array',
+    ]);
+
+    $ingredients = $request->input('ingredients');
+
+    $recipes = Recipe::where(function ($query) use ($ingredients) {
+        foreach ($ingredients as $ingredient) {
+            $query->orWhereJsonContains('ingredients', $ingredient);
+        }
+    })->get();
+
+    return response()->json([
+        'recipes' => $recipes,
+    ], 200);
+}
 
 
 public function getRecipesByUser(Request $request)

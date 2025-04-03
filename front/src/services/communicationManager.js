@@ -153,6 +153,14 @@ const communicationManager = {
   },
 
 
+fetchIngredients() {
+    return apiClient.get('/ingredients')
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching ingredients:', error);
+        throw error;
+      });
+},
 
 
   // Obtener recetas filtradas por el ID de la cocina
