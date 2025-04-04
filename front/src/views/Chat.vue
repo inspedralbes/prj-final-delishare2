@@ -48,27 +48,41 @@
       const messages = ref([
         { role: "system", content: "Hello! I'm Delishare, your recipe expert. Ask me for a recipe or nutrition !" }
       ]);
-  
-      const handleSend = async () => {
-        if (!input.value.trim()) return;
-  
-        const newMessages = [...messages.value, { role: "user", content: input.value }];
-        messages.value = newMessages;
-        input.value = "";
-  
-        try {
-          const response = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
-            messages: newMessages,
-          });
-  
-          if (response.choices && response.choices.length > 0) {
-            messages.value.push(response.choices[0].message);
-          }
-        } catch (error) {
-          console.error("Error fetching response:", error);
-        }
-      };
+const handleSend = async () => {
+  if (!input.value.trim()) return;
+
+  // Validar que la pregunta sea sobre comida
+  const isFoodRelated = await validateFoodContent(input.value);
+  if (!isFoodRelated) {
+    messages.value.push({
+      role: "assistant",
+      content: "Ho sento, només puc respondre preguntes sobre cuina i receptes. Pots preguntar-me sobre ingredients, mètodes de cocció o receptes específiques?"
+    });
+    input.value = "";
+    return;
+  }
+
+  const newMessages = [...messages.value, { role: "user", content: input.value }];
+  messages.value = newMessages;
+  input.value = "";
+
+  try {
+    const response = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: newMessages,
+    });
+
+    if (response.choices && response.choices.length > 0) {
+      messages.value.push(response.choices[0].message);
+    }
+  } catch (error) {
+    console.error("Error fetching response:", error);
+    messages.value.push({
+      role: "assistant",
+      content: "Hi ha hagut un error processant la teva petició. Si us plau, torna-ho a intentar."
+    });
+  }
+};
   
       return { input, messages, handleSend };
     },

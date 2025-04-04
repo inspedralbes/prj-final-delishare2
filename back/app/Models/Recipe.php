@@ -13,7 +13,7 @@ class Recipe extends Model
     protected $fillable = [
         'user_id', 'category_id', 'cuisine_id', 'title', 'description', 
         'ingredients', 'steps', 'image', 'prep_time', 'cook_time', 
-        'servings', 'nutrition'
+        'servings', 'nutrition', 'video'
     ];
 
     protected $casts = [

@@ -16,7 +16,8 @@ class CreateRecipesTable extends Migration
             $table->text('description');
             $table->json('ingredients');
             $table->json('steps');
-            $table->string('image')->default(''); // O también puede ser ->nullable();
+            $table->string('image')->default(''); 
+            $table->string('video')->default(''); 
             $table->integer('prep_time');
             $table->integer('cook_time');
             $table->integer('servings');

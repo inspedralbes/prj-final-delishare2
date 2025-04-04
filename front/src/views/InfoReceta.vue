@@ -5,9 +5,9 @@
       <button @click="goToLogin">Ir a Login</button>
     </div>
   </div>
-  
+
   <div v-else>
-        <!-- Popup de notificacions -->
+    <!-- Popup de notificacions -->
     <div v-if="popupMessage" class="popup-notification">
       {{ popupMessage }}
     </div>
@@ -23,34 +23,26 @@
         </router-link>
       </p>
 
-      <div class="recipe-image-container">
-        <img :src="recipe.image" :alt="recipe.title" class="recipe-image" />
+      <div class="media-container">
+        <div class="recipe-image-container">
+          <img :src="recipe.image" :alt="recipe.title" class="recipe-image" />
+        </div>
       </div>
 
       <div class="button-container">
         <!-- Botó per mostrar la selecció de carpeta -->
         <button @click="checkRecipeInFolder" :disabled="isButtonDisabled">
-          <img
-            :src="getSaveCarpeta"
+          <img :src="getSaveCarpeta"
             :alt="isSavedCarpeta ? 'Treure la recepta de la carpeta' : 'Desar la recepta a la carpeta'"
-            class="button-icon"
-          />
+            class="button-icon" />
         </button>
 
         <!-- Modal per triar la carpeta -->
-        <div
-          v-if="showFolderSelection"
-          :class="{ show: showFolderSelection }"
-          class="save-options-modal"
-        >
+        <div v-if="showFolderSelection" :class="{ show: showFolderSelection }" class="save-options-modal">
           <div class="save-options-content">
             <h3>On vols desar la recepta?</h3>
             <select v-model="selectedFolderId">
-              <option
-                v-for="folder in userFolders"
-                :key="folder.id"
-                :value="folder.id"
-              >
+              <option v-for="folder in userFolders" :key="folder.id" :value="folder.id">
                 {{ folder.name }}
               </option>
             </select>
@@ -70,46 +62,41 @@
 
         <!-- Botó de desar/eliminar de guardades -->
         <button @click="saveToSavedRecipes(recipe.id)" :disabled="isButtonDisabled">
-          <img
-            :src="getSaveIcon"
+          <img :src="getSaveIcon"
             :alt="isSaved ? 'Treure la recepta de les guardades' : 'Desar la recepta a les guardades'"
-            class="button-icon"
-          />
+            class="button-icon" />
         </button>
         <button @click="toggleLike(recipe.id)">
-          <img
-            :src="getLikeIcon"
-            :alt="isLiked ? 'Treure el like' : 'Posar el like'"
-            class="button-icon"
-          />
+          <img :src="getLikeIcon" :alt="isLiked ? 'Treure el like' : 'Posar el like'" class="button-icon" />
         </button>
       </div>
     </div>
     <div class="recipe-section">
 
-    <div class="recipe-info">
-      <p class="recipe-description">
-        {{ recipe.description || 'Sense descripció' }}
-      </p>
-    </div>
+      <div class="recipe-info">
+        <p class="recipe-description">
+          {{ recipe.description || 'Sense descripció' }}
+        </p>
+      </div>
       <div class="recipe-section">
 
-      <button class="back-button" @click="toggleExtraInfo">
-        {{ isExtraInfoVisible ? 'Amagar informació extra' : 'Informació extra' }}
-      </button>
-      <div v-if="isExtraInfoVisible" class="extra-info">
-        <p><strong>Temps de preparació:</strong> {{ recipe.prep_time }} minuts</p>
-        <p><strong>Temps de cocció:</strong> {{ recipe.cook_time }} minuts</p>
-        <p><strong>Racions:</strong> {{ recipe.servings }}</p>
-        <p><strong>Likes:</strong> {{ recipe.likes_count }} ❤️</p>
+        <button class="back-button" @click="toggleExtraInfo">
+          {{ isExtraInfoVisible ? 'Amagar informació extra' : 'Informació extra' }}
+        </button>
+        <div v-if="isExtraInfoVisible" class="extra-info">
+          <p><strong>Temps de preparació:</strong> {{ recipe.prep_time }} minuts</p>
+          <p><strong>Temps de cocció:</strong> {{ recipe.cook_time }} minuts</p>
+          <p><strong>Racions:</strong> {{ recipe.servings }}</p>
+          <p><strong>Likes:</strong> {{ recipe.likes_count }} ❤️</p>
+        </div>
       </div>
-</div>
       <div class="recipe-section">
         <h2>Ingredients</h2>
         <ul class="ingredients-list">
           <li v-for="(ingredient, index) in recipe.ingredients" :key="index">
-            {{ ingredient }}
+            {{ ingredient.name }} - {{ ingredient.quantity }} {{ ingredient.unit }}
           </li>
+
         </ul>
       </div>
       <div class="recipe-section">
@@ -121,39 +108,44 @@
         </ol>
       </div>
       <div class="recipe-section">
-  <div v-if="recipe.nutrition">
-    <h3>Informació Nutricional</h3>
-    <p><strong>Calories:</strong> {{ recipe.nutrition.calories || 'N/A' }}</p>
-    <p>
-      <strong>Proteïnes:</strong>
-      {{ recipe.nutrition.protein ? `${recipe.nutrition.protein}g` : 'N/A' }}
-    </p>
-    <p>
-      <strong>Carbohidrats:</strong>
-      {{ recipe.nutrition.carbs ? `${recipe.nutrition.carbs}g` : 'N/A' }}
-    </p>
-    <p>
-      <strong>Greixos:</strong>
-      {{ recipe.nutrition.fats ? `${recipe.nutrition.fats}g` : 'N/A' }}
-    </p>
-  </div>
-</div>
+        <div v-if="recipe.nutrition">
+          <h3>Informació Nutricional</h3>
+          <p><strong>Calories:</strong> {{ recipe.nutrition.calories || 'N/A' }}</p>
+          <p>
+            <strong>Proteïnes:</strong>
+            {{ recipe.nutrition.protein ? `${recipe.nutrition.protein}g` : 'N/A' }}
+          </p>
+          <p>
+            <strong>Carbohidrats:</strong>
+            {{ recipe.nutrition.carbs ? `${recipe.nutrition.carbs}g` : 'N/A' }}
+          </p>
+          <p>
+            <strong>Greixos:</strong>
+            {{ recipe.nutrition.fats ? `${recipe.nutrition.fats}g` : 'N/A' }}
+          </p>
+        </div>
+        <!-- Mostrar video si existe -->
+        <div v-if="recipe.video" class="video-container">
+          <video controls class="recipe-video">
+            <source :src="recipe.video" type="video/mp4">
+            Tu navegador no soporta el elemento de video.
+          </video>
+        </div>
+      </div>
+
     </div>
 
     <div class="recipe-section">
+
       <div class="comment-input-container">
-        <textarea
-          v-model="newComment"
-          placeholder="Escriu un comentari..."
-          class="comment-textarea"
-        ></textarea>
+        <textarea v-model="newComment" placeholder="Escriu un comentari..." class="comment-textarea"></textarea>
         <button @click="addComment" class="comment-button">Comentar</button>
       </div>
       <ul class="comments-list">
         <li v-for="(comment, index) in comments" :key="index" class="comment-item">
           <div class="comment-header">
             <p class="comment-user">
-              <strong>{{ comment.name || 'Usuari desconegut' }} : {{comment.comment }}</strong>
+              <strong>{{ comment.name || 'Usuari desconegut' }} : {{ comment.comment }}</strong>
             </p>
           </div>
         </li>
@@ -161,6 +153,7 @@
     </div>
   </div>
 </template>
+
 <script>
 import folder1 from '@/assets/images/folder1.png';
 import folder2 from '@/assets/images/folder2.png';
@@ -184,6 +177,7 @@ export default {
         id: null,
         title: '',
         image: '',
+        video: null, // Añadido campo para el video
         description: '',
         ingredients: [],
         steps: [],
@@ -250,7 +244,7 @@ export default {
         }
       );
     },
-    
+
     async checkAuthAndLoadData() {
       if (!this.authStore.token) {
         this.redirectToLogin();
@@ -258,17 +252,17 @@ export default {
       }
       await this.loadRecipeData();
     },
-    
+
     redirectToLogin() {
-      this.$router.push({ 
+      this.$router.push({
         name: 'LandingPage',
-        query: { 
+        query: {
           authError: 'Debes iniciar sesión para ver detalles de recetas',
           redirect: this.$route.fullPath
         }
       });
     },
-    
+
     async loadRecipeData() {
       try {
         const recipeId = String(this.$route.params.recipeId);
@@ -284,9 +278,9 @@ export default {
         }
       }
     },
-    
+
     goToLogin() {
-      this.$router.push({ 
+      this.$router.push({
         name: 'login',
         query: { redirect: this.$route.fullPath }
       });
@@ -298,7 +292,7 @@ export default {
         this.popupMessage = '';
       }, 5000);
     },
-    
+
     checkRecipeInFolder() {
       const gestionPinia = useGestionPinia();
       const folder = gestionPinia.folders.find((f) =>
@@ -310,25 +304,25 @@ export default {
         this.showFolderSelection = true;
       }
     },
-    
+
     addToAnotherFolder() {
       this.showFolderAlert = false;
       this.showFolderSelection = true;
       this.selectedFolderId = null;
     },
-    
+
     cancelAddToFolder() {
       this.showFolderAlert = false;
     },
-    
+
     hideModal() {
       this.showFolderSelection = false;
     },
-    
+
     goBack() {
       this.$router.go(-1);
     },
-    
+
     async loadComments() {
       try {
         const data = await communicationManager.fetchComments(this.recipe.id);
@@ -337,7 +331,7 @@ export default {
         console.error('Error fetching comments:', error);
       }
     },
-    
+
     async saveToSavedRecipes() {
       const recipeId = this.recipe.id;
       try {
@@ -347,14 +341,14 @@ export default {
         const savedRecipesStore = useGestionPinia();
         savedRecipesStore.toggleSave(recipeId);
 
-        this.showPopup(wasSaved ? 
-          'Recepta eliminada de les guardades' : 
+        this.showPopup(wasSaved ?
+          'Recepta eliminada de les guardades' :
           'Recepta desada a les teves guardades');
       } catch (error) {
         console.error('Error al guardar la recepta:', error);
       }
     },
-    
+
     async toggleSave(recipeId) {
       this.isButtonDisabled = true;
       try {
@@ -367,7 +361,7 @@ export default {
         this.isButtonDisabled = false;
       }
     },
-    
+
     async addComment() {
       if (!this.newComment.trim()) return;
 
@@ -386,18 +380,18 @@ export default {
         console.error('Error en afegir el comentari:', error);
       }
     },
-    
+
     async toggleLike(recipeId) {
       try {
         const response = await communicationManager.toggleLike(recipeId);
-        
+
         const gestionPinia = useGestionPinia();
         gestionPinia.toggleLike(recipeId);
-        
+
         this.recipe.likes_count = response.likes_count;
-        
+
         this.showPopup(response.liked ? 'Has posat el like' : 'Like tret');
-        
+
         if (!this.likesInterval) {
           this.likesInterval = setInterval(async () => {
             const likesData = await communicationManager.getLikes(recipeId);
@@ -408,11 +402,11 @@ export default {
         console.error('Error al dar like:', error);
       }
     },
-    
+
     toggleExtraInfo() {
       this.isExtraInfoVisible = !this.isExtraInfoVisible;
     },
-    
+
     async saveToFolder() {
       if (!this.selectedFolderId) {
         this.showPopup('Si us plau, selecciona una carpeta');
@@ -439,7 +433,7 @@ export default {
         );
         gestionPinia.addToFolder(this.selectedFolderId, recipeId);
         this.isSavedCarpeta = true;
-        
+
         const folderName = this.userFolders.find(
           (f) => f.id === this.selectedFolderId
         ).name;
@@ -489,6 +483,7 @@ export default {
   margin-top: 10px;
   cursor: pointer;
 }
+
 .auth-error {
   padding: 20px;
   background: #ffebee;
@@ -502,11 +497,12 @@ export default {
   color: #d32f2f;
   font-weight: bold;
 }
+
 * {
-  font-family:'Times New Roman', Times, serif;
+  font-family: 'Times New Roman', Times, serif;
 }
 
-.recipe-description{
+.recipe-description {
   margin-left: 10px;
 }
 
@@ -534,14 +530,31 @@ export default {
   color: #fff;
 }
 
+.media-container {
+  margin: 20px 0;
+}
+
 .recipe-image-container {
   display: flex;
   justify-content: center;
-  margin: 20px 0;
 }
 
 .recipe-image {
   max-width: 100%;
+  max-height: 400px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.video-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.recipe-video {
+  max-width: 100%;
+  max-height: 400px;
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -549,7 +562,8 @@ export default {
 .extra-info {
   background: transparent;
   color: #004080;
-  border: 2px solid #004080;  padding: 10px;
+  border: 2px solid #004080;
+  padding: 10px;
   border-radius: 8px;
   margin-top: 10px;
 }
@@ -587,6 +601,7 @@ button {
     transform: translateY(-50px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -774,6 +789,7 @@ button {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
