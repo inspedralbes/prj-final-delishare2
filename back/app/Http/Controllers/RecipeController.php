@@ -294,6 +294,27 @@ public function getAllIngredients()
      ], 200);
  }
 
+ public function filterByIngredients(Request $request)
+{
+    $request->validate([
+        'ingredients' => 'required|array|min:1',
+        'ingredients.*' => 'string'
+    ]);
+
+    $ingredients = $request->input('ingredients');
+
+    // Buscar recetas que contengan TODOS los ingredientes
+    $recipes = Recipe::where(function ($query) use ($ingredients) {
+        foreach ($ingredients as $ingredient) {
+            $query->whereRaw('JSON_CONTAINS(ingredients, ?)', [json_encode($ingredient)]);
+        }
+    })->get();
+
+    return response()->json([
+        'recipes' => $recipes,
+    ], 200);
+}
+
 // Eliminar un comentario
 public function deleteComment(Request $request, $recipeId)
 {
@@ -304,6 +325,16 @@ public function deleteComment(Request $request, $recipeId)
         ->update(['comment' => null, 'updated_at' => now()]);
 
     return response()->json(['message' => 'Comentario eliminado correctamente']);
+}
+public function filterByIngredient($ingredient)
+{
+    // Buscar recetas donde los ingredientes contengan el ingrediente especificado
+    $recipes = Recipe::whereRaw('JSON_CONTAINS(ingredients, ?)', [json_encode([$ingredient])])
+                    ->get();
+
+    return response()->json([
+        'recipes' => $recipes,
+    ], 200);
 }
 
 }
