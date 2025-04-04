@@ -254,51 +254,71 @@ public function addComment(Request $request, $recipeId)
         'comment' => $recipeUser->comment
     ]);
 }
-public function getAllIngredients()
- {
-     // Obtener todas las recetas con solo el campo de ingredientes
-     $recipes = Recipe::select('ingredients')->get();
-     
-     // Array para almacenar todos los ingredientes
-     $allIngredients = [];
-     
-     // Recorrer cada receta y extraer los ingredientes
-     foreach ($recipes as $recipe) {
-         $ingredients = $recipe->ingredients;
-         
-         // Si es un string, intentar decodificar como JSON
-         if (is_string($ingredients)) {
-             $decoded = json_decode($ingredients, true);
-             if (json_last_error() === JSON_ERROR_NONE) {
-                 $ingredients = $decoded;
-             } else {
-                 // Si no es JSON válido, continuar con la siguiente receta
-                 continue;
-             }
-         }
-         
-         // Si es un array, agregar los ingredientes
-         if (is_array($ingredients)) {
-             $allIngredients = array_merge($allIngredients, $ingredients);
-         }
-     }
-     
-     // Limpiar ingredientes: eliminar espacios en blanco, valores vacíos y duplicados
-     $cleanedIngredients = array_map('trim', $allIngredients);
-     $cleanedIngredients = array_filter($cleanedIngredients);
-     $uniqueIngredients = array_unique($cleanedIngredients);
-     
-     // Ordenar alfabéticamente
-     sort($uniqueIngredients);
-     
-     return response()->json([
-         'success' => true,
-         'count' => count($uniqueIngredients),
-         'ingredients' => array_values($uniqueIngredients) // reindexar array
-     ], 200);
- }
 
- public function filterByIngredients(Request $request)
+public function getAllIngredients()
+{
+    $recipes = Recipe::select('ingredients')->get();
+    $allIngredients = [];
+    
+    // Prefijos a eliminar
+ 
+    // Prefijos y sufijos a eliminar (incluyendo unidades de medida)
+    $prefixes = ['g ', 'kg ', 'ml ', 'l ', 'cucharadita ', 'cucharada ', 
+                'taza ', 'tazas ', 'unitat ', 'unitats ', 's ', 'name:'];
+
+    foreach ($recipes as $recipe) {
+        $ingredients = $recipe->ingredients;
+        
+        if (is_string($ingredients)) {
+            $decoded = json_decode($ingredients, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $ingredients = $decoded;
+            } else {
+                continue;
+            }
+        }
+        
+        if (is_array($ingredients)) {
+            foreach ($ingredients as $ingredient) {
+                if (is_array($ingredient) && isset($ingredient['name'])) {
+                    $name = $ingredient['name'];
+                    // Eliminar "name:" si existe
+                    $name = str_replace('name:', '', $name);
+                    $allIngredients[] = trim(strtolower($name));
+                } 
+                else if (is_string($ingredient)) {
+                    // Eliminar prefijos numéricos o de cantidad
+                    $name = preg_replace('/^[\d\/\.]+\s*/', '', $ingredient); // Elimina cantidades numéricas
+                    
+                    // Eliminar prefijos comunes
+                    foreach ($prefixes as $prefix) {
+                        if (strpos(strtolower($name), $prefix) === 0) {
+                            $name = substr($name, strlen($prefix));
+                            break;
+                        }
+                    }
+                    
+                    $allIngredients[] = trim(strtolower($name));
+                }
+            }
+        }
+    }
+    
+    $cleanedIngredients = array_filter($allIngredients, function($item) {
+        return !empty($item) && strlen(trim($item)) > 0;
+    });
+    
+    $uniqueIngredients = array_unique($cleanedIngredients);
+    sort($uniqueIngredients);
+    
+    return response()->json([
+        'success' => true,
+        'count' => count($uniqueIngredients),
+        'ingredients' => array_values($uniqueIngredients)
+    ], 200);
+}
+
+public function filterByIngredients(Request $request)
 {
     $request->validate([
         'ingredients' => 'required|array|min:1',
@@ -306,18 +326,94 @@ public function getAllIngredients()
     ]);
 
     $ingredients = $request->input('ingredients');
+    $recipes = Recipe::all();
+    $filteredRecipes = [];
 
-    // Buscar recetas que contengan TODOS los ingredientes
-    $recipes = Recipe::where(function ($query) use ($ingredients) {
-        foreach ($ingredients as $ingredient) {
-            $query->whereRaw('JSON_CONTAINS(ingredients, ?)', [json_encode($ingredient)]);
+    foreach ($recipes as $recipe) {
+        $recipeIngredients = $recipe->ingredients;
+        
+        if (is_string($recipeIngredients)) {
+            $recipeIngredients = json_decode($recipeIngredients, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                continue;
+            }
         }
-    })->get();
+
+        $matchesAll = true;
+        foreach ($ingredients as $ingredient) {
+            $found = false;
+            
+            foreach ($recipeIngredients as $recipeIng) {
+                if (is_array($recipeIng)) {
+                    if (strtolower($recipeIng['name']) === strtolower($ingredient)) {
+                        $found = true;
+                        break;
+                    }
+                } else if (is_string($recipeIng)) {
+                    $parts = explode(' ', $recipeIng);
+                    $nameParts = array_slice($parts, 1);
+                    $name = strtolower(implode(' ', $nameParts));
+                    if ($name === strtolower($ingredient)) {
+                        $found = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (!$found) {
+                $matchesAll = false;
+                break;
+            }
+        }
+
+        if ($matchesAll) {
+            $filteredRecipes[] = $recipe;
+        }
+    }
 
     return response()->json([
-        'recipes' => $recipes,
+        'recipes' => $filteredRecipes,
     ], 200);
 }
+public function filterByIngredient($ingredient)
+{
+    $recipes = Recipe::all();
+    $filteredRecipes = [];
+    $searchTerm = strtolower(trim($ingredient));
+
+    foreach ($recipes as $recipe) {
+        $recipeIngredients = $recipe->ingredients;
+        
+        if (is_string($recipeIngredients)) {
+            $recipeIngredients = json_decode($recipeIngredients, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                continue;
+            }
+        }
+
+        foreach ($recipeIngredients as $recipeIng) {
+            if (is_array($recipeIng)) {
+                if (strpos(strtolower($recipeIng['name']), $searchTerm) !== false) {
+                    $filteredRecipes[] = $recipe;
+                    break;
+                }
+            } else if (is_string($recipeIng)) {
+                $parts = explode(' ', $recipeIng);
+                $nameParts = array_slice($parts, 1);
+                $name = strtolower(implode(' ', $nameParts));
+                if (strpos($name, $searchTerm) !== false) {
+                    $filteredRecipes[] = $recipe;
+                    break;
+                }
+            }
+        }
+    }
+
+    return response()->json([
+        'recipes' => $filteredRecipes,
+    ], 200);
+}
+
 
 // Eliminar un comentario
 public function deleteComment(Request $request, $recipeId)
@@ -330,15 +426,7 @@ public function deleteComment(Request $request, $recipeId)
 
     return response()->json(['message' => 'Comentario eliminado correctamente']);
 }
-public function filterByIngredient($ingredient)
-{
-    // Buscar recetas donde los ingredientes contengan el ingrediente especificado
-    $recipes = Recipe::whereRaw('JSON_CONTAINS(ingredients, ?)', [json_encode([$ingredient])])
-                    ->get();
 
-    return response()->json([
-        'recipes' => $recipes,
-    ], 200);
-}
+
 
 }
