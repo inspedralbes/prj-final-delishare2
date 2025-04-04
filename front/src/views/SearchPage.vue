@@ -14,6 +14,8 @@
         @filtradoPorCategoria="mostrarRecetasGenerales = false"
         @filtradoPorCuisine="mostrarRecetasGenerales = false"
         @filtradoPorTiempo="filtrarPorTiempo"
+        @filtradoPorIngrediente="handleFiltradoPorIngrediente"
+
       />
 
       <div v-if="mostrarRecetasGenerales">
@@ -98,8 +100,22 @@ export default {
         this.loading = false;
       }
     },
-    filtrarPorTiempo(tiempo) {
-      this.tiempoFiltro = tiempo;
+    // Manejadores para los distintos filtros
+    handleFiltradoPorCategoria(filteredRecipes) {
+      this.recipes = filteredRecipes;
+      this.mostrarRecetasGenerales = false;
+    },
+    handleFiltradoPorCuisine(filteredRecipes) {
+      this.recipes = filteredRecipes;
+      this.mostrarRecetasGenerales = false;
+    },
+    handleFiltradoPorTiempo(filteredRecipes) {
+      this.recipes = filteredRecipes;
+      this.mostrarRecetasGenerales = false;
+    },
+    // Nuevo manejador para el filtrado por ingrediente
+    handleFiltradoPorIngrediente(filteredRecipes) {
+      this.recipes = filteredRecipes;
       this.mostrarRecetasGenerales = false;
     },
   },

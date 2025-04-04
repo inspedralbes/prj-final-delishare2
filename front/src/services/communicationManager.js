@@ -162,38 +162,15 @@ const communicationManager = {
         throw error;
       });
 },
-filterByIngredient(ingredients) {
-  try {
-    // Convertir a array si es un string
-    const ingredientsArray = Array.isArray(ingredients) ? ingredients : [ingredients];
-    
-    // Usamos GET con parámetros en la URL
-    return apiClient.get('/filterByIngredients', {
-      params: {
-        ingredients: ingredientsArray.join(',') // Envía los ingredientes como string separado por comas
-      },
-      paramsSerializer: params => {
-        // Serializador personalizado para arrays
-        return Object.keys(params)
-          .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
-          .join('&');
-      }
-    })
-    .then(response => {
-      if (response.data && response.data.recipes) {
-        return response.data.recipes;
-      }
-      throw new Error('Formato de respuesta inesperado');
-    })
+fetchRecipesByIngredients(ingredients) {
+  return apiClient.post('/recipes/filter-by-ingredients', { ingredients })
+    .then(response => response.data)
     .catch(error => {
-      console.error('Error filtering by ingredient:', error);
+      console.error('Error fetching recipes by ingredients:', error);
       throw error;
     });
-  } catch (error) {
-    console.error('Error preparing request:', error);
-    return Promise.reject(error);
-  }
 },
+
 
   // Obtener recetas filtradas por el ID de la cocina
   fetchRecipesByCuisine(cuisineId) {

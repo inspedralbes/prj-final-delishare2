@@ -5,12 +5,13 @@
       <button @click="toggleSubButtons('categoria')" class="button-main">Categoria</button>
       <button @click="toggleSubButtons('cuisine')" class="button-main">Cuina</button>
       <button @click="toggleSubButtons('tiempo')" class="button-main">Temps</button>
+      <button @click="toggleSubButtons('ingredientes')" class="button-main">Ingredientes</button>
     </div>
 
     <!-- Subbotones para Categorías -->
     <div v-if="activeButton === 'categoria'" class="subbutton-group">
       <button 
-        v-for="dato in datos" 
+        v-for="dato in categorias" 
         :key="dato.id" 
         class="button-secondary"
         @click="filtrarPorCategoria(dato.id)"
@@ -31,7 +32,6 @@
       </button>
     </div>
 
-
     <!-- Subbotones para Tiempo -->
     <div v-if="activeButton === 'tiempo'" class="subbutton-group">
       <button 
@@ -44,7 +44,19 @@
       </button>
     </div>
 
-    <!-- Recetas filtradas por categoría, usuario o cocina -->
+    <!-- Subbotones para Ingredientes -->
+    <div v-if="activeButton === 'ingredientes'" class="subbutton-group">
+      <button 
+        v-for="ingredient in ingredients" 
+        :key="ingredient"
+        class="button-secondary"
+        @click="filtrarPorIngrediente(ingredient)"
+      >
+        {{ ingredient }}
+      </button>
+    </div>
+
+    <!-- Recetas filtradas -->
     <div v-if="recetas.length" class="recipe-list">
       <RecipeCard
         v-for="receta in recetas"
@@ -66,26 +78,27 @@ import RecipeCard from './RecipeCard.vue';
 export default {
   name: 'Botones',
   components: { RecipeCard },
-
   setup(_, { emit }) {
     // Variables reactivas para almacenar los datos
-    const datos = ref([]);         // Para las categorías
-    const recetas = ref([]);       // Para las recetas filtradas
-    const cuisines = ref([]);      // Para las cocinas (países)
-    const times = ref([]);         // Para los tiempos
-    const activeButton = ref('');   // Estado reactivo para el botón activo
+    const categorias = ref([]);      // Categorías
+    const cuisines = ref([]);        // Cocinas (países)
+    const times = ref([]);           // Tiempos
+    const ingredients = ref([]);     // Ingredientes
+    const recetas = ref([]);         // Recetas filtradas
+    const activeButton = ref('');    // Botón principal activo
 
-    // Cargar los datos al montar el componente
+    // Cargar datos al montar el componente
     onMounted(() => {
       obtenerCategorias();
       obtenerCuisines();
       obtenerTimes();
+      obtenerIngredients();
     });
 
     // Función para obtener las categorías
     const obtenerCategorias = async () => {
       try {
-        datos.value = await communicationManager.fetchCategories();
+        categorias.value = await communicationManager.fetchCategories();
       } catch (error) {
         console.error('Error al obtener categorías:', error);
       }
@@ -104,22 +117,20 @@ export default {
     const obtenerTimes = async () => {
       try {
         const response = await communicationManager.getAllTimes();
-        times.value = response.times; // Asegúrate de usar `response.times` aquí
+        times.value = response.times;
       } catch (error) {
         console.error('Error al obtener tiempos:', error);
       }
     };
 
-  
-
-    // Función para filtrar por tiempo
-    const filtrarPorTiempo = async (time) => {
+    // Función para obtener los ingredientes
+    const obtenerIngredients = async () => {
       try {
-        const response = await communicationManager.fetchRecipesByTime(time);
-        recetas.value = response.recipes;
-        emit('filtradoPorTiempo', true);
+        const response = await communicationManager.fetchIngredients();
+        // Asumimos que la respuesta tiene la estructura { ingredients: [...] }
+        ingredients.value = response.ingredients;
       } catch (error) {
-        console.error('Error al filtrar recetas por tiempo:', error);
+        console.error('Error al obtener ingredientes:', error);
       }
     };
 
@@ -145,34 +156,54 @@ export default {
       }
     };
 
-
-
-    // Función para alternar los subbotones
-    const toggleSubButtons = (buttonName) => {
-      if (activeButton.value === buttonName) {
-        activeButton.value = '';  // Ocultar los subbotones si el mismo botón es clickeado
-      } else {
-        activeButton.value = buttonName;  // Mostrar subbotones del botón seleccionado
+    // Función para filtrar por tiempo
+    const filtrarPorTiempo = async (time) => {
+      try {
+        const response = await communicationManager.fetchRecipesByTime(time);
+        recetas.value = response.recipes;
+        emit('filtradoPorTiempo', true);
+      } catch (error) {
+        console.error('Error al filtrar recetas por tiempo:', error);
       }
     };
 
+    // Función para filtrar por ingrediente (envía un array con un solo ingrediente)
+    const filtrarPorIngrediente = async (ingredient) => {
+      try {
+        const response = await communicationManager.fetchRecipesByIngredients([ingredient]);
+        recetas.value = response.recipes;
+        emit('filtradoPorIngrediente', true);
+      } catch (error) {
+        console.error('Error al filtrar recetas por ingrediente:', error);
+      }
+    };
+
+    // Alterna la visualización de los subbotones según el botón principal
+    const toggleSubButtons = (buttonName) => {
+      activeButton.value = activeButton.value === buttonName ? '' : buttonName;
+    };
+
     return {
-      datos,
-      recetas,
+      categorias,
       cuisines,
       times,
+      ingredients,
+      recetas,
+      activeButton,
       obtenerCategorias,
       obtenerCuisines,
       obtenerTimes,
+      obtenerIngredients,
       filtrarPorCategoria,
       filtrarPorCuisine,
       filtrarPorTiempo,
+      filtrarPorIngrediente,
       toggleSubButtons,
-      activeButton,
     };
   },
 };
 </script>
+
 
 <style scoped>
 /* Contenedor para los botones principales alineados en fila */
