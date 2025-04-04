@@ -41,6 +41,8 @@ class RecipeController extends Controller
             'servings' => 'required|integer',
             'nutrition' => 'nullable|array',  
             'image' => 'nullable|string',
+            'video' => 'nullable|string',
+
         ]);
     
         $data['user_id'] = auth()->id();
@@ -68,6 +70,8 @@ public function update(Request $request, $id)
         'servings' => 'required|integer',
         'nutrition' => 'nullable|array', 
         'image' => 'nullable|string', 
+        'video' => 'nullable|string',
+
 
     ]);
 
