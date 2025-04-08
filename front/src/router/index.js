@@ -10,6 +10,8 @@ import register from '@/components/register.vue';
 import Guardadas from '@/views/Guardadas.vue';
 import { useAuthStore } from '@/stores/authStore';  // Importa el store de autenticación
 import UserProfile from '@/components/UserProfile.vue';
+import CuisineAndCategories from '@/views/CuisineAndCategories.vue'
+
 
 const routes = [
   {
@@ -71,6 +73,11 @@ const routes = [
     name: 'Perfil',
     component: () => import('@/views/Perfil.vue'),
     meta: { requiresAuth: false },
+  },
+  {
+    path: '/cuisine-categories',
+    name: 'CuisineAndCategories',
+    component: CuisineAndCategories
   },
   
 ];
