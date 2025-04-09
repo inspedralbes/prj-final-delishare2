@@ -6,43 +6,54 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
+
 
 class AuthController extends Controller
 {
+ 
     public function register(Request $request)
-    {
-        // Validación de los datos de entrada
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:users,name',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
-            'bio' => 'nullable|string|max:500',
-        ]);
+{
+    // Validación de los datos de entrada
+    $validator = Validator::make($request->all(), [
+        'name' => 'required|string|max:255|unique:users,name',
+        'email' => 'required|email|unique:users,email',
+        'password' => 'required|string|min:6',
+        'bio' => 'nullable|string|max:500',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        // Crear el usuario
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'bio' => $request->bio ?? null,
-        ]);
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-        $user->update(['personal_access_token' => $token]);
-        return response()->json([
-            'user' => [
-                'id_user' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'bio' => $user->bio,
-            ],
-            'token' => $token,
-        ], 201);
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
     }
+
+    // Crear el usuario
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'bio' => $request->bio ?? null,
+    ]);
+
+    // Generar token de autenticación
+    $token = $user->createToken('auth_token')->plainTextToken;
+    $user->update(['personal_access_token' => $token]);
+    
+    // Enviar correo de bienvenida después de que el registro esté completo
+    Mail::send('emails.registro_exitoso', ['user' => $user], function ($message) use ($user) {
+        $message->to($user->email, $user->name)
+                ->subject('Registro Exitoso en Delishare');
+    });
+
+    return response()->json([
+        'user' => [
+            'id_user' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'bio' => $user->bio,
+        ],
+        'token' => $token,
+    ], 201);
+}
 
     public function login(Request $request)
     {
