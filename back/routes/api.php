@@ -9,6 +9,7 @@ use App\Http\Controllers\SavedRecipeController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\InfoUserController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\RecommendationController;
 
 Route::get('/user/{id}/recipes', [InfoUserController::class, 'showRecipes']);
 
@@ -102,3 +103,5 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 Route::middleware('auth:sanctum')->get('/folders/{folder}/recipes', [FolderController::class, 'getRecipes']);
 
+Route::post('/recommendations/cuisines', [RecommendationController::class, 'storeSelectedCuisines'])->middleware('auth:sanctum');
+Route::post('/recommendations/categories', [RecommendationController::class, 'storeSelectedCategories'])->middleware('auth:sanctum');
