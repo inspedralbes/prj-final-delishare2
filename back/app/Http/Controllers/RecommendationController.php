@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 
 class RecommendationController extends Controller
 {
-    public function storeSelectedCuisines(Request $request)
+    public function storeUserSelections(Request $request)
     {
         // Log completo de la solicitud para debugging
         Log::info('Full request data:', [
@@ -30,7 +30,7 @@ class RecommendationController extends Controller
         // Determinar qué datos usar para validación
         $inputData = [];
         
-        // Primero intentamos obtener de json directo
+        // Primero intentamos obtener datos del json directo
         if ($request->isJson()) {
             $inputData = $request->json()->all();
         }
@@ -39,8 +39,8 @@ class RecommendationController extends Controller
             $inputData = $request->all();
         }
         
-        // Si aún está vacío o no contiene cuisine_ids, tratamos de parsearlo manualmente
-        if (empty($inputData) || !isset($inputData['cuisine_ids'])) {
+        // Si aún está vacío, tratamos de parsearlo manualmente
+        if (empty($inputData)) {
             $content = $request->getContent();
             if (!empty($content)) {
                 $decoded = json_decode($content, true);
@@ -50,110 +50,110 @@ class RecommendationController extends Controller
             }
         }
         
-        // Si después de todo esto seguimos sin cuisine_ids, verificamos otros formatos
-        if (!isset($inputData['cuisine_ids'])) {
-            // Buscar como cuisine_id (singular)
-            if (isset($inputData['cuisine_id'])) {
-                $inputData['cuisine_ids'] = [$inputData['cuisine_id']];
-            }
-            // Buscar como parámetro en la URL
-            elseif ($request->query('cuisine_ids')) {
-                $cuisineIdsQuery = $request->query('cuisine_ids');
-                if (is_string($cuisineIdsQuery)) {
-                    // Intentar parsearlo como array json
-                    $decoded = json_decode($cuisineIdsQuery, true);
-                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                        $inputData['cuisine_ids'] = $decoded;
-                    } else {
-                        // O como valores separados por coma
-                        $inputData['cuisine_ids'] = explode(',', $cuisineIdsQuery);
+        // Procesar cuisine_ids
+        $cuisineIds = $this->processIdsFromInput($inputData, $request, 'cuisine');
+        
+        // Procesar category_ids
+        $categoryIds = $this->processIdsFromInput($inputData, $request, 'category');
+        
+        // Verificar que al menos uno de los dos arrays no esté vacío
+        if ((empty($cuisineIds) || !is_array($cuisineIds)) && 
+            (empty($categoryIds) || !is_array($categoryIds))) {
+            return response()->json([
+                'message' => 'You must select at least one cuisine or one category.',
+                'errors' => [
+                    'selections' => ['You must select at least one cuisine or one category.']
+                ]
+            ], 422);
+        }
+        
+        $errors = [];
+        
+        // Validar cuisines si se proporcionaron
+        if (!empty($cuisineIds)) {
+            if (count($cuisineIds) > 5) {
+                $errors['cuisine_ids'] = ['You can select a maximum of 5 cuisines.'];
+            } else {
+                // Verificar que los IDs de cuisine existan
+                foreach ($cuisineIds as $cuisineId) {
+                    $exists = Cuisine::where('id', $cuisineId)->exists();
+                    if (!$exists) {
+                        $errors['cuisine_ids'][] = "Cuisine with ID {$cuisineId} does not exist.";
                     }
                 }
             }
-            // Si la solicitud tiene un formato inusual, tratar de extraer datos
-            else {
-                // Reenviar el error con información detallada
-                return response()->json([
-                    'message' => 'The cuisine ids field is required.',
-                    'errors' => [
-                        'cuisine_ids' => ['The cuisine ids field is required.']
-                    ],
-                    'debug' => [
-                        'received_data' => $request->all(),
-                        'content' => $request->getContent(),
-                        'content_type' => $request->header('Content-Type')
-                    ]
-                ], 422);
+        }
+        
+        // Validar categories si se proporcionaron
+        if (!empty($categoryIds)) {
+            if (count($categoryIds) > 5) {
+                $errors['category_ids'] = ['You can select a maximum of 5 categories.'];
+            } else {
+                // Verificar que los IDs de categoría existan
+                foreach ($categoryIds as $categoryId) {
+                    $exists = Category::where('id', $categoryId)->exists();
+                    if (!$exists) {
+                        $errors['category_ids'][] = "Category with ID {$categoryId} does not exist.";
+                    }
+                }
             }
         }
         
-        // Validar manualmente los datos
-        if (!isset($inputData['cuisine_ids']) || !is_array($inputData['cuisine_ids']) || empty($inputData['cuisine_ids'])) {
+        // Si hay errores, retornarlos
+        if (!empty($errors)) {
             return response()->json([
-                'message' => 'The cuisine ids field must be an array with at least one value.',
-                'errors' => [
-                    'cuisine_ids' => ['The cuisine ids field must be an array with at least one value.']
-                ]
-            ], 422);
-        }
-        
-        // Convertir todo a enteros
-        $cuisineIds = array_map(function($id) {
-            return (int)$id;
-        }, $inputData['cuisine_ids']);
-        
-        // Verificar que los IDs de cuisine existan
-        foreach ($cuisineIds as $cuisineId) {
-            $exists = Cuisine::where('id', $cuisineId)->exists();
-            if (!$exists) {
-                return response()->json([
-                    'message' => "Cuisine with ID {$cuisineId} does not exist.",
-                    'errors' => [
-                        'cuisine_ids' => ["Cuisine with ID {$cuisineId} does not exist."]
-                    ]
-                ], 422);
-            }
-        }
-        
-        // Obtener una categoría predeterminada (primera disponible)
-        $defaultCategory = Category::first();
-        if (!$defaultCategory) {
-            return response()->json([
-                'message' => 'No categories available in the system.',
-                'errors' => [
-                    'category_id' => ['No categories available in the system.']
-                ]
-            ], 422);
-        }
-        
-        // Usar la categoría proporcionada o la predeterminada
-        $categoryId = isset($inputData['category_id']) ? (int)$inputData['category_id'] : $defaultCategory->id;
-        
-        // Verificar que la categoría existe
-        $categoryExists = Category::where('id', $categoryId)->exists();
-        if (!$categoryExists) {
-            return response()->json([
-                'message' => "Category with ID {$categoryId} does not exist.",
-                'errors' => [
-                    'category_id' => ["Category with ID {$categoryId} does not exist."]
-                ]
+                'message' => 'Validation failed',
+                'errors' => $errors
             ], 422);
         }
         
         // Obtener el ID del usuario autenticado
         $userId = Auth::id();
         
-        // Crear recomendaciones
+        // Crear recomendaciones individuales para cada cuisine_id
         $recommendations = [];
-        foreach ($cuisineIds as $cuisineId) {
-            $recommendation = Recommendation::create([
-                'user_id' => $userId,
-                'cuisine_id' => $cuisineId,
-                'category_id' => $categoryId,
-                'ingredients' => '' // Cadena vacía en lugar de null
-            ]);
-            
-            $recommendations[] = $recommendation;
+        
+        if (!empty($cuisineIds)) {
+            foreach ($cuisineIds as $cuisineId) {
+                try {
+                    $recommendation = Recommendation::create([
+                        'user_id' => $userId,
+                        'cuisine_id' => $cuisineId,
+                        'category_id' => null, // Intentamos con NULL
+                        'ingredients' => ''
+                    ]);
+                    
+                    $recommendations[] = $recommendation;
+                } catch (\Exception $e) {
+                    // Si falla debido a restricción de NULL, devolvemos un error claro
+                    return response()->json([
+                        'message' => 'Database error: The column category_id does not allow NULL values. Please modify your database structure.',
+                        'error_details' => $e->getMessage()
+                    ], 500);
+                }
+            }
+        }
+        
+        // Crear recomendaciones individuales para cada category_id
+        if (!empty($categoryIds)) {
+            foreach ($categoryIds as $categoryId) {
+                try {
+                    $recommendation = Recommendation::create([
+                        'user_id' => $userId,
+                        'cuisine_id' => null, // Intentamos con NULL
+                        'category_id' => $categoryId,
+                        'ingredients' => ''
+                    ]);
+                    
+                    $recommendations[] = $recommendation;
+                } catch (\Exception $e) {
+                    // Si falla debido a restricción de NULL, devolvemos un error claro
+                    return response()->json([
+                        'message' => 'Database error: The column cuisine_id does not allow NULL values. Please modify your database structure.',
+                        'error_details' => $e->getMessage()
+                    ], 500);
+                }
+            }
         }
         
         return response()->json([
@@ -161,169 +161,50 @@ class RecommendationController extends Controller
             'data' => $recommendations
         ], 201);
     }
-
-    public function storeSelectedCategories(Request $request)
+    
+    /**
+     * Procesa y extrae los IDs desde los datos de entrada
+     * @param array $inputData Datos de entrada procesados
+     * @param Request $request Objeto de solicitud
+     * @param string $type Tipo de ID a procesar ('cuisine' o 'category')
+     * @return array Array de IDs procesados
+     */
+    private function processIdsFromInput($inputData, $request, $type)
     {
-        // Log completo de la solicitud para debugging
-        Log::info('Category request data:', [
-            'all' => $request->all(),
-            'json' => $request->json()->all(),
-            'headers' => $request->headers->all(),
-            'content' => $request->getContent()
-        ]);
+        $idsKey = "{$type}_ids";
+        $idKey = "{$type}_id";
         
-        // Validar que el usuario esté autenticado
-        if (!Auth::check()) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+        // Verificar si tenemos el array de IDs directamente
+        if (isset($inputData[$idsKey]) && is_array($inputData[$idsKey])) {
+            // Ya tenemos el array
         }
-        
-        // Determinar qué datos usar para validación
-        $inputData = [];
-        
-        // Primero intentamos obtener de json directo
-        if ($request->isJson()) {
-            $inputData = $request->json()->all();
+        // Buscar como ID singular
+        elseif (isset($inputData[$idKey])) {
+            $inputData[$idsKey] = [$inputData[$idKey]];
         }
-        // Si no es json o está vacío, usamos request->all()
-        if (empty($inputData)) {
-            $inputData = $request->all();
-        }
-        
-        // Si aún está vacío o no contiene category_ids, tratamos de parsearlo manualmente
-        if (empty($inputData) || !isset($inputData['category_ids'])) {
-            $content = $request->getContent();
-            if (!empty($content)) {
-                $decoded = json_decode($content, true);
+        // Buscar como parámetro en la URL
+        elseif ($request->query($idsKey)) {
+            $idsQuery = $request->query($idsKey);
+            if (is_string($idsQuery)) {
+                // Intentar parsearlo como array json
+                $decoded = json_decode($idsQuery, true);
                 if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    $inputData = $decoded;
+                    $inputData[$idsKey] = $decoded;
+                } else {
+                    // O como valores separados por coma
+                    $inputData[$idsKey] = explode(',', $idsQuery);
                 }
             }
         }
         
-        // Si después de todo esto seguimos sin category_ids, verificamos otros formatos
-        if (!isset($inputData['category_ids'])) {
-            // Buscar como category_id (singular)
-            if (isset($inputData['category_id'])) {
-                $inputData['category_ids'] = [$inputData['category_id']];
-            }
-            // Buscar como parámetro en la URL
-            elseif ($request->query('category_ids')) {
-                $categoryIdsQuery = $request->query('category_ids');
-                if (is_string($categoryIdsQuery)) {
-                    // Intentar parsearlo como array json
-                    $decoded = json_decode($categoryIdsQuery, true);
-                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                        $inputData['category_ids'] = $decoded;
-                    } else {
-                        // O como valores separados por coma
-                        $inputData['category_ids'] = explode(',', $categoryIdsQuery);
-                    }
-                }
-            }
-            // Si la solicitud tiene un formato inusual, tratar de extraer datos
-            else {
-                // Reenviar el error con información detallada
-                return response()->json([
-                    'message' => 'The category ids field is required.',
-                    'errors' => [
-                        'category_ids' => ['The category ids field is required.']
-                    ],
-                    'debug' => [
-                        'received_data' => $request->all(),
-                        'content' => $request->getContent(),
-                        'content_type' => $request->header('Content-Type')
-                    ]
-                ], 422);
-            }
+        // Si no se encontraron IDs, devolver array vacío
+        if (!isset($inputData[$idsKey]) || !is_array($inputData[$idsKey])) {
+            return [];
         }
         
-        // Validar manualmente los datos
-        if (!isset($inputData['category_ids']) || !is_array($inputData['category_ids']) || empty($inputData['category_ids'])) {
-            return response()->json([
-                'message' => 'The category ids field must be an array with at least one value.',
-                'errors' => [
-                    'category_ids' => ['The category ids field must be an array with at least one value.']
-                ]
-            ], 422);
-        }
-        
-        // Convertir todo a enteros
-        $categoryIds = array_map(function($id) {
+        // Convertir todos los IDs a enteros
+        return array_map(function($id) {
             return (int)$id;
-        }, $inputData['category_ids']);
-        
-        // Verificar que el número de categorías está dentro del límite (1-5)
-        if (count($categoryIds) > 5) {
-            return response()->json([
-                'message' => 'You can select a maximum of 5 categories.',
-                'errors' => [
-                    'category_ids' => ['You can select a maximum of 5 categories.']
-                ]
-            ], 422);
-        }
-        
-        // Verificar que los IDs de categoría existan
-        foreach ($categoryIds as $categoryId) {
-            $exists = Category::where('id', $categoryId)->exists();
-            if (!$exists) {
-                return response()->json([
-                    'message' => "Category with ID {$categoryId} does not exist.",
-                    'errors' => [
-                        'category_ids' => ["Category with ID {$categoryId} does not exist."]
-                    ]
-                ], 422);
-            }
-        }
-        
-        // Obtener una cuisine predeterminada (primera disponible) si es necesaria
-        $cuisineId = null;
-        if (isset($inputData['cuisine_id'])) {
-            $cuisineId = (int)$inputData['cuisine_id'];
-            $cuisineExists = Cuisine::where('id', $cuisineId)->exists();
-            if (!$cuisineExists) {
-                return response()->json([
-                    'message' => "Cuisine with ID {$cuisineId} does not exist.",
-                    'errors' => [
-                        'cuisine_id' => ["Cuisine with ID {$cuisineId} does not exist."]
-                    ]
-                ], 422);
-            }
-        } else {
-            // Si no se proporciona cuisine_id y es necesario uno predeterminado
-            // (descomenta esta sección si quieres que cuisine_id sea obligatorio)
-            /*
-            $defaultCuisine = Cuisine::first();
-            if (!$defaultCuisine) {
-                return response()->json([
-                    'message' => 'No cuisines available in the system.',
-                    'errors' => [
-                        'cuisine_id' => ['No cuisines available in the system.']
-                    ]
-                ], 422);
-            }
-            $cuisineId = $defaultCuisine->id;
-            */
-        }
-        
-        // Obtener el ID del usuario autenticado
-        $userId = Auth::id();
-        
-        // Crear recomendaciones para cada categoría seleccionada
-        $recommendations = [];
-        foreach ($categoryIds as $categoryId) {
-            $recommendation = Recommendation::create([
-                'user_id' => $userId,
-                'cuisine_id' => $cuisineId, // Puede ser null si no se especificó
-                'category_id' => $categoryId,
-                'ingredients' => '' // Cadena vacía en lugar de null
-            ]);
-            
-            $recommendations[] = $recommendation;
-        }
-        
-        return response()->json([
-            'message' => 'Category recommendations created successfully',
-            'data' => $recommendations
-        ], 201);
+        }, $inputData[$idsKey]);
     }
 }

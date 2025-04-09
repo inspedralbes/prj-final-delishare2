@@ -105,3 +105,4 @@ Route::middleware('auth:sanctum')->get('/folders/{folder}/recipes', [FolderContr
 
 Route::post('/recommendations/cuisines', [RecommendationController::class, 'storeSelectedCuisines'])->middleware('auth:sanctum');
 Route::post('/recommendations/categories', [RecommendationController::class, 'storeSelectedCategories'])->middleware('auth:sanctum');
+Route::middleware('auth:sanctum')->post('/recommendations', [App\Http\Controllers\RecommendationController::class, 'storeUserSelections']);

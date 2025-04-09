@@ -11,8 +11,8 @@ class CreateRecommendationsTable extends Migration
         Schema::create('recommendations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('cuisine_id')->constrained()->onDelete('cascade');
-            $table->foreignId('category_id')->constrained()->onDelete('cascade');
+            $table->foreignId('cuisine_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('category_id')->nullable()->constrained()->onDelete('cascade');
             $table->text('ingredients')->nullable();
             $table->timestamps();
         });
