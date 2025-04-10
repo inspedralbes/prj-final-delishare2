@@ -14,4 +14,6 @@ class RecipeUser extends Model
     protected $fillable = ['user_id', 'recipe_id', 'saved', 'liked', 'comment'];
 
     public $timestamps = true;
+
+
 }

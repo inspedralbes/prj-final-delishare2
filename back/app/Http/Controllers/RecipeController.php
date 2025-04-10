@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\DB;
 use App\Models\RecipeUser;
+use App\Models\Notification;
+use App\Models\User;
 
 use App\Models\Recipe;
 
@@ -86,56 +88,83 @@ public function update(Request $request, $id)
         $recipe->delete();
         return response()->json(['message' => 'Recipe deleted successfully']);
     }
- 
-public function toggleLike(Request $request, $recipeId)
-{
-    $userId = $request->user()->id;
+    public function getNotifications(Request $request)
+    {
+        $userId = $request->user()->id;
     
-    $recipeUser = DB::table('recipe_user')
-        ->where('user_id', $userId)
-        ->where('recipe_id', $recipeId)
-        ->first();
-
-    if ($recipeUser && $recipeUser->liked) {
-        // Si ya existe y tiene like, quitamos el like
-        DB::table('recipe_user')
+        // Aquí puedes personalizar la lógica para obtener las notificaciones
+        $notifications = DB::table('notifications')
+            ->where('user_id', $userId)
+            ->orderBy('created_at', 'desc')
+            ->take(10) // Limitar a las últimas 10 notificaciones
+            ->get();
+    
+        return response()->json($notifications);
+    }
+    public function toggleLike(Request $request, $recipeId)
+    {
+        $userId = $request->user()->id;
+        $recipe = Recipe::findOrFail($recipeId);
+        $ownerId = $recipe->user_id;
+    
+        $recipeUser = DB::table('recipe_user')
             ->where('user_id', $userId)
             ->where('recipe_id', $recipeId)
-            ->update(['liked' => false, 'updated_at' => now()]);
-
-        Recipe::where('id', $recipeId)->decrement('likes_count');
-
-        return response()->json([
-            'message' => 'Recipe unliked successfully', 
-            'liked' => false,
-            'likes_count' => Recipe::find($recipeId)->likes_count
-        ]);
-    } else {
-        // Si no existe o no tiene like, añadimos like
-        if ($recipeUser) {
+            ->first();
+    
+        if ($recipeUser && $recipeUser->liked) {
+            // Eliminar like
             DB::table('recipe_user')
                 ->where('user_id', $userId)
                 ->where('recipe_id', $recipeId)
-                ->update(['liked' => true, 'updated_at' => now()]);
+                ->update(['liked' => false, 'updated_at' => now()]);
+    
+            Recipe::where('id', $recipeId)->decrement('likes_count');
+    
+            return response()->json([
+                'message' => 'Recipe unliked successfully', 
+                'liked' => false,
+                'likes_count' => Recipe::find($recipeId)->likes_count
+            ]);
         } else {
-            DB::table('recipe_user')->insert([
-                'user_id' => $userId,
-                'recipe_id' => $recipeId,
+            // Añadir like
+            if ($recipeUser) {
+                DB::table('recipe_user')
+                    ->where('user_id', $userId)
+                    ->where('recipe_id', $recipeId)
+                    ->update(['liked' => true, 'updated_at' => now()]);
+            } else {
+                DB::table('recipe_user')->insert([
+                    'user_id' => $userId,
+                    'recipe_id' => $recipeId,
+                    'liked' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+    
+            Recipe::where('id', $recipeId)->increment('likes_count');
+    
+            // Crear notificación solo si no es el dueño
+            if ($ownerId !== $userId) {
+                // Ejemplo en toggleLike
+Notification::create([
+    'user_id' => $ownerId,
+    'triggered_by' => $userId,
+    'type' => 'like',
+    'recipe_id' => $recipeId,
+    'message' => ' ha dado like a tu receta "' . $recipe->title . '"',
+    'read' => false
+]);
+            }
+    
+            return response()->json([
+                'message' => 'Recipe liked successfully', 
                 'liked' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'likes_count' => Recipe::find($recipeId)->likes_count
             ]);
         }
-
-        Recipe::where('id', $recipeId)->increment('likes_count');
-
-        return response()->json([
-            'message' => 'Recipe liked successfully', 
-            'liked' => true,
-            'likes_count' => Recipe::find($recipeId)->likes_count
-        ]);
     }
-}
 
 public function getLikes($recipeId)
 {
@@ -216,52 +245,83 @@ public function getRecipesByUser(Request $request)
     ], 200);
 }
 
-
-//comentario
+// En RecipeController.php
 public function getRecipeComments($recipeId)
 {
     $comments = DB::table('recipe_user')
         ->where('recipe_id', $recipeId)
         ->whereNotNull('comment')
         ->join('users', 'recipe_user.user_id', '=', 'users.id')
-        ->select('users.name', 'recipe_user.comment', 'recipe_user.updated_at')
-        ->orderByDesc('recipe_user.updated_at')
+        ->select(
+            'users.name', 
+            'recipe_user.comment', 
+            'recipe_user.updated_at',
+            'recipe_user.created_at'
+        )
+        ->orderBy('recipe_user.updated_at', 'desc')
         ->get();
 
     return response()->json($comments);
 }
 
-
 public function addComment(Request $request, $recipeId)
 {
-    $userId = $request->user()->id;
+    $userId = auth()->id();
+    $recipe = Recipe::findOrFail($recipeId);
+    $ownerId = $recipe->user_id;
 
     $request->validate([
         'comment' => 'required|string|max:1000'
     ]);
 
-    // Crear un nuevo comentario para la receta
-    $recipeUser = RecipeUser::create([
-        'user_id' => $userId,
-        'recipe_id' => $recipeId,
-        'comment' => $request->comment,
-        'created_at' => now(),
-        'updated_at' => now()
-    ]);
+    try {
+        // Insertar nuevo comentario (sin verificar si ya existe)
+        DB::table('recipe_user')->insert([
+            'user_id' => $userId,
+            'recipe_id' => $recipeId,
+            'comment' => $request->input('comment'),
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
 
-    return response()->json([
-        'message' => 'Comentario agregado correctamente',
-        'comment' => $recipeUser->comment
-    ]);
+        // Obtener el comentario recién creado con los datos del usuario
+        $newComment = DB::table('recipe_user')
+            ->where('user_id', $userId)
+            ->where('recipe_id', $recipeId)
+            ->where('comment', $request->input('comment'))
+            ->join('users', 'recipe_user.user_id', '=', 'users.id')
+            ->select('users.name', 'recipe_user.comment', 'recipe_user.updated_at')
+            ->first();
+
+        // Crear notificación si no es el dueño
+        if ($ownerId !== $userId) {
+            $userName = User::find($userId)->name;
+            Notification::create([
+                'user_id' => $ownerId,
+                'triggered_by' => $userId,
+                'recipe_id' => $recipeId,
+                'type' => 'comment',
+                'message' => $userName.' ha comentado tu receta "'.$recipe->title.'": "'.$request->input('comment').'"',
+                'read' => false
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'comment' => $newComment
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al guardar el comentario: '.$e->getMessage()
+        ], 500);
+    }
 }
-
 public function getAllIngredients()
 {
     $recipes = Recipe::select('ingredients')->get();
     $allIngredients = [];
-    
-    // Prefijos a eliminar
- 
+     
     // Prefijos y sufijos a eliminar (incluyendo unidades de medida)
     $prefixes = ['g ', 'kg ', 'ml ', 'l ', 'cucharadita ', 'cucharada ', 
                 'taza ', 'tazas ', 'unitat ', 'unitats ', 's ', 'name:'];

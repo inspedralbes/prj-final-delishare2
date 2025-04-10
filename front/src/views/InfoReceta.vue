@@ -197,7 +197,9 @@ export default {
       showFolderSelection: false,
       showFolderAlert: false,
       popupMessage: '',
-      likesInterval: null
+      likesInterval: null,
+      commentsInterval: null,
+      lastCommentUpdate: null
     };
   },
   components: {
@@ -222,16 +224,51 @@ export default {
       return gestionPinia.isRecipeLiked(this.recipe.id);
     },
   },
-  async created() {
-    this.setupAuthWatcher();
-    await this.checkAuthAndLoadData();
-  },
-  beforeUnmount() {
-    if (this.likesInterval) {
-      clearInterval(this.likesInterval);
-    }
-  },
+
   methods: {
+    async pollComments() {
+      try {
+        const response = await communicationManager.fetchComments(this.recipe.id);
+        
+        // Verificar si hay cambios en los comentarios
+        if (this.comments.length !== response.length || 
+            JSON.stringify(this.comments) !== JSON.stringify(response)) {
+          this.comments = response;
+          // Mostrar notificación si es un nuevo comentario (opcional)
+          if (this.comments.length > 0 && 
+              (!this.lastCommentUpdate || 
+               new Date(this.comments[0].updated_at) > new Date(this.lastCommentUpdate))) {
+            this.showPopup('Nuevo comentario disponible');
+          }
+          this.lastCommentUpdate = this.comments[0]?.updated_at;
+        }
+      } catch (error) {
+        console.error('Error al obtener comentarios:', error);
+      }
+    },
+    setupPolling() {
+      // Polling inicial
+      this.pollComments();
+      
+      // Configurar intervalo para polling cada 3 segundos
+      this.commentsInterval = setInterval(async () => {
+        await this.pollComments();
+      }, 3000);
+    },
+    
+    clearPolling() {
+      if (this.commentsInterval) {
+        clearInterval(this.commentsInterval);
+      }
+    },
+    
+
+    clearPolling() {
+      if (this.commentsInterval) {
+        clearInterval(this.commentsInterval);
+      }
+    },
+
     setupAuthWatcher() {
       this.$watch(
         () => this.authStore.token,
@@ -331,6 +368,16 @@ export default {
         console.error('Error fetching comments:', error);
       }
     },
+    async checkNotifications() {
+      try {
+        const response = await communicationManager.fetchNotifications(); // crea esta función en tu servicio
+        response.forEach((notif) => {
+          this.showPopup(notif.message);
+        });
+      } catch (error) {
+        console.error('Error al obtener notificaciones:', error);
+      }
+    },
 
     async saveToSavedRecipes() {
       const recipeId = this.recipe.id;
@@ -361,25 +408,38 @@ export default {
         this.isButtonDisabled = false;
       }
     },
-
     async addComment() {
-      if (!this.newComment.trim()) return;
+    if (!this.newComment.trim()) return;
 
-      try {
-        const user = await communicationManager.getUser();
-        await communicationManager.addComment(this.recipe.id, this.newComment);
+    try {
+      const user = await communicationManager.getUser();
+      const response = await communicationManager.addComment(this.recipe.id, this.newComment);
+      
+      // Actualizar lista de comentarios inmediatamente después de añadir uno nuevo
+      this.comments.unshift({
+        comment: this.newComment,
+        name: user.name,
+        updated_at: new Date().toISOString()
+      });
 
-        this.comments.push({
-          comment: this.newComment,
-          name: user.name,
-        });
+      // Enviar notificación
+      await communicationManager.createNotification({
+        user_id: this.recipe.user_id,
+        recipe_id: this.recipe.id,
+        type: 'comment',
+      });
 
-        this.newComment = '';
-        this.showPopup('Comentari afegit');
+      this.newComment = '';
+        this.showPopup('Comentario añadido');
+        
+        // Forzar actualización inmediata
+        await this.pollComments();
       } catch (error) {
-        console.error('Error en afegir el comentari:', error);
+        console.error('Error al añadir comentario:', error);
+        this.showPopup('Error al añadir comentario');
       }
-    },
+  },
+
 
     async toggleLike(recipeId) {
       try {
@@ -443,6 +503,27 @@ export default {
         console.error('Error al guardar la recepta a la carpeta:', error);
       }
     },
+  },
+  created() {
+    this.setupPolling();
+  },
+  beforeUnmount() {
+    this.clearPolling();
+  },
+  async created() {
+    this.setupPolling();
+    this.notificationsInterval = setInterval(this.checkNotifications, 10000); // cada 10s
+    this.setupAuthWatcher();
+    await this.checkAuthAndLoadData();
+  },
+  beforeUnmount() {
+    if (this.notificationsInterval) {
+      clearInterval(this.notificationsInterval);
+    }
+
+    if (this.likesInterval) {
+      clearInterval(this.likesInterval);
+    }
   },
   watch: {
     selectedFolderId(newFolderId) {

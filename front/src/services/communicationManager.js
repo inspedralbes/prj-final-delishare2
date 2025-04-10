@@ -124,7 +124,16 @@ const communicationManager = {
       throw error;
     }
   },
-
+  async fetchNotifications() {
+    try {
+      const response = await apiClient.get('/notifications');
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener notificaciones:', error);
+      throw error;
+    }
+  },
+   
   // Métodos nuevos para obtener categorías y cocinas
   getCategories() {
     return apiClient.get('/categories')
@@ -134,6 +143,36 @@ const communicationManager = {
         throw error;
       });
   },
+
+  async getUserNotifications() {
+  try {
+    const response = await apiClient.get('/notifications');
+    return response.data;
+  } catch (error) {
+    console.error('Error obteniendo notificaciones:', error);
+    throw error;
+  }
+},
+
+async markNotificationAsRead(id) {
+  try {
+    const response = await apiClient.put(`/notifications/${id}/read`);
+    return response.data;
+  } catch (error) {
+    console.error('Error marcando notificación como leída:', error);
+    throw error;
+  }
+},
+
+async createNotification(data) {
+  try {
+    const response = await apiClient.post('/notifications', data);
+    return response.data;
+  } catch (error) {
+    console.error('Error creando notificación:', error);
+    throw error;
+  }
+},
 
   // Filtrar recetas por categoría
   fetchRecipesByCategory(categoryId) {
@@ -240,7 +279,6 @@ fetchRecipesByIngredients(ingredients) {
 
   },
 
-
   fetchComments(recipeId) {
     return apiClient.get(`/recipes/${recipeId}/comments`)
       .then(response => response.data)
@@ -258,7 +296,6 @@ fetchRecipesByIngredients(ingredients) {
         throw error;
       });
   },
-
 
   // Agregar un comentario a una receta
   addComment(recipeId, commentText) {

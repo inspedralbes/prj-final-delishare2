@@ -18,7 +18,12 @@ const routes = [
     component: Chat,
      meta: { requiresAuth: false },
   },
-
+  {
+    path: '/notifications',
+    name: 'Notifications',
+    component: () => import('../views/NotificationsPage.vue'),
+    meta: { requiresAuth: true }
+  },
   {
     path: '/agregar',
     name: 'AgregarReceta',
