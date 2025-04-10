@@ -10,9 +10,15 @@ use App\Http\Controllers\FolderController;
 use App\Http\Controllers\InfoUserController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationController;
-
+use App\Http\Controllers\RecommendationController;
+Route::get('/recommendations', [RecommendationController::class, 'getCuisinesAndCategories']);
 Route::get('/user/{id}/recipes', [InfoUserController::class, 'showRecipes']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/recommendations/preferences', [RecommendationController::class, 'storePreferences']);
+    Route::get('/user/preferences', [RecommendationController::class, 'getPreferenceNames']);
+    Route::get('/recipes/recommended', [RecipeController::class, 'getRecommendedRecipes'])->middleware('auth:sanctum');
 
+});
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'getUserNotifications']);
     Route::post('/notifications', [NotificationController::class, 'createNotification']);

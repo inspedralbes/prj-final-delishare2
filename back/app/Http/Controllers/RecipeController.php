@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\RecipeUser;
 use App\Models\Notification;
 use App\Models\User;
+use App\Models\Recommendation;
 
 use App\Models\Recipe;
 
@@ -487,6 +488,66 @@ public function deleteComment(Request $request, $recipeId)
     return response()->json(['message' => 'Comentario eliminado correctamente']);
 }
 
+public function getRecommendedRecipes(Request $request)
+{
+    $user = $request->user();
 
+    $recommendation = Recommendation::where('user_id', $user->id)->first();
 
+    if (!$recommendation) {
+        // Si no hay preferencias, devolver recetas populares
+        $recipes = Recipe::with(['user', 'category', 'cuisine'])
+            ->orderBy('likes_count', 'desc')
+            ->limit(10)
+            ->get();
+            
+        return response()->json([
+            'success' => true,
+            'message' => 'Mostrando recetas populares (no tienes preferencias configuradas)',
+            'recipes' => $recipes
+        ]);
+    }
+
+    // Obtener los IDs de preferencias (ya deberían ser arrays)
+    $cuisineIds = is_array($recommendation->cuisine_ids) 
+        ? $recommendation->cuisine_ids 
+        : (json_decode($recommendation->cuisine_ids, true) ?? []);
+    
+    $categoryIds = is_array($recommendation->category_ids) 
+        ? $recommendation->category_ids 
+        : (json_decode($recommendation->category_ids, true) ?? []);
+
+    // Si no hay preferencias configuradas
+    if (empty($cuisineIds) && empty($categoryIds)) {
+        $recipes = Recipe::with(['user', 'category', 'cuisine'])
+            ->orderBy('likes_count', 'desc')
+            ->limit(10)
+            ->get();
+            
+        return response()->json([
+            'success' => true,
+            'message' => 'Mostrando recetas populares (preferencias vacías)',
+            'recipes' => $recipes
+        ]);
+    }
+
+    // Consulta para recetas que coincidan con las preferencias
+    $recipes = Recipe::with(['user', 'category', 'cuisine'])
+        ->where(function($query) use ($cuisineIds, $categoryIds) {
+            if (!empty($cuisineIds)) {
+                $query->whereIn('cuisine_id', $cuisineIds);
+            }
+            if (!empty($categoryIds)) {
+                $query->orWhereIn('category_id', $categoryIds);
+            }
+        })
+        ->orderBy('likes_count', 'desc')
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Recetas recomendadas según tus preferencias',
+        'recipes' => $recipes
+    ]);
+}
 }

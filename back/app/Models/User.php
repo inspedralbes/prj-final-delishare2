@@ -37,5 +37,9 @@ public function folders()
 {
     return $this->hasMany(Folder::class);
 }
+public function recommendations()
+{
+    return $this->hasMany(Recommendation::class);
+}
 
 }
