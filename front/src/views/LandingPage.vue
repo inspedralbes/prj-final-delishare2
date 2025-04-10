@@ -3,8 +3,11 @@
     <header class="header">
       <img src="@/assets/images/delishare.png" alt="Logotip de DeliShare" class="header-logo" />
     </header>
+    <router-link to="/notifications">Ver Notificaciones</router-link>
 
-    <!-- Carrusel d'imatges -->
+    <div v-if="popupMessage" class="popup-notification">
+      {{ popupMessage }}
+    </div> <!-- Carrusel d'imatges -->
     <div class="carousel">
       <img :src="carouselImages[currentImage]" alt="Imatge del carrusel" class="carousel-image" />
     </div>
@@ -19,14 +22,9 @@
         <h2>Més populars</h2>
         <div class="carousel-container">
           <div class="recipe-carousel">
-            <RecipeCard
-              v-for="(recipe, index) in displayedLikeRecipes"
-              :key="index"
-              :recipe-id="recipe.id"
-              :title="recipe.title"
-              :description="recipe.description || 'Sense descripció disponible'" 
-              :image="recipe.image"
-            />
+            <RecipeCard v-for="(recipe, index) in displayedLikeRecipes" :key="index" :recipe-id="recipe.id"
+              :title="recipe.title" :description="recipe.description || 'Sense descripció disponible'"
+              :image="recipe.image" />
           </div>
         </div>
       </section>
@@ -37,14 +35,9 @@
         <h2>Més recents</h2>
         <div class="carousel-container">
           <div class="recipe-carousel">
-            <RecipeCard
-              v-for="(recipe, index) in displayedRecentRecipes"
-              :key="index"
-              :recipe-id="recipe.id"
-              :title="recipe.title"
-              :description="recipe.description || 'Sense descripció disponible'" 
-              :image="recipe.image"
-            />
+            <RecipeCard v-for="(recipe, index) in displayedRecentRecipes" :key="index" :recipe-id="recipe.id"
+              :title="recipe.title" :description="recipe.description || 'Sense descripció disponible'"
+              :image="recipe.image" />
           </div>
         </div>
       </section>
@@ -121,7 +114,7 @@ export default {
 
 <style scoped>
 * {
-  font-family:'Times New Roman', Times, serif;
+  font-family: 'Times New Roman', Times, serif;
 }
 
 .page-container {
@@ -220,7 +213,7 @@ export default {
     display: flex;
     justify-content: center;
   }
-  
+
   .toggle-buttons button {
     font-size: 18px;
     padding: 15px 25px;
@@ -234,14 +227,14 @@ export default {
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
   }
-  
+
   .carousel-image {
     width: 100%;
     max-height: 200px;
     object-fit: cover;
     border-radius: 10px;
   }
-  
+
   .carousel {
     width: 100%;
     height: 250px;

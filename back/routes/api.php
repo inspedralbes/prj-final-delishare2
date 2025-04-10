@@ -9,10 +9,15 @@ use App\Http\Controllers\SavedRecipeController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\InfoUserController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\NotificationController;
 
 Route::get('/user/{id}/recipes', [InfoUserController::class, 'showRecipes']);
 
-
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'getUserNotifications']);
+    Route::post('/notifications', [NotificationController::class, 'createNotification']);
+    Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+});
 // Usuarios
 Route::get('userInfo/{id}', [InfoUserController::class, 'show']);
 Route::get('user/{id}', [UserController::class, 'show']);
