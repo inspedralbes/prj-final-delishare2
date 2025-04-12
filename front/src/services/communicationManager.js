@@ -6,7 +6,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, 
+  withCredentials: true,
 });
 apiClient.interceptors.request.use(
   (config) => {
@@ -63,7 +63,7 @@ const communicationManager = {
   createRecipe(recipeData) {
     return apiClient.post('/recipes', {
       ...recipeData,
-      user_id: localStorage.getItem('user_id') 
+      user_id: localStorage.getItem('user_id')
     })
       .then(response => response.data)
       .catch(error => {
@@ -133,7 +133,7 @@ const communicationManager = {
       throw error;
     }
   },
-   
+
   // Métodos nuevos para obtener categorías y cocinas
   getCategories() {
     return apiClient.get('/categories')
@@ -145,34 +145,34 @@ const communicationManager = {
   },
 
   async getUserNotifications() {
-  try {
-    const response = await apiClient.get('/notifications');
-    return response.data;
-  } catch (error) {
-    console.error('Error obteniendo notificaciones:', error);
-    throw error;
-  }
-},
+    try {
+      const response = await apiClient.get('/notifications');
+      return response.data;
+    } catch (error) {
+      console.error('Error obteniendo notificaciones:', error);
+      throw error;
+    }
+  },
 
-async markNotificationAsRead(id) {
-  try {
-    const response = await apiClient.put(`/notifications/${id}/read`);
-    return response.data;
-  } catch (error) {
-    console.error('Error marcando notificación como leída:', error);
-    throw error;
-  }
-},
+  async markNotificationAsRead(id) {
+    try {
+      const response = await apiClient.put(`/notifications/${id}/read`);
+      return response.data;
+    } catch (error) {
+      console.error('Error marcando notificación como leída:', error);
+      throw error;
+    }
+  },
 
-async createNotification(data) {
-  try {
-    const response = await apiClient.post('/notifications', data);
-    return response.data;
-  } catch (error) {
-    console.error('Error creando notificación:', error);
-    throw error;
-  }
-},
+  async createNotification(data) {
+    try {
+      const response = await apiClient.post('/notifications', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error creando notificación:', error);
+      throw error;
+    }
+  },
 
   // Filtrar recetas por categoría
   fetchRecipesByCategory(categoryId) {
@@ -200,15 +200,15 @@ async createNotification(data) {
         console.error('Error fetching ingredients:', error);
         throw error;
       });
-},
-fetchRecipesByIngredients(ingredients) {
-  return apiClient.post('/recipes/filter-by-ingredients', { ingredients })
-    .then(response => response.data)
-    .catch(error => {
-      console.error('Error fetching recipes by ingredients:', error);
-      throw error;
-    });
-},
+  },
+  fetchRecipesByIngredients(ingredients) {
+    return apiClient.post('/recipes/filter-by-ingredients', { ingredients })
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching recipes by ingredients:', error);
+        throw error;
+      });
+  },
 
 
   // Obtener recetas filtradas por el ID de la cocina
@@ -307,17 +307,17 @@ fetchRecipesByIngredients(ingredients) {
       });
   },
   createFolder(folderName) {
-    return apiClient.post('/folders', { name: folderName }) 
+    return apiClient.post('/folders', { name: folderName })
       .then(response => response.data)
       .catch(error => {
-        console.error('Error creando carpeta:', error.response ? error.response.data : error.message); 
+        console.error('Error creando carpeta:', error.response ? error.response.data : error.message);
         throw error;
       });
   },
   // Obtener las recetas de una carpeta
   fetchFolderRecipes(folderId) {
     return apiClient.get(`/folders/${folderId}/recipes`)
-      .then(response => response.data.recipes) 
+      .then(response => response.data.recipes)
       .catch(error => {
         console.error('Error fetching folder recipes:', error);
         throw error;
@@ -401,29 +401,29 @@ fetchRecipesByIngredients(ingredients) {
   },
   toggleLike(recipeId) {
     return apiClient.post(`/recipes/${recipeId}/like`)
-        .then(response => response.data)
-        .catch(error => {
-            console.error('Error toggling like:', error);
-            throw error;
-        });
-},
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error toggling like:', error);
+        throw error;
+      });
+  },
 
-getLikes(recipeId) {
+  getLikes(recipeId) {
     return apiClient.get(`/recipes/${recipeId}/likes`)
-        .then(response => response.data)
-        .catch(error => {
-            console.error('Error getting likes:', error);
-            throw error;
-        });
-},
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error getting likes:', error);
+        throw error;
+      });
+  },
   logout() {
-    const authStore = useAuthStore(); 
+    const authStore = useAuthStore();
     try {
       return apiClient.post('/logout')
         .then(() => {
           authStore.clearAuth();
           localStorage.removeItem('token');
-          window.location.href = '/login'; 
+          window.location.href = '/login';
         })
         .catch(error => {
           console.error('Error al cerrar sesión:', error);
@@ -431,7 +431,48 @@ getLikes(recipeId) {
     } catch (error) {
       console.error('Error al intentar cerrar sesión:', error);
     }
-  }
-}  
+  },
+  fetchCuisinesAndCategories() {
+    return apiClient.get('/recommendations/options')
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching options:', error);
+        throw error;
+      });
+  },
+
+  fetchUserPreferences() {
+    return apiClient.get('/recommendations/preferences')
+      .then(response => response.data)
+      .catch(error => {
+        if (error.response && error.response.status === 404) {
+          return { data: null }; // No hay preferencias guardadas
+        }
+        console.error('Error fetching preferences:', error);
+        throw error;
+      });
+  },
+
+  savePreferences(data) {
+    return apiClient.post('/recommendations/preferences', data)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error saving preferences:', error);
+        throw error;
+      });
+  },
+
+  getRecommendedRecipes() {
+    return apiClient.get('/recipes/recommended')
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching recommended recipes:', error);
+        throw error;
+      });
+  },
+
+
+
+}
 
 export default communicationManager;

@@ -7,22 +7,25 @@
 
     <div v-if="popupMessage" class="popup-notification">
       {{ popupMessage }}
-    </div> <!-- Carrusel d'imatges -->
+    </div>
+
+    <!-- Carrusel d'imatges -->
     <div class="carousel">
       <img :src="carouselImages[currentImage]" alt="Imatge del carrusel" class="carousel-image" />
     </div>
 
     <div class="toggle-buttons">
-      <button :class="{ active: showLikes }" @click="showLikesRecipes">Més populars</button>
-      <button :class="{ active: !showLikes }" @click="showRecentRecipes">Més recents</button>
+      <button :class="{ active: activeTab === 'popular' }" @click="showPopularRecipes">Més populars</button>
+      <button :class="{ active: activeTab === 'recent' }" @click="showRecentRecipes">Més recents</button>
+      <button :class="{ active: activeTab === 'recommended' }" @click="showRecommendedRecipes">Per a tu</button>
     </div>
 
-    <div v-if="showLikes" class="likes">
+    <div v-if="activeTab === 'popular'" class="popular">
       <section class="recent-recipes">
         <h2>Més populars</h2>
         <div class="carousel-container">
           <div class="recipe-carousel">
-            <RecipeCard v-for="(recipe, index) in displayedLikeRecipes" :key="index" :recipe-id="recipe.id"
+            <RecipeCard v-for="(recipe, index) in displayedPopularRecipes" :key="index" :recipe-id="recipe.id"
               :title="recipe.title" :description="recipe.description || 'Sense descripció disponible'"
               :image="recipe.image" />
           </div>
@@ -30,7 +33,7 @@
       </section>
     </div>
 
-    <div v-else class="recents">
+    <div v-else-if="activeTab === 'recent'" class="recents">
       <section class="recent-recipes">
         <h2>Més recents</h2>
         <div class="carousel-container">
@@ -39,6 +42,25 @@
               :title="recipe.title" :description="recipe.description || 'Sense descripció disponible'"
               :image="recipe.image" />
           </div>
+        </div>
+      </section>
+    </div>
+
+    <div v-else class="recommended">
+      <section class="recent-recipes">
+        <h2>Recomanades per a tu</h2>
+        <div v-if="recommendedRecipes.length > 0" class="carousel-container">
+          <div class="recipe-carousel">
+            <RecipeCard v-for="(recipe, index) in recommendedRecipes" :key="'rec-'+index" :recipe-id="recipe.id"
+              :title="recipe.title" :description="recipe.description || 'Sense descripció disponible'"
+              :image="recipe.image" />
+          </div>
+        </div>
+        <div v-else class="no-recommendations">
+          <p>No tens recomanacions personalitzades encara.</p>
+          <router-link to="/preferences" class="preferences-link">
+            Configura les teves preferències
+          </router-link>
         </div>
       </section>
     </div>
@@ -57,11 +79,12 @@ export default {
   data() {
     return {
       recipes: [],
-      sortedLikeRecipes: [],
+      recommendedRecipes: [],
+      sortedPopularRecipes: [],
       sortedRecentRecipes: [],
-      displayedLikeRecipes: [],
+      displayedPopularRecipes: [],
       displayedRecentRecipes: [],
-      showLikes: true,
+      activeTab: 'popular',
       carouselImages: [
         new URL('@/assets/images/carrusel/image1.jpg', import.meta.url).href,
         new URL('@/assets/images/carrusel/image2.jpg', import.meta.url).href,
@@ -70,11 +93,12 @@ export default {
         new URL('@/assets/images/carrusel/image5.jpg', import.meta.url).href
       ],
       currentImage: 0,
+      popupMessage: ''
     };
   },
   created() {
     this.startCarousel();
-    this.fetchRecipes();
+    this.fetchAllRecipes();
   },
   methods: {
     startCarousel() {
@@ -82,31 +106,42 @@ export default {
         this.currentImage = (this.currentImage + 1) % this.carouselImages.length;
       }, 3000);
     },
-    async fetchRecipes() {
+    async fetchAllRecipes() {
       try {
         const data = await communicationManager.fetchRecipes();
         this.recipes = data;
-        this.sortedLikeRecipes = this.recipes.sort((a, b) => b.likes_count - a.likes_count);
+        this.sortedPopularRecipes = [...this.recipes].sort((a, b) => b.likes_count - a.likes_count);
         this.sortedRecentRecipes = [...this.recipes].sort(
           (a, b) => new Date(b.created_at) - new Date(a.created_at)
         );
-        this.updateDisplayedLikeRecipes();
-        this.updateDisplayedRecentRecipes();
+        this.displayedPopularRecipes = this.sortedPopularRecipes;
+        this.displayedRecentRecipes = this.sortedRecentRecipes;
       } catch (error) {
         console.error('Error fetching recipes:', error);
+        this.popupMessage = 'Error al cargar las recetas';
       }
     },
-    showLikesRecipes() {
-      this.showLikes = true;
+    async fetchRecommendedRecipes() {
+      try {
+        const response = await communicationManager.getRecommendedRecipes();
+        this.recommendedRecipes = response.recipes || [];
+      } catch (error) {
+        console.error('Error fetching recommended recipes:', error);
+        this.popupMessage = 'Error al cargar recomendaciones';
+        this.recommendedRecipes = [];
+      }
+    },
+    showPopularRecipes() {
+      this.activeTab = 'popular';
     },
     showRecentRecipes() {
-      this.showLikes = false;
+      this.activeTab = 'recent';
     },
-    updateDisplayedLikeRecipes() {
-      this.displayedLikeRecipes = this.sortedLikeRecipes;
-    },
-    updateDisplayedRecentRecipes() {
-      this.displayedRecentRecipes = this.sortedRecentRecipes;
+    async showRecommendedRecipes() {
+      this.activeTab = 'recommended';
+      if (this.recommendedRecipes.length === 0) {
+        await this.fetchRecommendedRecipes();
+      }
     }
   }
 };
@@ -128,17 +163,21 @@ export default {
   height: auto;
 }
 
-.carousel-placeholder {
+.carousel-image {
   width: 100%;
-  height: 150px;
-  background-color: #e6ebec;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.carousel {
+  width: 100%;
+  height: 250px;
   display: flex;
-  align-items: center;
   justify-content: center;
-  margin-bottom: 15px;
-  border-radius: 8px;
-  color: white;
-  font-weight: bold;
+  align-items: center;
+  overflow: hidden;
+  margin-bottom: 20px;
 }
 
 .toggle-buttons {
@@ -146,6 +185,8 @@ export default {
   justify-content: center;
   margin-top: 20px;
   margin-bottom: 20px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .toggle-buttons button {
@@ -153,16 +194,17 @@ export default {
   color: white;
   border: none;
   padding: 10px 15px;
-  margin: 0 5px;
   cursor: pointer;
   border-radius: 8px;
   font-size: 14px;
   font-weight: bold;
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
+  min-width: 120px;
 }
 
 .toggle-buttons button.active {
-  background: #0c0636;
+  background: #322b5f;
+  transform: scale(1.05);
 }
 
 .toggle-buttons button:hover {
@@ -182,6 +224,48 @@ export default {
   margin-bottom: 40px;
 }
 
+.no-recommendations {
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin: 20px auto;
+  max-width: 500px;
+}
+
+.preferences-link {
+  display: inline-block;
+  margin-top: 15px;
+  padding: 8px 16px;
+  background-color: #0c0636;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.preferences-link:hover {
+  background-color: #322b5f;
+}
+
+.popup-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background-color: #f8d7da;
+  color: #721c24;
+  border-radius: 5px;
+  z-index: 1000;
+  animation: fadeInOut 3s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 @media (min-width: 600px) {
   .header-logo {
     width: 250px;
@@ -190,7 +274,6 @@ export default {
   .toggle-buttons button {
     font-size: 16px;
     padding: 12px 20px;
-    margin: 0 8px;
   }
 
   .recipe-carousel {
@@ -210,13 +293,13 @@ export default {
   }
 
   .toggle-buttons {
-    display: flex;
-    justify-content: center;
+    gap: 15px;
   }
 
   .toggle-buttons button {
     font-size: 18px;
     padding: 15px 25px;
+    min-width: 150px;
   }
 
   .carousel-container {
@@ -226,22 +309,6 @@ export default {
   .recipe-carousel {
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
-  }
-
-  .carousel-image {
-    width: 100%;
-    max-height: 200px;
-    object-fit: cover;
-    border-radius: 10px;
-  }
-
-  .carousel {
-    width: 100%;
-    height: 250px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
   }
 }
 </style>

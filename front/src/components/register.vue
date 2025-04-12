@@ -19,7 +19,7 @@ const handleRegister = async () => {
     const response = await communicationManager.register(form.value);
     console.log("Registre realitzat correctament:", response);
     authStore.setAuth(response.token, response.user); 
-    router.push('/');
+    router.push('/Formulario');
   } catch (error) {
     if (error.response) {
       console.error("Error en el registre:", error.response.data.message || 'Error desconocido');
