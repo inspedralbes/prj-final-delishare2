@@ -550,4 +550,37 @@ public function getRecommendedRecipes(Request $request)
         'recipes' => $recipes
     ]);
 }
+
+public function getUserLikedRecipes(Request $request)
+{
+    if (!$request->user()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Debes iniciar sesión para ver tus likes'
+        ], 401);
+    }
+
+    try {
+        $likedRecipeIds = DB::table('recipe_user')
+            ->where('user_id', $request->user()->id)
+            ->where('liked', true)
+            ->pluck('recipe_id');
+
+        $likedRecipes = Recipe::with(['user', 'category', 'cuisine'])
+            ->whereIn('id', $likedRecipeIds)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'count' => $likedRecipes->count(),
+            'recipes' => $likedRecipes
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener las recetas likeadas: ' . $e->getMessage()
+        ], 500);
+    }
+}
 }

@@ -25,6 +25,7 @@
           <button @click="setActiveTab('image')">Canviar imatge de perfil</button>
           <button @click="setActiveTab('name')">Canviar nom d'usuari i email</button>
           <button @click="setActiveTab('password')">Canviar contrasenya</button>
+          <button @click="setActiveTab('liked')">Veure receptes que m'agraden</button>
           <button @click="confirmLogout('logOut')">Tancar sessió</button>
 
         </div>
@@ -88,6 +89,30 @@
         <button @click="updatePassword" class="submit-btn">Guardar canvis</button>
         <button @click="cancelEdit" class="cancel-btn">Cancelar</button>
       </div>
+ <!-- Sección de recetas likeadas -->
+<div v-if="activeTab === 'liked'" class="user-recipes liked-section">
+  <h3 class="section-title">🍽️ Receptes que m'agraden</h3>
+
+  <div v-if="likedRecipes.length === 0" class="no-liked-recipes">
+    <p>No has donat like a cap recepta encara.</p>
+  </div>
+
+  <div v-else class="recipe-cards">
+    <div v-for="recipe in likedRecipes" :key="recipe.id" class="liked-recipe-card">
+      <RecipeCard
+        :recipe-id="recipe.id"
+        :title="recipe.title"
+        :description="recipe.description"
+        :image="recipe.image"
+      />
+    </div>
+  </div>
+
+  <div class="button-container">
+    <button @click="cancelEdit" class="cancel-btn">🔙 Tornar</button>
+  </div>
+</div>
+
 
       <!-- Sección de recetas -->
       <div v-if="showRecipes" class="user-recipes">
@@ -133,10 +158,9 @@ export default {
     const cloudName = 'dt5vjbgab';
     const uploadPreset = 'perfiles';
     const userImage = ref('/default-avatar.png');
-
+    const likedRecipes = ref([]);
     const authStore = useAuthStore();
     const router = useRouter();
-
     const user = ref({ name: '', email: '', img: '/default-avatar.png' });
     const recipes = ref([]);
     const settingsMenuOpen = ref(false);
@@ -161,7 +185,7 @@ export default {
       });
     };
 
-     onMounted ( async () => {
+    onMounted(async () => {
       try {
         const userData = await communicationManager.getUser();
         user.value = userData;
@@ -186,6 +210,16 @@ export default {
         setTimeout(() => { popupMessage.value = ''; }, 3000);
       }
     };
+    
+const loadLikedRecipes = async () => {
+  try {
+    const response = await communicationManager.getUserLikedRecipes();
+    likedRecipes.value = response.recipes;
+  } catch (error) {
+    popupMessage.value = error.message || "No s'han pogut carregar les receptes likeades";
+    setTimeout(() => { popupMessage.value = ''; }, 3000);
+  }
+};
 
     const uploadImage = async (event) => {
       const file = event.target.files[0];
@@ -221,11 +255,14 @@ export default {
     const toggleSettingsMenu = () => {
       settingsMenuOpen.value = !settingsMenuOpen.value;
     };
-
     const setActiveTab = (tab) => {
-      activeTab.value = tab;
-      showRecipes.value = false;
-    };
+  activeTab.value = tab;
+  showRecipes.value = false;
+
+  if (tab === 'liked') {
+    loadLikedRecipes();
+  }
+};
 
     const togglePasswordVisibility = (field) => {
       if (field === 'current') {
@@ -349,7 +386,9 @@ export default {
       cancelLogout,
       togglePasswordVisibility,
       deleteRecipe,
-      uploadImage
+      uploadImage,
+      likedRecipes,
+loadLikedRecipes
     };
   }
 };
@@ -419,6 +458,34 @@ export default {
 .profile-header h2,
 .profile-header p {
   margin: 10px 0;
+}
+.liked-section {
+  margin-top: 60px;
+}
+
+.section-title {
+  font-size: 1.6rem;
+  color: #030127;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.no-liked-recipes {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #666;
+  padding: 30px 0;
+}
+
+.liked-recipe-card {
+  width: 100%;
+  max-width: 350px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
 }
 
 .recipe-cards {

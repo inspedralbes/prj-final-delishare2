@@ -17,7 +17,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/preferences', [RecommendationController::class, 'getPreferenceNames']);
     Route::get('/recipes/recommended', [RecipeController::class, 'getRecommendedRecipes'])->middleware('auth:sanctum');
     Route::get('/recommendations/options', [RecommendationController::class, 'getCuisinesAndCategories']);
-
+    Route::get('/user/liked-recipes', [RecipeController::class, 'getUserLikedRecipes']);
 
 });
 Route::middleware('auth:sanctum')->group(function () {

@@ -407,7 +407,22 @@ const communicationManager = {
         throw error;
       });
   },
-
+// Añade esto en tu objeto communicationManager
+getUserLikedRecipes: async () => {
+  try {
+    const response = await apiClient.get('/user/liked-recipes');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching liked recipes:', error.response?.data?.message || error.message);
+    
+    // Manejo específico para errores de autenticación
+    if (error.response?.status === 401) {
+      throw new Error('Debes iniciar sesión para ver tus recetas likeadas');
+    }
+    
+    throw error;
+  }
+},
   getLikes(recipeId) {
     return apiClient.get(`/recipes/${recipeId}/likes`)
       .then(response => response.data)
