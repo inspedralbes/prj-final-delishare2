@@ -1,118 +1,129 @@
 <template>
-  
-  <!-- Mostrar contenido si está autenticado -->
-  <div v-if="isAuthenticated">
-
-  <!-- Popup de notificación -->
+  <!-- Popup de notificación personalizado -->
   <div v-if="popupMessage" class="popup-notification">
     {{ popupMessage }}
   </div>
 
-    <div class="guardades-container">
-      <!-- Botones de navegación -->
-      <div class="tabs">
-        <button :class="{ active: activeTab === 'guardades' }" @click="activeTab = 'guardades'">
-          Guardades
-        </button>
-        <button :class="{ active: activeTab === 'carpetes' }" @click="activeTab = 'carpetes'">
-          Les meves carpetes
-        </button>
-      </div>
+  <div class="guardades-container">
+    
+    <!-- Botones de navegación -->
+    <div class="tabs">
+      <button :class="{ active: activeTab === 'guardades' }" @click="activeTab = 'guardades'">
+        Guardades
+      </button>
+      <button :class="{ active: activeTab === 'carpetes' }" @click="activeTab = 'carpetes'">
+        Les meves carpetes
+      </button>
+    </div>
 
-      <!-- Sección de receptes guardades -->
-      <div v-if="activeTab === 'guardades'" class="guardades">
-        <h1 class="title">Receptes guardades</h1>
-        <div v-if="loadingGuardades" class="loading">Carregant...</div>
-        <div v-else>
-          <ul class="recipe-list">
-            <li v-for="recipe in savedRecipes" :key="recipe.id" class="recipe-item">
-              <RecipeCard :recipeId="recipe.id" :title="recipe.title" :image="recipe.image"
-                :description="recipe.description" />
-              <button @click="removeSavedRecipe(recipe.id)" class="delete-btn">
-                <img :src="binIcon" alt="Eliminar" class="delete-icon" />
-              </button>
-            </li>
-          </ul>
-          <p v-if="savedRecipes.length === 0" class="no-recipes">
-            No tens receptes guardades.
-          </p>
-        </div>
-      </div>
 
-      <!-- Sección de carpetes -->
-      <div v-if="activeTab === 'carpetes'" class="carpetes">
-        <h1 class="title">Les meves carpetes</h1>
-
-        <div v-if="selectedFolder">
-          <button @click="goBackFromFolder" class="back-btn">← Tornar enrere</button>
-          <h3 class="title">Receptes a la carpeta "{{ selectedFolder.name }}"</h3>
-          <ul class="recipe-list" v-if="selectedFolderRecipes.length > 0">
-            <li v-for="recipe in selectedFolderRecipes" :key="recipe.id" class="recipe-item">
-              <RecipeCard :recipeId="recipe.id" :title="recipe.title" :image="recipe.image"
-                :description="recipe.description" />
-              <button @click="removeRecipeFromFolder(recipe.id, selectedFolder.id)" class="delete-btn">
-                <img :src="binIcon" alt="Eliminar" class="delete-icon" />
-              </button>
-            </li>
-          </ul>
-          <p v-else class="no-recipes">
-            No hi ha receptes en aquesta carpeta.
-          </p>
-        </div>
-
-        <div v-else>
-          <button v-if="!showCreateFolderInput" @click="showCreateFolderInput = true" class="create-folder-btn">
-            Crear carpeta
+    <!-- Sección de receptes guardades -->
+    <div v-if="activeTab === 'guardades'" class="guardades">
+      <h1 class="title">Receptes guardades</h1>
+      <div v-if="loadingGuardades" class="loading">Carregant...</div>
+      <div v-else>
+        <ul class="recipe-list">
+          <li v-for="recipe in savedRecipes" :key="recipe.id" class="recipe-item">
+            <RecipeCard
+              :recipeId="recipe.id"
+              :title="recipe.title"
+              :image="recipe.image"
+              :description="recipe.description"
+            />
+            <!-- <button @click="removeSavedRecipe(recipe.id)" class="remove-btn">
+              Elimina
+            </button> -->
+            <button @click="removeSavedRecipe(recipe.id)" class="delete-btn">
+            <img :src="binIcon" alt="Eliminar" class="delete-icon" />
           </button>
-          <div v-if="showCreateFolderInput" class="create-folder-input">
-            <input type="text" v-model="newFolderName" placeholder="Nom de la carpeta" />
-            <div class="button-group">
-              <button @click="createFolder" class="create-folder-btn">Guardar</button>
-              <button @click="showCreateFolderInput = false" class="cancel-folder-btn">Cancelar</button>
-            </div>
-          </div>
+          </li>
+        </ul>
+        <p v-if="savedRecipes.length === 0" class="no-recipes">
+          No tens receptes guardades.
+        </p>
+      </div>
+    </div>
 
-          <div v-if="folders.length > 0" class="folders">
-            <div class="folder-card" v-for="folder in folders" :key="folder.id" @click="fetchFolderRecipes(folder.id)">
-              <div class="folder-image-container">
-                <img src="@/assets/images/folder2.png" alt="Folder" class="folder-icon" />
-                <div class="folder-overlay">
-                  <span class="folder-name">{{ folder.name }}</span>
-                  <button @click.stop="deleteFolder(folder.id)" class="delete-folder-btn">
-                    <img src="@/assets/images/bin.svg" alt="Delete" />
-                  </button>
-                </div>
+    <!-- Sección de carpetes -->
+    <div v-if="activeTab === 'carpetes'" class="carpetes">
+      <h1 class="title">Les meves carpetes</h1>
+
+      <!-- Vista de carpeta única -->
+      <div v-if="selectedFolder">
+        <button @click="goBackFromFolder" class="back-btn">← Tornar enrere</button>
+        <h3 class="title">Receptes a la carpeta "{{ selectedFolder.name }}"</h3>
+        <ul class="recipe-list" v-if="selectedFolderRecipes.length > 0">
+          <li v-for="recipe in selectedFolderRecipes" :key="recipe.id" class="recipe-item">
+            <RecipeCard
+              :recipeId="recipe.id"
+              :title="recipe.title"
+              :image="recipe.image"
+              :description="recipe.description"
+            />
+           
+            <button @click="removeRecipeFromFolder(recipe.id, selectedFolder.id)" class="delete-btn">
+            <img :src="binIcon" alt="Eliminar" class="delete-icon" />
+          </button>
+          </li>
+        </ul>
+        <p v-else class="no-recipes">
+          No hi ha receptes en aquesta carpeta.
+        </p>
+      </div>
+
+      <div v-else>
+        <div>
+  <button v-if="!showCreateFolderInput" @click="showCreateFolderInput = true" class="create-folder-btn">
+    Crear carpeta
+  </button>
+  <div v-if="showCreateFolderInput" class="create-folder-input" style="max-width: 250px; margin: 0 auto;">
+    <input type="text" v-model="newFolderName" placeholder="Nom de la carpeta" style="max-width: 150px;"/>
+    <div class="button-group">
+      <button @click="createFolder" class="create-folder-btn">Guardar</button>
+      <button @click="showCreateFolderInput = false" class="cancel-folder-btn">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+
+
+        <div v-if="folders.length > 0" class="folders">
+          <div
+            class="folder-card"
+            v-for="folder in folders"
+            :key="folder.id"
+            @click="fetchFolderRecipes(folder.id)"
+          >
+            <div class="folder-image-container">
+              <img src="@/assets/images/folder2.png" alt="Folder" class="folder-icon" />
+              <div class="folder-overlay">
+                <span class="folder-name">{{ folder.name }}</span>
+                <button @click.stop="deleteFolder(folder.id)" class="delete-folder-btn">
+                  <img src="@/assets/images/bin.svg" alt="Delete" />
+                </button>
               </div>
             </div>
           </div>
-          <p v-if="folders.length === 0" class="no-folders">No tens cap carpeta.</p>
         </div>
+        <p v-if="folders.length === 0" class="no-folders">
+          No tens cap carpeta.
+        </p>
       </div>
-    </div>
-  </div>
-
-  <!-- Mostrar mensaje si no está autenticado -->
-  <div v-else class="auth-required-container">
-    <div class="auth-required-message">
-      <p>Per crear una recepta, has d'iniciar sessió</p>
-      <button @click="goToLogin" class="login-button">Iniciar Sessió</button>
     </div>
   </div>
 </template>
 
 <script>
 import communicationManager from '@/services/communicationManager';
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/authStore'; // Importa el store de autenticación
+import { ref, onMounted } from 'vue';
 import RecipeCard from '@/components/RecipeCard.vue';
 import binIcon from '@/assets/images/bin.svg';
 
 export default {
-  components: { RecipeCard },
+  components: {
+    RecipeCard
+  },
   setup() {
-    const router = useRouter();
-    const authStore = useAuthStore(); // Acceder al store de autenticación
     const activeTab = ref('guardades');
     const loadingGuardades = ref(true);
     const savedRecipes = ref([]);
@@ -123,19 +134,11 @@ export default {
     const newFolderName = ref('');
     const popupMessage = ref('');
 
-    // Computed para verificar autenticación sin redirigir
-    const isAuthenticated = computed(() => authStore.isAuthenticated);
-
     const showPopup = (message) => {
       popupMessage.value = message;
-      setTimeout(() => { popupMessage.value = ''; }, 3000);
-    };
-
-    const goToLogin = () => {
-      router.push({ 
-        name: 'login', 
-        query: { redirect: router.currentRoute.value.fullPath } 
-      });
+      setTimeout(() => {
+        popupMessage.value = '';
+      }, 3000);
     };
 
     const fetchSavedRecipes = async () => {
@@ -144,7 +147,7 @@ export default {
         const response = await communicationManager.getSavedRecipes();
         savedRecipes.value = response;
       } catch (error) {
-        console.error('Error al obtener receptes guardades:', error);
+        console.error('Error al obtenir receptes guardades:', error);
       } finally {
         loadingGuardades.value = false;
       }
@@ -155,23 +158,77 @@ export default {
         await communicationManager.toggleSaveRecipe(recipeId);
         savedRecipes.value = savedRecipes.value.filter(r => r.id !== recipeId);
       } catch (error) {
-        console.error('Error eliminando la recepta:', error);
+        console.error('Error en eliminar la recepta:', error);
       }
     };
 
     const fetchUserFolders = async () => {
       try {
-        folders.value = await communicationManager.fetchUserFolders();
+        const userFolders = await communicationManager.fetchUserFolders();
+        folders.value = userFolders;
       } catch (error) {
         console.error('Error carregant carpetes', error);
       }
     };
 
-    onMounted(() => {
-      if (isAuthenticated.value) {
-        fetchSavedRecipes();
-        fetchUserFolders();
+    const fetchFolderRecipes = async (folderId) => {
+      try {
+        const recipesFromFolder = await communicationManager.fetchFolderRecipes(folderId);
+        selectedFolderRecipes.value = recipesFromFolder;
+        selectedFolder.value = folders.value.find(folder => folder.id === folderId);
+      } catch (error) {
+        console.error('Error obtenint receptes de la carpeta', error);
       }
+    };
+
+    const createFolder = async () => {
+      if (newFolderName.value.trim() === '') return;
+      try {
+        await communicationManager.createFolder(newFolderName.value);
+        showPopup('La carpeta s\'ha creat correctament');
+        showCreateFolderInput.value = false;
+        newFolderName.value = '';
+        await fetchUserFolders();
+      } catch (error) {
+        console.error('Error creant la carpeta', error);
+        showPopup('Error creant la carpeta');
+      }
+    };
+
+    const deleteFolder = async (folderId) => {
+      try {
+        await communicationManager.deleteFolder(folderId);
+        showPopup('La carpeta s\'ha eliminat correctament');
+        await fetchUserFolders();
+        if (selectedFolder.value && selectedFolder.value.id === folderId) {
+          selectedFolder.value = null;
+          selectedFolderRecipes.value = [];
+        }
+      } catch (error) {
+        console.error('Error eliminant la carpeta', error);
+        showPopup('Error en eliminar la carpeta');
+      }
+    };
+
+    const removeRecipeFromFolder = async (recipeId, folderId) => {
+      try {
+        await communicationManager.removeRecipeFromFolder(recipeId, folderId);
+        selectedFolderRecipes.value = selectedFolderRecipes.value.filter(
+          recipe => recipe.id !== recipeId
+        );
+      } catch (error) {
+        console.error('Error eliminant la recepta de la carpeta', error);
+      }
+    };
+
+    const goBackFromFolder = () => {
+      selectedFolder.value = null;
+      selectedFolderRecipes.value = [];
+    };
+
+    onMounted(() => {
+      fetchSavedRecipes();
+      fetchUserFolders();
     });
 
     return {
@@ -185,19 +242,20 @@ export default {
       showCreateFolderInput,
       newFolderName,
       popupMessage,
-      isAuthenticated,
-      fetchUserFolders,
-      goToLogin,
-      binIcon
+      fetchFolderRecipes,
+      createFolder,
+      deleteFolder,      binIcon,
+
+      removeRecipeFromFolder,
+      goBackFromFolder
     };
   }
 };
 </script>
 
-
 <style scoped>
 * {
-  font-family: 'Times New Roman', Times, serif;
+  font-family:'Times New Roman', Times, serif;
 }
 
 .guardades-container {
@@ -322,14 +380,17 @@ export default {
   display: flex;
   gap: 10px;
   justify-content: center;
+  
 }
 
 .create-folder-input input {
   border: 1px solid #ccc;
   border-radius: 4px;
+
 }
 
 .create-folder-input button {
+  
   background-color: #0c0636;
   color: white;
   border: none;
@@ -338,6 +399,7 @@ export default {
   font-size: 11px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+
 }
 
 .create-folder-input button:hover {
@@ -383,6 +445,7 @@ export default {
   justify-content: space-between;
 }
 
+
 .folder-name {
   font-size: 18px;
   font-weight: bold;
@@ -421,7 +484,6 @@ export default {
 .back-btn:hover {
   background-color: #322b5f;
 }
-
 .delete-btn {
   background: none;
   border: none;
@@ -433,51 +495,14 @@ export default {
   width: 20px;
   height: 20px;
 }
-/* Añade estos nuevos estilos */
-.auth-required-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 70vh;
-}
 
-.auth-required-message {
-  text-align: center;
-  padding: 2rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  max-width: 400px;
-  width: 100%;
-}
-
-.auth-required-message p {
-  margin-bottom: 1.5rem;
-  font-size: 1.1rem;
-  color: #343a40;
-}
-
-.login-button {
-  padding: 0.75rem 1.5rem;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.login-button:hover {
-  background-color: #45a049;
-}
 
 /* Media Queries */
 @media (min-width: 600px) {
   .recipe-item {
     max-width: 280px;
   }
-
+  
   .remove-btn {
     font-size: 16px;
     padding: 10px 14px;
@@ -488,7 +513,7 @@ export default {
   .recipe-item {
     max-width: 300px;
   }
-
+  
   .remove-btn {
     font-size: 18px;
     padding: 12px 16px;

@@ -6,6 +6,7 @@ export const useGestionPinia = defineStore('savedRecipes', {
   state: () => ({
     savedRecipes: [],
     likedRecipes: JSON.parse(localStorage.getItem('likedRecipes')) || [], 
+    folders: [] 
   }),
 
   actions: {
@@ -46,6 +47,16 @@ export const useGestionPinia = defineStore('savedRecipes', {
       }
     },
 
+    async createFolder(folderName) {
+      try {
+        const newFolder = await communicationManager.createFolder(folderName);
+        this.folders.push(newFolder); // Añade la nueva carpeta al estado
+        return newFolder; // Devuelve la carpeta creada (opcional)
+      } catch (error) {
+        console.error("Error al crear carpeta:", error);
+        throw error; // Puedes manejar el error en el componente
+      }
+    },
     isRecipeInFolder(folderId, recipeId) {
       const folder = this.folders.find(f => f.id === folderId);
       return folder ? folder.recipes.includes(recipeId) : false;
