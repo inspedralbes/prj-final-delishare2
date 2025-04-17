@@ -86,26 +86,29 @@
             </div>
 
             <div class="form-group">
-              <label>Informació Nutricional (per ració):</label>
-              <div class="nutrition-grid">
-                <div class="nutrition-item">
-                  <label for="calories">Calories:</label>
-                  <input type="number" id="calories" v-model="recipe.calories" min="0" />
-                </div>
-                <div class="nutrition-item">
-                  <label for="protein">Proteïnes (g):</label>
-                  <input type="number" id="protein" v-model="recipe.protein" min="0" />
-                </div>
-                <div class="nutrition-item">
-                  <label for="fats">Greixos (g):</label>
-                  <input type="number" id="fats" v-model="recipe.fats" min="0" />
-                </div>
-                <div class="nutrition-item">
-                  <label for="carbs">Carbohidrats (g):</label>
-                  <input type="number" id="carbs" v-model="recipe.carbs" min="0" />
-                </div>
-              </div>
-            </div>
+    <label>Informació Nutricional (per ració):</label>
+    <div v-if="isUpdatingNutrition" class="nutrition-loading">
+      <p>Calculant valors nutricionals...</p>
+    </div>
+    <div class="nutrition-grid">
+      <div class="nutrition-item">
+        <label for="calories">Calories:</label>
+        <input type="number" id="calories" v-model="recipe.calories" min="0" />
+      </div>
+      <div class="nutrition-item">
+        <label for="protein">Proteïnes (g):</label>
+        <input type="number" id="protein" v-model="recipe.protein" min="0" />
+      </div>
+      <div class="nutrition-item">
+        <label for="fats">Greixos (g):</label>
+        <input type="number" id="fats" v-model="recipe.fats" min="0" />
+      </div>
+      <div class="nutrition-item">
+        <label for="carbs">Carbohidrats (g):</label>
+        <input type="number" id="carbs" v-model="recipe.carbs" min="0" />
+      </div>
+    </div>
+  </div>
 
             <div class="form-group form-row">
               <div class="third-width">
@@ -163,15 +166,15 @@
     </div>
   </div>
 </template>
-
 <script>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 import communicationManager from "@/services/communicationManager";
 import Groq from "groq-sdk";
 import { useAuthStore } from '@/stores/authStore';
 import { validateFoodImage, validateFoodVideo } from '@/services/geminiService';
+import { debounce } from 'lodash-es';
 
 const groq = new Groq({
   apiKey: import.meta.env.VITE_GROQ_API_KEY,
@@ -209,6 +212,8 @@ export default {
     const message = ref("");
     const messageClass = ref("");
     const bannedWords = ['polla', 'cul', 'penis', 'fuck', 'mierda', 'shit', 'puta', 'caca', 'porno', 'sex', 'nazi'];
+    const isUpdatingNutrition = ref(false);
+    const lastNutritionUpdate = ref(null);
 
     const isInputValid = (text) => {
       const lowerText = text.toLowerCase();
@@ -229,12 +234,84 @@ export default {
       message.value = "";
       messageClass.value = "";
     };
+
     const goToLogin = () => {
       router.push({
         name: 'login',
         query: { redirect: router.currentRoute.value.fullPath }
       });
     };
+
+    // Función para actualizar la nutrición con IA
+    const updateNutritionWithAI = debounce(async () => {
+      if (recipe.value.ingredients.length === 0) {
+        resetNutrition();
+        return;
+      }
+
+      // Evitar llamadas duplicadas con los mismos ingredientes
+      const currentIngredients = JSON.stringify(recipe.value.ingredients);
+      if (lastNutritionUpdate.value === currentIngredients) return;
+      
+      lastNutritionUpdate.value = currentIngredients;
+      isUpdatingNutrition.value = true;
+
+      try {
+        const servings = recipe.value.servings || 1;
+        const ingredientsText = recipe.value.ingredients
+          .map(ing => `${ing.quantity || '1'} ${ing.unit || ''} ${ing.name}`.trim())
+          .join('\n');
+
+        const response = await groq.chat.completions.create({
+          model: "llama-3.3-70b-versatile",
+          messages: [{
+            role: "user",
+            content: `Calcula los valores nutricionales aproximados para esta receta por ración (${servings} raciones en total). 
+            Solo devuelve un JSON válido con los campos: calories, protein, fats, carbs. 
+            No incluyas ningún otro texto o explicación.
+            
+            Ingredientes:
+            ${ingredientsText}
+            
+            Formato requerido:
+            {
+              "calories": 0,
+              "protein": 0,
+              "fats": 0,
+              "carbs": 0
+            }`
+          }],
+          response_format: { type: "json_object" },
+          temperature: 0.2,
+        });
+
+        const nutritionData = JSON.parse(response.choices[0].message.content);
+        
+        if (nutritionData.calories !== undefined) {
+          recipe.value.calories = Math.round(nutritionData.calories);
+          recipe.value.protein = Math.round(nutritionData.protein * 10) / 10;
+          recipe.value.fats = Math.round(nutritionData.fats * 10) / 10;
+          recipe.value.carbs = Math.round(nutritionData.carbs * 10) / 10;
+        }
+      } catch (error) {
+        console.error("Error calculando nutrición:", error);
+        showErrorPopup("Error al calcular los valores nutricionales. Por favor verifica los ingredientes.");
+      } finally {
+        isUpdatingNutrition.value = false;
+      }
+    }, 1500); // Debounce de 1.5 segundos
+
+    const resetNutrition = () => {
+      recipe.value.calories = 0;
+      recipe.value.protein = 0;
+      recipe.value.fats = 0;
+      recipe.value.carbs = 0;
+    };
+
+    // Watcher para ingredientes y raciones
+    watch(() => [...recipe.value.ingredients, recipe.value.servings], () => {
+      updateNutritionWithAI();
+    }, { deep: true });
 
     onMounted(async () => {
       try {
@@ -247,6 +324,7 @@ export default {
         console.error("Error fetching data:", error);
       }
     });
+
     const autofillRecipe = async () => {
       if (!isInputValid(recipe.value.title)) {
         showErrorPopup("El títol conté paraules inapropiades. Si us plau, revisa-ho.");
@@ -321,7 +399,7 @@ NORMES ESTRICTES:
             content: userMessage
           }],
           response_format: { type: "json_object" },
-          temperature: 0.5, // Reducido para mayor precisión
+          temperature: 0.5,
         });
 
         const aiData = response.choices[0].message.content;
@@ -384,7 +462,7 @@ NORMES ESTRICTES:
         if (!validation.isFood) {
           message.value = `La imatge no és vàlida: ${validation.reason}`;
           messageClass.value = "error";
-          e.target.value = ""; // Limpiar el input file
+          e.target.value = "";
           return;
         }
 
@@ -406,6 +484,7 @@ NORMES ESTRICTES:
         messageClass.value = "error";
       }
     };
+
     const onVideoChange = async (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -440,51 +519,63 @@ NORMES ESTRICTES:
         messageClass.value = "error";
       }
     };
-
     const submitRecipe = async () => {
-      if (!authStore.isAuthenticated || !user.value) {
-        console.error("Usuario no autenticado");
-        return;
-      }
+  if (!authStore.isAuthenticated || !user.value) {
+    console.error("Usuario no autenticado");
+    return;
+  }
 
-      // Validar que se haya subido una imagen o un vídeo
-      if (!recipe.value.image && !recipe.value.video) {
-        message.value = "Has de pujar una imatge o un vídeo per a la recepta!";
-        messageClass.value = "error";
-        return;
-      }
+  // Validar que se haya subido una imagen o un vídeo
+  if (!recipe.value.image && !recipe.value.video) {
+    message.value = "Has de pujar una imatge o un vídeo per a la recepta!";
+    messageClass.value = "error";
+    return;
+  }
 
-      try {
-        // Preparar los datos para enviar
-        const recipeData = {
-          ...recipe.value,
-          user_id: user.value.id,
-          ingredients: recipe.value.ingredients.map(ing => ({
-            ...ing,
-            quantity: ing.quantity || "",
-            unit: ing.unit || ""
-          }))
-        };
-
-        await communicationManager.createRecipe(recipeData);
-
-        message.value = "¡Receta creada con éxito!";
-        messageClass.value = "success";
-        console.log("Receta creada correctamente");
-
-        router.push({ name: "LandingPage" });
-      } catch (error) {
-        console.error("Error al crear la receta:", error);
-        message.value = "¡Error al crear la receta!";
-        messageClass.value = "error";
+  try {
+    // Preparar los datos para enviar en el formato correcto
+    const recipeData = {
+      ...recipe.value,
+      user_id: user.value.id,
+      ingredients: recipe.value.ingredients.map(ing => ({
+        ...ing,
+        quantity: ing.quantity || "",
+        unit: ing.unit || ""
+      })),
+      nutrition: {  // Crear objeto nutrition con los valores
+        calories: recipe.value.calories || 0,
+        protein: recipe.value.protein || 0,
+        fats: recipe.value.fats || 0,
+        carbs: recipe.value.carbs || 0
       }
     };
+
+    // Eliminar los campos individuales para evitar confusión
+    delete recipeData.calories;
+    delete recipeData.protein;
+    delete recipeData.fats;
+    delete recipeData.carbs;
+
+    await communicationManager.createRecipe(recipeData);
+
+    message.value = "¡Receta creada con éxito!";
+    messageClass.value = "success";
+    console.log("Receta creada correctamente");
+
+    router.push({ name: "LandingPage" });
+  } catch (error) {
+    console.error("Error al crear la receta:", error);
+    message.value = "¡Error al crear la receta!";
+    messageClass.value = "error";
+  }
+};
 
     return {
       authStore,
       recipe,
       categories,
       cuisines,
+      isUpdatingNutrition,
       autofillRecipe,
       addIngredient,
       removeIngredient,
@@ -502,7 +593,6 @@ NORMES ESTRICTES:
   },
 };
 </script>
-
 <style scoped>
 /* Estilos para el mensaje de login requerido */
 .auth-required-container {

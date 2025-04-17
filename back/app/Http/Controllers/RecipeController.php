@@ -29,7 +29,6 @@ class RecipeController extends Controller
         return response()->json($recipe);
     }
     
-
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -42,19 +41,34 @@ class RecipeController extends Controller
             'prep_time' => 'required|integer',
             'cook_time' => 'required|integer',
             'servings' => 'required|integer',
-            'nutrition' => 'nullable|array',  
+            'nutrition' => 'nullable|array',
             'image' => 'nullable|string',
             'video' => 'nullable|string',
-
         ]);
     
         $data['user_id'] = auth()->id();
-    
+        
+        // Asegurar que nutrition tenga todos los campos necesarios
+        if (isset($data['nutrition'])) {
+            $data['nutrition'] = array_merge([
+                'calories' => 0,
+                'protein' => 0,
+                'fats' => 0,
+                'carbs' => 0
+            ], $data['nutrition']);
+        } else {
+            $data['nutrition'] = [
+                'calories' => 0,
+                'protein' => 0,
+                'fats' => 0,
+                'carbs' => 0
+            ];
+        }
+        
         $recipe = Recipe::create($data);
-    
+        
         return response()->json($recipe, 201);
     }
-    
    
 public function update(Request $request, $id)
 {
