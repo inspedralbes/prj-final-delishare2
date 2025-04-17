@@ -107,3 +107,4 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 Route::middleware('auth:sanctum')->get('/folders/{folder}/recipes', [FolderController::class, 'getRecipes']);
 
+Route::get('/recipes/{id}/download', [RecipeController::class, 'downloadFullRecipe']);
