@@ -30,6 +30,15 @@
       </div>
 
       <div class="button-container">
+        <!-- Nuevo botón de descarga -->
+        <button @click="downloadRecipe" class="download-button" title="Descargar receta">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+        </button>
+
         <!-- Botó per mostrar la selecció de carpeta -->
         <button @click="checkRecipeInFolder" :disabled="isButtonDisabled">
           <img :src="getSaveCarpeta"
@@ -177,7 +186,7 @@ export default {
         id: null,
         title: '',
         image: '',
-        video: null, // Añadido campo para el video
+        video: null,
         description: '',
         ingredients: [],
         steps: [],
@@ -230,11 +239,9 @@ export default {
       try {
         const response = await communicationManager.fetchComments(this.recipe.id);
         
-        // Verificar si hay cambios en los comentarios
         if (this.comments.length !== response.length || 
             JSON.stringify(this.comments) !== JSON.stringify(response)) {
           this.comments = response;
-          // Mostrar notificación si es un nuevo comentario (opcional)
           if (this.comments.length > 0 && 
               (!this.lastCommentUpdate || 
                new Date(this.comments[0].updated_at) > new Date(this.lastCommentUpdate))) {
@@ -246,23 +253,61 @@ export default {
         console.error('Error al obtener comentarios:', error);
       }
     },
+    
+    downloadRecipe() {
+      try {
+        const recipeData = {
+          nombre: this.recipe.title,
+          descripcion: this.recipe.description,
+          ingredientes: this.recipe.ingredients.map(ing => ({
+            nombre: ing.name,
+            cantidad: ing.quantity,
+            unidad: ing.unit
+          })),
+          pasos: this.recipe.steps.map((step, index) => ({
+            orden: index + 1,
+            instruccion: step
+          })),
+          informacion_nutricional: this.recipe.nutrition || {},
+          metadata: {
+            autor: this.recipe.creador,
+            tiempo_total: this.recipe.prep_time + this.recipe.cook_time,
+            raciones: this.recipe.servings,
+            fecha_descarga: new Date().toISOString()
+          }
+        };
+
+        const blob = new Blob([JSON.stringify(recipeData, null, 2)], {
+          type: 'application/json'
+        });
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `receta_${this.recipe.title.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 100);
+        
+        this.showPopup('Receta descargada correctamente');
+      } catch (error) {
+        console.error('Error al descargar la receta:', error);
+        this.showPopup('Error al descargar la receta');
+      }
+    },
+
     setupPolling() {
-      // Polling inicial
       this.pollComments();
       
-      // Configurar intervalo para polling cada 3 segundos
       this.commentsInterval = setInterval(async () => {
         await this.pollComments();
       }, 3000);
     },
     
-    clearPolling() {
-      if (this.commentsInterval) {
-        clearInterval(this.commentsInterval);
-      }
-    },
-    
-
     clearPolling() {
       if (this.commentsInterval) {
         clearInterval(this.commentsInterval);
@@ -370,7 +415,7 @@ export default {
     },
     async checkNotifications() {
       try {
-        const response = await communicationManager.fetchNotifications(); // crea esta función en tu servicio
+        const response = await communicationManager.fetchNotifications();
         response.forEach((notif) => {
           this.showPopup(notif.message);
         });
@@ -415,14 +460,12 @@ export default {
       const user = await communicationManager.getUser();
       const response = await communicationManager.addComment(this.recipe.id, this.newComment);
       
-      // Actualizar lista de comentarios inmediatamente después de añadir uno nuevo
       this.comments.unshift({
         comment: this.newComment,
         name: user.name,
         updated_at: new Date().toISOString()
       });
 
-      // Enviar notificación
       await communicationManager.createNotification({
         user_id: this.recipe.user_id,
         recipe_id: this.recipe.id,
@@ -431,8 +474,6 @@ export default {
 
       this.newComment = '';
         this.showPopup('Comentario añadido');
-        
-        // Forzar actualización inmediata
         await this.pollComments();
       } catch (error) {
         console.error('Error al añadir comentario:', error);
@@ -506,15 +547,9 @@ export default {
   },
   created() {
     this.setupPolling();
-  },
-  beforeUnmount() {
-    this.clearPolling();
-  },
-  async created() {
-    this.setupPolling();
-    this.notificationsInterval = setInterval(this.checkNotifications, 10000); // cada 10s
+    this.notificationsInterval = setInterval(this.checkNotifications, 10000);
     this.setupAuthWatcher();
-    await this.checkAuthAndLoadData();
+    this.checkAuthAndLoadData();
   },
   beforeUnmount() {
     if (this.notificationsInterval) {
@@ -675,6 +710,26 @@ button {
 .button-icon {
   width: 25px;
   height: 25px;
+}
+
+.download-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.download-button:hover {
+  background: rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.download-button svg {
+  width: 24px;
+  height: 24px;
+  color: #0c0636;
 }
 
 @keyframes slideIn {
