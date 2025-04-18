@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\RecipeUser;
 use App\Models\Notification;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 use App\Models\Recipe;
 
@@ -487,12 +488,10 @@ public function deleteComment(Request $request, $recipeId)
     return response()->json(['message' => 'Comentario eliminado correctamente']);
 }
 
-
 public function downloadFullRecipe($id)
 {
     $recipe = Recipe::with(['user', 'category', 'cuisine'])->findOrFail($id);
 
-    // Obtener los comentarios de la receta
     $comments = DB::table('recipe_user')
         ->where('recipe_id', $id)
         ->whereNotNull('comment')
@@ -501,23 +500,10 @@ public function downloadFullRecipe($id)
         ->orderByDesc('recipe_user.updated_at')
         ->get();
 
-    // Obtener información de likes
-    $likes = [
-        'likes_count' => $recipe->likes_count,
-        'is_liked' => auth()->check() && DB::table('recipe_user')
-            ->where('user_id', auth()->id())
-            ->where('recipe_id', $id)
-            ->where('liked', true)
-            ->exists()
-    ];
-
-    // Calcular tiempo total
     $total_time = $recipe->prep_time + $recipe->cook_time;
 
-    // Construir la respuesta completa
-    $response = [
+    $data = [
         'recipe' => [
-            'id' => $recipe->id,
             'title' => $recipe->title,
             'description' => $recipe->description,
             'ingredients' => $recipe->ingredients,
@@ -527,22 +513,20 @@ public function downloadFullRecipe($id)
             'total_time' => $total_time,
             'servings' => $recipe->servings,
             'nutrition' => $recipe->nutrition,
-            'image' => $recipe->image,
-            'video' => $recipe->video,
-            'created_at' => $recipe->created_at,
-            'updated_at' => $recipe->updated_at
+            'image' => $recipe->image, // Añade esto si quieres incluir la imagen
         ],
         'metadata' => [
             'creador' => $recipe->user->name,
             'categoria' => $recipe->category->name ?? null,
             'tipo_cocina' => $recipe->cuisine->name ?? null,
-            'likes_count' => $likes['likes_count'],
-            'comentarios_count' => count($comments),
-            'is_liked' => $likes['is_liked']
+            'likes_count' => $recipe->likes_count,
         ],
-        'comentarios' => $comments
+        'comments' => $comments
     ];
 
-    return response()->json($response);
+    $pdf = Pdf::loadView('recipes.pdf', $data);
+    
+    // Forzar la descarga con el nombre del archivo
+    return $pdf->download('receta-' . Str::slug($recipe->title) . '.pdf');
 }
 }

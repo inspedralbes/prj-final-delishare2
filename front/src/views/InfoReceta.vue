@@ -174,6 +174,8 @@ import { useGestionPinia } from '@/stores/gestionPinia';
 import communicationManager from '@/services/communicationManager';
 import UserProfile from '@/components/UserProfile.vue';
 import { useAuthStore } from '@/stores/authStore';
+import jsPDF from 'jspdf';
+
 
 export default {
   setup() {
@@ -255,51 +257,45 @@ export default {
     },
     
     downloadRecipe() {
-      try {
-        const recipeData = {
-          nombre: this.recipe.title,
-          descripcion: this.recipe.description,
-          ingredientes: this.recipe.ingredients.map(ing => ({
-            nombre: ing.name,
-            cantidad: ing.quantity,
-            unidad: ing.unit
-          })),
-          pasos: this.recipe.steps.map((step, index) => ({
-            orden: index + 1,
-            instruccion: step
-          })),
-          informacion_nutricional: this.recipe.nutrition || {},
-          metadata: {
-            autor: this.recipe.creador,
-            tiempo_total: this.recipe.prep_time + this.recipe.cook_time,
-            raciones: this.recipe.servings,
-            fecha_descarga: new Date().toISOString()
-          }
-        };
+  try {
+    const doc = new jsPDF();
 
-        const blob = new Blob([JSON.stringify(recipeData, null, 2)], {
-          type: 'application/json'
-        });
+    doc.setFontSize(18);
+    doc.text(this.recipe.title, 10, 10);
 
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `receta_${this.recipe.title.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        
-        setTimeout(() => {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }, 100);
-        
-        this.showPopup('Receta descargada correctamente');
-      } catch (error) {
-        console.error('Error al descargar la receta:', error);
-        this.showPopup('Error al descargar la receta');
-      }
-    },
+    doc.setFontSize(12);
+    doc.text(`Autor: ${this.recipe.creador}`, 10, 20);
+    doc.text(`Descripció: ${this.recipe.description || 'Sense descripció'}`, 10, 30);
 
+    doc.text('Ingredients:', 10, 40);
+    this.recipe.ingredients.forEach((ing, i) => {
+      doc.text(`- ${ing.name} - ${ing.quantity} ${ing.unit}`, 10, 50 + i * 7);
+    });
+
+    let stepsStartY = 60 + this.recipe.ingredients.length * 7;
+    doc.text('Passos:', 10, stepsStartY);
+    this.recipe.steps.forEach((step, i) => {
+      doc.text(`${i + 1}. ${step}`, 10, stepsStartY + 10 + i * 7);
+    });
+
+    let infoStartY = stepsStartY + 10 + this.recipe.steps.length * 7 + 10;
+    doc.text('Informació Nutricional:', 10, infoStartY);
+    const nutri = this.recipe.nutrition || {};
+    doc.text(`Calories: ${nutri.calories || 'N/A'}`, 10, infoStartY + 10);
+    doc.text(`Proteïnes: ${nutri.protein || 'N/A'}g`, 10, infoStartY + 17);
+    doc.text(`Carbohidrats: ${nutri.carbs || 'N/A'}g`, 10, infoStartY + 24);
+    doc.text(`Greixos: ${nutri.fats || 'N/A'}g`, 10, infoStartY + 31);
+
+    const filename = `receta_${this.recipe.title.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(filename);
+
+    this.showPopup('Receta descargada en PDF');
+  } catch (error) {
+    console.error('Error al descargar la receta en PDF:', error);
+    this.showPopup('Error al descargar la receta');
+  }
+}
+,
     setupPolling() {
       this.pollComments();
       
