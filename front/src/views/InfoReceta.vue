@@ -30,6 +30,15 @@
       </div>
 
       <div class="button-container">
+        <!-- Nuevo botón de descarga -->
+        <button @click="downloadRecipe" class="download-button" title="Descargar receta">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+        </button>
+
         <!-- Botó per mostrar la selecció de carpeta -->
         <button @click="checkRecipeInFolder" :disabled="isButtonDisabled">
           <img :src="getSaveCarpeta"
@@ -165,6 +174,8 @@ import { useGestionPinia } from '@/stores/gestionPinia';
 import communicationManager from '@/services/communicationManager';
 import UserProfile from '@/components/UserProfile.vue';
 import { useAuthStore } from '@/stores/authStore';
+import jsPDF from 'jspdf';
+
 
 export default {
   setup() {
@@ -177,7 +188,7 @@ export default {
         id: null,
         title: '',
         image: '',
-        video: null, // Añadido campo para el video
+        video: null,
         description: '',
         ingredients: [],
         steps: [],
@@ -230,11 +241,9 @@ export default {
       try {
         const response = await communicationManager.fetchComments(this.recipe.id);
         
-        // Verificar si hay cambios en los comentarios
         if (this.comments.length !== response.length || 
             JSON.stringify(this.comments) !== JSON.stringify(response)) {
           this.comments = response;
-          // Mostrar notificación si es un nuevo comentario (opcional)
           if (this.comments.length > 0 && 
               (!this.lastCommentUpdate || 
                new Date(this.comments[0].updated_at) > new Date(this.lastCommentUpdate))) {
@@ -246,23 +255,55 @@ export default {
         console.error('Error al obtener comentarios:', error);
       }
     },
+    
+    downloadRecipe() {
+  try {
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text(this.recipe.title, 10, 10);
+
+    doc.setFontSize(12);
+    doc.text(`Autor: ${this.recipe.creador}`, 10, 20);
+    doc.text(`Descripció: ${this.recipe.description || 'Sense descripció'}`, 10, 30);
+
+    doc.text('Ingredients:', 10, 40);
+    this.recipe.ingredients.forEach((ing, i) => {
+      doc.text(`- ${ing.name} - ${ing.quantity} ${ing.unit}`, 10, 50 + i * 7);
+    });
+
+    let stepsStartY = 60 + this.recipe.ingredients.length * 7;
+    doc.text('Passos:', 10, stepsStartY);
+    this.recipe.steps.forEach((step, i) => {
+      doc.text(`${i + 1}. ${step}`, 10, stepsStartY + 10 + i * 7);
+    });
+
+    let infoStartY = stepsStartY + 10 + this.recipe.steps.length * 7 + 10;
+    doc.text('Informació Nutricional:', 10, infoStartY);
+    const nutri = this.recipe.nutrition || {};
+    doc.text(`Calories: ${nutri.calories || 'N/A'}`, 10, infoStartY + 10);
+    doc.text(`Proteïnes: ${nutri.protein || 'N/A'}g`, 10, infoStartY + 17);
+    doc.text(`Carbohidrats: ${nutri.carbs || 'N/A'}g`, 10, infoStartY + 24);
+    doc.text(`Greixos: ${nutri.fats || 'N/A'}g`, 10, infoStartY + 31);
+
+    const filename = `receta_${this.recipe.title.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(filename);
+
+    this.showPopup('Receta descargada en PDF');
+  } catch (error) {
+    console.error('Error al descargar la receta en PDF:', error);
+    this.showPopup('Error al descargar la receta');
+  }
+}
+,
     setupPolling() {
-      // Polling inicial
       this.pollComments();
       
-      // Configurar intervalo para polling cada 3 segundos
       this.commentsInterval = setInterval(async () => {
         await this.pollComments();
       }, 3000);
     },
     
-    clearPolling() {
-      if (this.commentsInterval) {
-        clearInterval(this.commentsInterval);
-      }
-    },
-    
-
     clearPolling() {
       if (this.commentsInterval) {
         clearInterval(this.commentsInterval);
@@ -370,7 +411,7 @@ export default {
     },
     async checkNotifications() {
       try {
-        const response = await communicationManager.fetchNotifications(); // crea esta función en tu servicio
+        const response = await communicationManager.fetchNotifications();
         response.forEach((notif) => {
           this.showPopup(notif.message);
         });
@@ -415,14 +456,12 @@ export default {
       const user = await communicationManager.getUser();
       const response = await communicationManager.addComment(this.recipe.id, this.newComment);
       
-      // Actualizar lista de comentarios inmediatamente después de añadir uno nuevo
       this.comments.unshift({
         comment: this.newComment,
         name: user.name,
         updated_at: new Date().toISOString()
       });
 
-      // Enviar notificación
       await communicationManager.createNotification({
         user_id: this.recipe.user_id,
         recipe_id: this.recipe.id,
@@ -431,8 +470,6 @@ export default {
 
       this.newComment = '';
         this.showPopup('Comentario añadido');
-        
-        // Forzar actualización inmediata
         await this.pollComments();
       } catch (error) {
         console.error('Error al añadir comentario:', error);
@@ -506,15 +543,9 @@ export default {
   },
   created() {
     this.setupPolling();
-  },
-  beforeUnmount() {
-    this.clearPolling();
-  },
-  async created() {
-    this.setupPolling();
-    this.notificationsInterval = setInterval(this.checkNotifications, 10000); // cada 10s
+    this.notificationsInterval = setInterval(this.checkNotifications, 10000);
     this.setupAuthWatcher();
-    await this.checkAuthAndLoadData();
+    this.checkAuthAndLoadData();
   },
   beforeUnmount() {
     if (this.notificationsInterval) {
@@ -675,6 +706,26 @@ button {
 .button-icon {
   width: 25px;
   height: 25px;
+}
+
+.download-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.download-button:hover {
+  background: rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.download-button svg {
+  width: 24px;
+  height: 24px;
+  color: #0c0636;
 }
 
 @keyframes slideIn {
