@@ -11,7 +11,7 @@ use App\Http\Controllers\InfoUserController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RecommendationController;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Controllers\LiveController;
 
 
 Route::get('/user/{id}/recipes', [InfoUserController::class, 'showRecipes']);
@@ -118,3 +118,11 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->get('/folders/{folder}/recipes', [FolderController::class, 'getRecipes']);
 
 Route::get('/recipes/{id}/download', [RecipeController::class, 'downloadFullRecipe']);
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/lives', [LiveController::class, 'index']);         // Listar todos los lives (futuros)
+    Route::post('/lives', [LiveController::class, 'store']);        // Crear un nuevo live (solo chefs)
+    Route::get('/lives/{live}', [LiveController::class, 'show']);   // Ver detalles de un live específico
+    Route::put('/lives/{live}', [LiveController::class, 'update']); // Actualizar un live (solo el chef dueño)
+    Route::delete('/lives/{live}', [LiveController::class, 'destroy']); // Eliminar un live (solo el chef dueño)
+});

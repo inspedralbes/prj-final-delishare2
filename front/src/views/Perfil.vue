@@ -1,5 +1,4 @@
 <template>
-
   <div class="profile-container">
     <!-- Mostrar contenido solo si está autenticado -->
     <div v-if="authStore.isAuthenticated">
@@ -27,15 +26,16 @@
           <button @click="setActiveTab('password')">Canviar contrasenya</button>
           <button @click="setActiveTab('liked')">Veure receptes que m'agraden</button>
           <button @click="confirmLogout('logOut')">Tancar sessió</button>
-
         </div>
       </div>
+
       <!-- Popup de confirmación para cerrar sesión -->
       <div v-if="showLogoutConfirmation" class="popup-confirmation">
         <p>Estàs segur que vols tancar la sessió?</p>
         <button @click="logout" class="confirm-btn">Si</button>
         <button @click="cancelLogout" class="cancel-btn">Cancelar</button>
       </div>
+
       <!-- Formulario de cambio de imagen de perfil -->
       <div v-if="activeTab === 'image'" class="settings-form wide-form">
         <div class="upload-image-container">
@@ -56,8 +56,7 @@
         <input type="email" id="newEmail" v-model="newEmail" :placeholder="user.email" />
 
         <label for="newBio">Biografia:</label>
-        <textarea id="newBio" v-model="newBio" :placeholder="user.bio || 'Afegeix una biografia...'"
-          rows="4"></textarea>
+        <textarea id="newBio" v-model="newBio" :placeholder="user.bio || 'Afegeix una biografia...'" rows="4"></textarea>
 
         <button @click="updateProfile" class="submit-btn">Guardar canvis</button>
         <button @click="cancelEdit" class="cancel-btn">Cancelar</button>
@@ -89,30 +88,65 @@
         <button @click="updatePassword" class="submit-btn">Guardar canvis</button>
         <button @click="cancelEdit" class="cancel-btn">Cancelar</button>
       </div>
- <!-- Sección de recetas likeadas -->
-<div v-if="activeTab === 'liked'" class="user-recipes liked-section">
-  <h3 class="section-title">🍽️ Receptes que m'agraden</h3>
 
-  <div v-if="likedRecipes.length === 0" class="no-liked-recipes">
-    <p>No has donat like a cap recepta encara.</p>
-  </div>
+      <!-- Sección de recetas likeadas -->
+      <div v-if="activeTab === 'liked'" class="user-recipes liked-section">
+        <h3 class="section-title">🍽️ Receptes que m'agraden</h3>
 
-  <div v-else class="recipe-cards">
-    <div v-for="recipe in likedRecipes" :key="recipe.id" class="liked-recipe-card">
-      <RecipeCard
-        :recipe-id="recipe.id"
-        :title="recipe.title"
-        :description="recipe.description"
-        :image="recipe.image"
-      />
-    </div>
-  </div>
+        <div v-if="likedRecipes.length === 0" class="no-liked-recipes">
+          <p>No has donat like a cap recepta encara.</p>
+        </div>
 
-  <div class="button-container">
-    <button @click="cancelEdit" class="cancel-btn">🔙 Tornar</button>
-  </div>
-</div>
+        <div v-else class="recipe-cards">
+          <div v-for="recipe in likedRecipes" :key="recipe.id" class="liked-recipe-card">
+            <RecipeCard :recipe-id="recipe.id" :title="recipe.title" :description="recipe.description"
+              :image="recipe.image" />
+          </div>
+        </div>
 
+        <div class="button-container">
+          <button @click="cancelEdit" class="cancel-btn">🔙 Tornar</button>
+        </div>
+      </div>
+
+      <!-- BOTÓN DE PROGRAMAR LIVE - POSICIÓN CORRECTA -->
+      <div v-if="isChef" class="program-live-btn-container">
+        <button @click="toggleLiveForm" class="program-live-btn">
+          🎥 Programar Live
+        </button>
+      </div>
+
+      <!-- Formulario para crear live -->
+      <div v-if="showLiveForm" class="live-form-overlay" @click="toggleLiveForm">
+        <div class="live-form-container" @click.stop>
+          <h3>Programar Nuevo Live</h3>
+          
+          <div class="form-group">
+            <label for="recipe">Receta:</label>
+            <select id="recipe" v-model="newLive.recipe_id" required>
+              <option value="">Selecciona una receta</option>
+              <option v-for="recipe in recipes" :key="recipe.id" :value="recipe.id">
+                {{ recipe.title }}
+              </option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="date">Fecha:</label>
+            <input type="date" id="date" v-model="newLive.dia" :min="minDate" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="time">Hora:</label>
+            <input type="time" id="time" v-model="newLive.hora" required>
+          </div>
+          
+          <div class="form-actions">
+            <button @click="createLive" class="submit-btn">Programar Live</button>
+            <button @click="toggleLiveForm" class="cancel-btn">Cancelar</button>
+          </div>
+        </div>
+      </div>
 
       <!-- Sección de recetas -->
       <div v-if="showRecipes" class="user-recipes">
@@ -141,7 +175,7 @@
 <script>
 import { useAuthStore } from '@/stores/authStore';
 import communicationManager from '@/services/communicationManager';
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import RecipeCard from '@/components/RecipeCard.vue';
 import axios from 'axios';
@@ -155,6 +189,26 @@ import binIcon from '@/assets/images/bin.svg';
 export default {
   components: { RecipeCard },
   setup() {
+    const minDate = computed(() => {
+      const today = new Date();
+      const dd = String(today.getDate()).padStart(2, '0');
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const yyyy = today.getFullYear();
+      return `${yyyy}-${mm}-${dd}`;
+    });
+    const isChef = computed(() => {
+  // Verifica ambas posibles fuentes del rol
+  const role = authStore.user?.role || user.value?.role;
+  console.log('Rol del store:', authStore.user?.role);
+  console.log('Rol del componente:', user.value?.role);
+  return authStore.isAuthenticated && role === 'chef';
+});
+    const newLive = ref({
+      recipe_id: '',
+      dia: '',
+      hora: ''
+    });
+    const showLiveForm = ref(false);
     const cloudName = 'dt5vjbgab';
     const uploadPreset = 'perfiles';
     const userImage = ref('/default-avatar.png');
@@ -185,16 +239,62 @@ export default {
       });
     };
 
+
+    const toggleLiveForm = () => {
+      showLiveForm.value = !showLiveForm.value;
+      // Resetear formulario al abrir
+      if (showLiveForm.value) {
+        newLive.value = {
+          recipe_id: '',
+          dia: '',
+          hora: ''
+        };
+      }
+    };
+
+    const createLive = async () => {
+  try {
+    if (!newLive.value.recipe_id || !newLive.value.dia || !newLive.value.hora) {
+      popupMessage.value = 'Por favor, completa todos los campos';
+      setTimeout(() => { popupMessage.value = ''; }, 3000);
+      return;
+    }
+
+    const createdLive = await communicationManager.createLive({
+      recipe_id: newLive.value.recipe_id,
+      dia: newLive.value.dia,
+      hora: newLive.value.hora
+    });
+
+    popupMessage.value = 'Live programado correctamente';
+    setTimeout(() => { popupMessage.value = ''; }, 3000);
+    toggleLiveForm();
+  } catch (error) {
+    console.error('Error al crear el live:', error);
+    // Mensaje más detallado
+    const errorMessage = error.response?.data?.message || 
+                        error.response?.data?.error || 
+                        error.message || 
+                        'Error al programar el live';
+    popupMessage.value = errorMessage;
+    setTimeout(() => { popupMessage.value = ''; }, 3000);
+  }
+};
     onMounted(async () => {
       try {
         const userData = await communicationManager.getUser();
         user.value = userData;
+        console.log('Datos del usuario:', userData);
+    console.log('Rol del usuario:', userData.role);
+    console.log('¿Es chef?', isChef.value); 
         newName.value = userData.name;
         newEmail.value = userData.email;
         newBio.value = userData.bio || '';
         const userRecipes = await communicationManager.getUserRecipes(userData.id);
         recipes.value = userRecipes.recipes;
       } catch (error) {
+        console.error('Error obteniendo datos del usuario:', error);
+
       }
     });
 
@@ -210,16 +310,16 @@ export default {
         setTimeout(() => { popupMessage.value = ''; }, 3000);
       }
     };
-    
-const loadLikedRecipes = async () => {
-  try {
-    const response = await communicationManager.getUserLikedRecipes();
-    likedRecipes.value = response.recipes;
-  } catch (error) {
-    popupMessage.value = error.message || "No s'han pogut carregar les receptes likeades";
-    setTimeout(() => { popupMessage.value = ''; }, 3000);
-  }
-};
+
+    const loadLikedRecipes = async () => {
+      try {
+        const response = await communicationManager.getUserLikedRecipes();
+        likedRecipes.value = response.recipes;
+      } catch (error) {
+        popupMessage.value = error.message || "No s'han pogut carregar les receptes likeades";
+        setTimeout(() => { popupMessage.value = ''; }, 3000);
+      }
+    };
 
     const uploadImage = async (event) => {
       const file = event.target.files[0];
@@ -256,13 +356,13 @@ const loadLikedRecipes = async () => {
       settingsMenuOpen.value = !settingsMenuOpen.value;
     };
     const setActiveTab = (tab) => {
-  activeTab.value = tab;
-  showRecipes.value = false;
+      activeTab.value = tab;
+      showRecipes.value = false;
 
-  if (tab === 'liked') {
-    loadLikedRecipes();
-  }
-};
+      if (tab === 'liked') {
+        loadLikedRecipes();
+      }
+    };
 
     const togglePasswordVisibility = (field) => {
       if (field === 'current') {
@@ -388,13 +488,132 @@ const loadLikedRecipes = async () => {
       deleteRecipe,
       uploadImage,
       likedRecipes,
-loadLikedRecipes
+      loadLikedRecipes,
+      showLiveForm,
+      newLive,
+      minDate,
+      toggleLiveForm,
+      isChef,
+      createLive
     };
   }
 };
 </script>
 
 <style scoped>
+/* Estilos para el botón y formulario de live */
+.program-live-btn-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 900;
+}
+
+.program-live-btn {
+  background-color: #ff4757;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 15px 25px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.program-live-btn:hover {
+  background-color: #ff6b81;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.live-form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.live-form-container {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.live-form-container h3 {
+  margin-top: 0;
+  color: #0c0636;
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-group select,
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.form-actions button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.submit-btn {
+  background-color: #0c0636;
+  color: white;
+  border: none;
+}
+
+.submit-btn:hover {
+  background-color: #322b5f;
+}
+
+.cancel-btn {
+  background-color: #f8f9fa;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.cancel-btn:hover {
+  background-color: #e9ecef;
+}
+
 /* Añade estos nuevos estilos */
 .auth-required-container {
   display: flex;
@@ -459,6 +678,7 @@ loadLikedRecipes
 .profile-header p {
   margin: 10px 0;
 }
+
 .liked-section {
   margin-top: 60px;
 }

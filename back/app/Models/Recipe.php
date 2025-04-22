@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
 use Illuminate\Database\Eloquent\Model;
 
 class Recipe extends Model
@@ -21,10 +20,15 @@ class Recipe extends Model
         'steps' => 'array',
         'nutrition' => 'array',
     ];
-
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
+    }
+    
+
+    public function live()
+    {
+        return $this->hasMany(Live::class);
     }
 
     public function category()
@@ -37,19 +41,23 @@ class Recipe extends Model
         return $this->belongsTo(Cuisine::class);
     }
 
+    // Usuarios que han interactuado con la receta
     public function users()
     {
         return $this->belongsToMany(User::class, 'recipe_user')
                     ->withPivot('saved', 'liked')
                     ->withTimestamps();
     }
+
     public function usersWhoSaved()
-{
-    return $this->belongsToMany(User::class, 'recipe_user')->withPivot('saved', 'liked')->where('saved', true);
-}
-  public function folders()
-  {
-      return $this->belongsToMany(Folder::class, 'folder_recipe');
-  }
-    
+    {
+        return $this->belongsToMany(User::class, 'recipe_user')
+                   ->withPivot('saved', 'liked')
+                   ->wherePivot('saved', true);
+    }
+
+    public function folders()
+    {
+        return $this->belongsToMany(Folder::class, 'folder_recipe');
+    }
 }

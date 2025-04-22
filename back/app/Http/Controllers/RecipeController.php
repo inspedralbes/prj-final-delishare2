@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Recommendation;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Recipe;
+use App\Models\Live;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 

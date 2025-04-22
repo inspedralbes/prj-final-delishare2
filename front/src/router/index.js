@@ -11,12 +11,19 @@ import Guardadas from '@/views/Guardadas.vue';
 import { useAuthStore } from '@/stores/authStore';  // Importa el store de autenticación
 import UserProfile from '@/components/UserProfile.vue';
 import Formulario from '@/views/Formulario.vue';
+import Live from '@/views/Live.vue';
 
 const routes = [
   {
     path: '/Chat',
     name: 'ChatBot',
     component: Chat,
+     meta: { requiresAuth: false },
+  },
+  {
+    path: '/live',
+    name: 'Live',
+    component: Live,
      meta: { requiresAuth: false },
   },
   {

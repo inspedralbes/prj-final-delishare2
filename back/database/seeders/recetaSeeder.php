@@ -17,13 +17,13 @@ $users = [
         'name' => 'ias',
         'email' => 'ishaa@gmail.com',
         'password' => bcrypt('123456789'),
-        'role' => 'user',
+        'role' => 'chef',
     ],
     [
         'name' => 'sim',
         'email' => 'sim@gmail.com',
         'password' => bcrypt('123456789'),
-        'role' => 'chef',
+        'role' => 'user',
     ],
     [
         'name' => 'prueba',
@@ -41,8 +41,7 @@ foreach ($users as $userData) {
 
         // Obtener los usuarios
         $users = User::all();
-        $user1 = $users->first();
-        $user2 = $users->skip(1)->first() ?? $user1;
+        $user2 = $users->first();
 
         // Crear categorías y cocinas
         $categories = ['Peix', 'Entrants', 'Amanidas', 'Begudes', 'Postres'];
@@ -60,7 +59,7 @@ foreach ($users as $userData) {
         // Crear recetas con arrays directamente (sin json_encode)
         $recipes = [
             [
-                'user_id' => $user1->id,
+                'user_id' => $user2->id,
                 'category_id' => $categoryInstances[0]->id,
                 'cuisine_id' => $cuisineInstances[0]->id,
                 'title' => 'Spaghetti Carbonara',
@@ -106,7 +105,7 @@ foreach ($users as $userData) {
                 'servings' => 2,
             ],
             [
-                'user_id' => $user1->id,
+                'user_id' => $user2->id,
                 'category_id' => $categoryInstances[4]->id, // Postres
                 'cuisine_id' => $cuisineInstances[2]->id, // Índia
                 'title' => 'Lassi de Mango',

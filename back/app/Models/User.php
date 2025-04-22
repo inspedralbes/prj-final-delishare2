@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,19 +29,38 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-public function savedRecipes()
-{
-    return $this->belongsToMany(Recipe::class, 'recipe_user')
-        ->withPivot('saved', 'liked')
-        ->wherePivot('saved', true);  
-}
-public function folders()
-{
-    return $this->hasMany(Folder::class);
-}
-public function recommendations()
-{
-    return $this->hasMany(Recommendation::class);
-}
+    // Recetas creadas por el usuario
+    public function recipes()
+    {
+        return $this->hasMany(Recipe::class);
+    }
 
+    public function live()
+    {
+        return $this->hasMany(Live::class);
+    }
+
+    // Recetas guardadas por el usuario
+    public function savedRecipes()
+    {
+        return $this->belongsToMany(Recipe::class, 'recipe_user')
+            ->withPivot('saved', 'liked')
+            ->wherePivot('saved', true);  
+    }
+
+    public function folders()
+    {
+        return $this->hasMany(Folder::class);
+    }
+
+    public function recommendations()
+    {
+        return $this->hasMany(Recommendation::class);
+    }
+
+    // Comprueba si el usuario es chef
+    public function isChef()
+    {
+        return $this->role === 'chef';
+    }
 }
