@@ -25,7 +25,18 @@ class UserController extends Controller
         $user->update($request->all());
         return $user;
     }
-
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:6'
+        ]);
+        
+        $validated['password'] = bcrypt($validated['password']);
+        
+        return User::create($validated);
+    }
     public function destroy($id)
     {
         $user = User::findOrFail($id);
