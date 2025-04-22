@@ -4,6 +4,7 @@
       <p>Debes iniciar sesión para ver los detalles de esta receta</p>
       <button @click="goToLogin">Ir a Login</button>
     </div>
+
   </div>
 
   <div v-else>
@@ -14,6 +15,7 @@
 
     <div class="recipe-detail">
       <button class="back-button" @click="goBack">← </button>
+
 
       <h1 class="recipe-title">{{ recipe.title }}</h1>
       <p>
@@ -30,6 +32,16 @@
       </div>
 
       <div class="button-container">
+        <!-- Botón de descargar receta en PDF -->
+        <button @click="downloadPDF" class="download-button" title="Descargar receta en PDF">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+        </button>
+
         <!-- Botó per mostrar la selecció de carpeta -->
         <button @click="checkRecipeInFolder" :disabled="isButtonDisabled">
           <img :src="getSaveCarpeta"
@@ -226,18 +238,39 @@ export default {
   },
 
   methods: {
+    async downloadPDF() {
+      try {
+        const recipeId = this.recipe.id;
+        const response = await communicationManager.downloadPDF(recipeId);
+
+        const blob = new Blob([response], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `${this.recipe.title || 'recepta'}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        this.showPopup('PDF descarregat amb èxit');
+      } catch (error) {
+        console.error('Error al descarregar el PDF:', error);
+        this.showPopup('Error al descarregar el PDF');
+      }
+    },
     async pollComments() {
       try {
         const response = await communicationManager.fetchComments(this.recipe.id);
-        
+
         // Verificar si hay cambios en los comentarios
-        if (this.comments.length !== response.length || 
-            JSON.stringify(this.comments) !== JSON.stringify(response)) {
+        if (this.comments.length !== response.length ||
+          JSON.stringify(this.comments) !== JSON.stringify(response)) {
           this.comments = response;
           // Mostrar notificación si es un nuevo comentario (opcional)
-          if (this.comments.length > 0 && 
-              (!this.lastCommentUpdate || 
-               new Date(this.comments[0].updated_at) > new Date(this.lastCommentUpdate))) {
+          if (this.comments.length > 0 &&
+            (!this.lastCommentUpdate ||
+              new Date(this.comments[0].updated_at) > new Date(this.lastCommentUpdate))) {
             this.showPopup('Nuevo comentario disponible');
           }
           this.lastCommentUpdate = this.comments[0]?.updated_at;
@@ -249,19 +282,19 @@ export default {
     setupPolling() {
       // Polling inicial
       this.pollComments();
-      
+
       // Configurar intervalo para polling cada 3 segundos
       this.commentsInterval = setInterval(async () => {
         await this.pollComments();
       }, 3000);
     },
-    
+
     clearPolling() {
       if (this.commentsInterval) {
         clearInterval(this.commentsInterval);
       }
     },
-    
+
 
     clearPolling() {
       if (this.commentsInterval) {
@@ -409,36 +442,36 @@ export default {
       }
     },
     async addComment() {
-    if (!this.newComment.trim()) return;
+      if (!this.newComment.trim()) return;
 
-    try {
-      const user = await communicationManager.getUser();
-      const response = await communicationManager.addComment(this.recipe.id, this.newComment);
-      
-      // Actualizar lista de comentarios inmediatamente después de añadir uno nuevo
-      this.comments.unshift({
-        comment: this.newComment,
-        name: user.name,
-        updated_at: new Date().toISOString()
-      });
+      try {
+        const user = await communicationManager.getUser();
+        const response = await communicationManager.addComment(this.recipe.id, this.newComment);
 
-      // Enviar notificación
-      await communicationManager.createNotification({
-        user_id: this.recipe.user_id,
-        recipe_id: this.recipe.id,
-        type: 'comment',
-      });
+        // Actualizar lista de comentarios inmediatamente después de añadir uno nuevo
+        this.comments.unshift({
+          comment: this.newComment,
+          name: user.name,
+          updated_at: new Date().toISOString()
+        });
 
-      this.newComment = '';
+        // Enviar notificación
+        await communicationManager.createNotification({
+          user_id: this.recipe.user_id,
+          recipe_id: this.recipe.id,
+          type: 'comment',
+        });
+
+        this.newComment = '';
         this.showPopup('Comentario añadido');
-        
+
         // Forzar actualización inmediata
         await this.pollComments();
       } catch (error) {
         console.error('Error al añadir comentario:', error);
         this.showPopup('Error al añadir comentario');
       }
-  },
+    },
 
 
     async toggleLike(recipeId) {

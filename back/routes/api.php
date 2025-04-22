@@ -11,6 +11,9 @@ use App\Http\Controllers\InfoUserController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RecommendationController;
+use Barryvdh\DomPDF\Facade\Pdf;
+
+
 Route::get('/user/{id}/recipes', [InfoUserController::class, 'showRecipes']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/recommendations/preferences', [RecommendationController::class, 'storePreferences']);
@@ -114,3 +117,4 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 Route::middleware('auth:sanctum')->get('/folders/{folder}/recipes', [FolderController::class, 'getRecipes']);
 
+Route::get('/recipes/{id}/download', [RecipeController::class, 'downloadFullRecipe']);

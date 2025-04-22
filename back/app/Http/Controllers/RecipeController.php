@@ -6,9 +6,9 @@ use App\Models\RecipeUser;
 use App\Models\Notification;
 use App\Models\User;
 use App\Models\Recommendation;
-
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Recipe;
-
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 
 class RecipeController extends Controller
@@ -597,4 +597,47 @@ public function getUserLikedRecipes(Request $request)
         ], 500);
     }
 }
+
+public function downloadFullRecipe($id)
+{
+    $recipe = Recipe::with(['user', 'category', 'cuisine'])->findOrFail($id);
+
+    $comments = DB::table('recipe_user')
+        ->where('recipe_id', $id)
+        ->whereNotNull('comment')
+        ->join('users', 'recipe_user.user_id', '=', 'users.id')
+        ->select('users.name', 'recipe_user.comment', 'recipe_user.updated_at')
+        ->orderByDesc('recipe_user.updated_at')
+        ->get();
+
+    $total_time = $recipe->prep_time + $recipe->cook_time;
+
+    $data = [
+        'recipe' => [
+            'title' => $recipe->title,
+            'description' => $recipe->description,
+            'ingredients' => $recipe->ingredients,
+            'steps' => $recipe->steps,
+            'prep_time' => $recipe->prep_time,
+            'cook_time' => $recipe->cook_time,
+            'total_time' => $total_time,
+            'servings' => $recipe->servings,
+            'nutrition' => $recipe->nutrition,
+            'image' => $recipe->image, // Añade esto si quieres incluir la imagen
+        ],
+        'metadata' => [
+            'creador' => $recipe->user->name,
+            'categoria' => $recipe->category->name ?? null,
+            'tipo_cocina' => $recipe->cuisine->country ?? null,
+            'likes_count' => $recipe->likes_count,
+        ],
+        'comments' => $comments
+    ];
+
+    $pdf = Pdf::loadView('recipes.pdf', $data);
+    
+    // Forzar la descarga con el nombre del archivo
+    return $pdf->download('receta-' . Str::slug($recipe->title) . '.pdf');
+}
+
 }
