@@ -488,19 +488,36 @@ public function filterByIngredient($ingredient)
         'recipes' => $filteredRecipes,
     ], 200);
 }
-
-
-// Eliminar un comentario
-public function deleteComment(Request $request, $recipeId)
+public function deleteCommentByText(Request $request, $recipeId)
 {
-    $userId = $request->user()->id;
+    $commentText = $request->input('comment');
 
-    RecipeUser::where('user_id', $userId)
+    // Busca el comentario sin depender del user_id
+    $comment = DB::table('recipe_user')
         ->where('recipe_id', $recipeId)
+        ->where('comment', $commentText)
+        ->first();
+
+    // Si no se encuentra el comentario
+    if (!$comment) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Comentario no encontrado'
+        ]);
+    }
+
+    // Actualiza el campo 'comment' a null o cadena vacía
+    DB::table('recipe_user')
+        ->where('recipe_id', $recipeId)
+        ->where('comment', $commentText)
         ->update(['comment' => null, 'updated_at' => now()]);
 
-    return response()->json(['message' => 'Comentario eliminado correctamente']);
+    return response()->json([
+        'success' => true,
+        'message' => 'Comentario eliminado correctamente'
+    ]);
 }
+
 
 public function getRecommendedRecipes(Request $request)
 {

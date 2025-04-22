@@ -105,7 +105,8 @@ Route::post('/recipes/filter-by-ingredients', [RecipeController::class, 'filterB
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/recipes/{id}/comment', [RecipeController::class, 'addComment']);
     Route::get('/recipes/{id}/comments', [RecipeController::class, 'getRecipeComments']);
-    Route::delete('/recipes/{id}/comment', [RecipeController::class, 'deleteComment']);
+    Route::delete('recipes/{recipeId}/comments', [RecipeController::class, 'deleteCommentByText']);
+
 });
 
 
