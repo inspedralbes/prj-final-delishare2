@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password');
+            $table->enum('role', ['user', 'chef', 'admin'])->default('user'); 
             $table->text('bio')->nullable(); // Se agrega la columna bio
             $table->rememberToken();
             $table->timestamps();

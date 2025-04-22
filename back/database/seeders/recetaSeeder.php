@@ -11,16 +11,33 @@ class RecetaSeeder extends Seeder
 {
     public function run()
     {
-        // Crear usuarios
-        $users = [
-            ['name' => 'ias', 'email' => 'ishaa@gmail.com', 'password' => bcrypt('123456789')],
-            ['name' => 'sim', 'email' => 'sim@gmail.com', 'password' => bcrypt('123456789')],
-            ['name' => 'prueba', 'email' => 'prueba2@gmail.com', 'password' => bcrypt('123456789')],
-        ];
-        
-        foreach ($users as $userData) {
-            User::updateOrCreate(['email' => $userData['email']], $userData);
-        }
+     // Crear usuarios con diferentes roles
+$users = [
+    [
+        'name' => 'ias',
+        'email' => 'ishaa@gmail.com',
+        'password' => bcrypt('123456789'),
+        'role' => 'user',
+    ],
+    [
+        'name' => 'sim',
+        'email' => 'sim@gmail.com',
+        'password' => bcrypt('123456789'),
+        'role' => 'chef',
+    ],
+    [
+        'name' => 'prueba',
+        'email' => 'prueba2@gmail.com',
+        'password' => bcrypt('123456789'),
+        'role' => 'admin',
+    ],
+];
+
+// Insertar usuarios
+foreach ($users as $userData) {
+    \App\Models\User::create($userData);
+}
+
 
         // Obtener los usuarios
         $users = User::all();

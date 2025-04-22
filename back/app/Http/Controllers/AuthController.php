@@ -20,6 +20,7 @@ class AuthController extends Controller
         'email' => 'required|email|unique:users,email',
         'password' => 'required|string|min:6',
         'bio' => 'nullable|string|max:500',
+        'role' => 'in:user,chef,admin',
     ]);
 
     if ($validator->fails()) {
@@ -32,6 +33,8 @@ class AuthController extends Controller
         'email' => $request->email,
         'password' => Hash::make($request->password),
         'bio' => $request->bio ?? null,
+        'role' => $request->role ?? 'user', 
+
     ]);
 
     // Generar token de autenticación
