@@ -66,6 +66,15 @@ const communicationManager = {
         throw error;
       });
   },
+  deleteRecipe(id) {
+    return apiClient.delete(`/recipes/${id}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error(`Error al eliminar la receta con ID ${id}:`, error);
+        throw error;
+      });
+  }
+,  
   fetchRecipeDetails(recipeId) {
     // Asegúrate de que recipeId sea string si tu backend lo espera así
     return apiClient.get(`/recipes/${String(recipeId)}`)

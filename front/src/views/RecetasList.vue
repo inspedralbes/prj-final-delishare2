@@ -30,7 +30,8 @@
             <p class="receta-description">{{ truncateDescription(receta.description) }}</p>
             <div class="receta-footer">
               <span class="author">Por: {{ receta.user?.name }}</span>
-              <router-link :to="`/recetas/${receta.id}`" class="view-btn">Eliminar receta</router-link>
+              <button @click="eliminarReceta(receta.id)" class="view-btn">Eliminar receta</button>
+
             </div>
           </div>
         </div>
@@ -39,6 +40,10 @@
   </template>
   
   <script>
+  import communicationManager from '@/services/communicationManager';
+
+
+
   export default {
     name: 'RecetasList',
     data() {
@@ -68,6 +73,16 @@
           this.loading = false;
         }
       },
+      async eliminarReceta(id) {
+  if (!confirm('¿Estás seguro de que deseas eliminar esta receta?')) return;
+
+  try {
+    await communicationManager.deleteRecipe(id);
+    this.recetas = this.recetas.filter(receta => receta.id !== id);
+  } catch (error) {
+    alert('Ocurrió un error al eliminar la receta.');
+  }
+},
       truncateDescription(desc) {
         if (!desc) return '';
         return desc.length > 150 ? desc.substring(0, 150) + '...' : desc;
