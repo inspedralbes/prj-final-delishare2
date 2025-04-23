@@ -488,6 +488,25 @@ public function filterByIngredient($ingredient)
         'recipes' => $filteredRecipes,
     ], 200);
 }
+public function getAllComments()
+{
+    $comments = DB::table('recipe_user')
+        ->whereNotNull('comment')
+        ->join('users', 'recipe_user.user_id', '=', 'users.id')
+        ->join('recipes', 'recipe_user.recipe_id', '=', 'recipes.id')
+        ->select(
+            'users.name as user_name',
+            'recipes.title as recipe_title',
+            'recipe_user.comment',
+            'recipe_user.created_at',
+            'recipe_user.updated_at'
+        )
+        ->orderBy('recipe_user.updated_at', 'desc')
+        ->get();
+
+    return response()->json($comments);
+}
+
 public function deleteCommentByText(Request $request, $recipeId)
 {
     $commentText = $request->input('comment');
