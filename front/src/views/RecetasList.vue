@@ -577,6 +577,7 @@
   .recetas-grid {
     grid-template-columns: 1fr;
     gap: 1.8rem;
+    padding-bottom: 50px;
   }
   
   .title {
