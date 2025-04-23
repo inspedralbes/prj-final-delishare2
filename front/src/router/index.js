@@ -11,6 +11,8 @@ import Guardadas from '@/views/Guardadas.vue';
 import { useAuthStore } from '@/stores/authStore';  // Importa el store de autenticación
 import UserProfile from '@/components/UserProfile.vue';
 import Formulario from '@/views/Formulario.vue';
+import RecetasList from '@/views/RecetasList.vue';
+
 
 const routes = [
   {
@@ -18,6 +20,13 @@ const routes = [
     name: 'ChatBot',
     component: Chat,
      meta: { requiresAuth: false },
+  },
+  {
+    path: '/recetas',
+    name: 'RecetasList',
+    component: RecetasList,
+    meta: { requiresAuth: false },
+
   },
   {
     path: '/formulario',

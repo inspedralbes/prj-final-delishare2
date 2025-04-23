@@ -15,9 +15,31 @@ class RecipeController extends Controller
 {
     public function index()
     {
-        return Recipe::with(['user', 'category', 'cuisine'])->get();
+        return Recipe::with(['user', 'category', 'cuisine'])
+            ->get()
+            ->map(function ($recipe) {
+                return [
+                    'id' => $recipe->id,
+                    'title' => $recipe->title,
+                    'description' => $recipe->description,
+                    'image_url' => $recipe->image,
+                    'video_url' => $recipe->video,
+                    'ingredients' => $recipe->ingredients,
+                    'steps' => $recipe->steps,
+                    'prep_time' => $recipe->prep_time,
+                    'cook_time' => $recipe->cook_time,
+                    'servings' => $recipe->servings,
+                    'nutrition' => $recipe->nutrition,
+                    'likes_count' => $recipe->likes_count,
+                    'created_at' => $recipe->created_at,
+                    'updated_at' => $recipe->updated_at,
+                    'user' => $recipe->user,
+                    'category' => $recipe->category,
+                    'cuisine' => $recipe->cuisine,
+                ];
+            });
     }
-
+    
     public function show($id)
     {
         $recipe = Recipe::with(['user', 'category', 'cuisine'])->findOrFail($id);
@@ -103,6 +125,7 @@ public function update(Request $request, $id)
         $recipe->delete();
         return response()->json(['message' => 'Recipe deleted successfully']);
     }
+    
     public function getNotifications(Request $request)
     {
         $userId = $request->user()->id;
