@@ -41,6 +41,13 @@
         No s'han trobat cuines.
       </div>
   
+      <!-- Formulario para Crear una Nueva Cocina -->
+      <div class="create-cuisine-form">
+        <h3>Afegir Nova Cuina</h3>
+        <input v-model="newCuisineName" type="text" placeholder="Nom de la cuina" />
+        <button @click="crearCuina">Crear Cuina</button>
+      </div>
+  
       <!-- Modal -->
       <div v-if="modalVisible" class="modal-backdrop">
         <div class="modal">
@@ -68,6 +75,7 @@
         successMessage: '',
         modalVisible: false,
         cuisineToDelete: null,
+        newCuisineName: '', // Nuevo campo para el nombre de la cuina
       };
     },
     mounted() {
@@ -109,6 +117,31 @@
           this.cuisineToDelete = null;
         }
       },
+      async crearCuina() {
+        if (!this.newCuisineName.trim()) {
+          this.error = 'El nom de la cuina no pot estar buit.';
+          return;
+        }
+  
+        this.loading = true;
+        this.error = null;
+        this.successMessage = '';
+  
+        try {
+          const newCuisine = {
+            country: this.newCuisineName,
+          };
+          const result = await communicationManager.createCuisine(newCuisine);
+          this.successMessage = `Cuina creada: ${result.name}`;
+          this.cuisines.push(result); // Agregar la nueva cuina a la lista
+          this.newCuisineName = ''; // Limpiar el campo de entrada
+        } catch (err) {
+          this.error = err.message;
+          console.error('Error creant la cuina:', err);
+        } finally {
+          this.loading = false;
+        }
+      },
       formatDate(dateString) {
         if (!dateString) return '';
         const date = new Date(dateString);
@@ -117,8 +150,37 @@
     }
   }
   </script>
-   
+  
   <style scoped>
+  /* Estilos previos ... */
+  
+  .create-cuisine-form {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .create-cuisine-form input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .create-cuisine-form button {
+    padding: 10px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .create-cuisine-form button:hover {
+    background-color: #388e3c;
+  }
+
   .cuisines-container {
     max-width: 800px;
     margin: 0 auto;

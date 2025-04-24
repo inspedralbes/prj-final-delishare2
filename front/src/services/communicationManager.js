@@ -67,6 +67,15 @@ const communicationManager = {
         throw error;
       });
   },  
+  createCuisine(cuisineData) {
+    return apiClient.post('/cuisines', cuisineData)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error creando cocina:', error.response?.data || error.message);
+        throw error;
+      });
+  }
+,  
   deleteRecipe(id) {
     return apiClient.delete(`/recipes/${id}`)
       .then(response => response.data)
