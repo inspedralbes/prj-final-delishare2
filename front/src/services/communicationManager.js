@@ -40,14 +40,7 @@ const communicationManager = {
         throw error;
       });
   },  
-  fetchRecipes() {
-    return apiClient.get('/recipes')
-      .then(response => response.data)
-      .catch(error => {
-        console.error('Error fetching recipes:', error);
-        throw error;
-      });
-  },
+
 
   fetchCategories() {
     return apiClient.get('/categories')
@@ -75,6 +68,25 @@ const communicationManager = {
       });
   }
 ,  
+// Función para obtener todas las recetas
+fetchRecipes() {
+  return apiClient.get('/recipes')
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error fetching recipes:', error);
+      throw error;
+    });
+},
+
+// Función para eliminar una receta por su ID
+deleteRecipe(id) {
+  return apiClient.delete(`/recipes/${id}`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error(`Error al eliminar la receta con ID ${id}:`, error);
+      throw error;
+    });
+},
   fetchRecipeDetails(recipeId) {
     // Asegúrate de que recipeId sea string si tu backend lo espera así
     return apiClient.get(`/recipes/${String(recipeId)}`)
