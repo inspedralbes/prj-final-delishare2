@@ -59,6 +59,14 @@ const communicationManager = {
         throw error;
       });
   },
+  deleteCuisine(id) {
+    return apiClient.delete(`/cuisines/${id}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error(`Error deleting cuisine with ID ${id}:`, error);
+        throw error;
+      });
+  },  
   deleteRecipe(id) {
     return apiClient.delete(`/recipes/${id}`)
       .then(response => response.data)

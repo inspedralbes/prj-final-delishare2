@@ -12,14 +12,15 @@ import { useAuthStore } from '@/stores/authStore';  // Importa el store de auten
 import UserProfile from '@/components/UserProfile.vue';
 import Formulario from '@/views/Formulario.vue';
 import RecetasList from '@/views/RecetasList.vue';
-import UsersList from '@/views/UsersList.vue'; // Importamos la nueva vista
+import UsersList from '@/views/UsersList.vue';
+import CuisinesView from '@/views/CuisinesView.vue'; // Importamos la nueva vista
 
 const routes = [
   {
     path: '/Chat',
     name: 'ChatBot',
     component: Chat,
-     meta: { requiresAuth: false },
+    meta: { requiresAuth: false },
   },
   {
     path: '/recetas',
@@ -31,13 +32,13 @@ const routes = [
     path: '/users',
     name: 'UsersList',
     component: UsersList,
-    meta: { requiresAuth: true }, // Añadido - normalmente la lista de usuarios requiere autenticación
+    meta: { requiresAuth: true },
   },
   {
     path: '/formulario',
     name: 'Formulario',
     component: Formulario,
-     meta: { requiresAuth: false },
+    meta: { requiresAuth: false },
   },
   {
     path: '/notifications',
@@ -57,7 +58,7 @@ const routes = [
     component: SearchPage,
     meta: { requiresAuth: false },
   },
-    {
+  {
     path: '/user/:userId',
     name: 'UserProfile',
     component: UserProfile,
@@ -70,7 +71,7 @@ const routes = [
   },
   {
     path: '/',
-    name: 'LandingPage', // Cambiado para que la ruta raíz muestre LandingPage
+    name: 'LandingPage',
     component: LandingPage,
     meta: { requiresAuth: false }
   },
@@ -98,6 +99,13 @@ const routes = [
     component: () => import('@/views/Perfil.vue'),
     meta: { requiresAuth: false },
   },
+  // Nueva ruta para las cocinas
+  {
+    path: '/cuisines',
+    name: 'CuisinesView',
+    component: CuisinesView,
+    meta: { requiresAuth: false } // Ajusta según tus necesidades de autenticación
+  },
 ];
 
 const router = createRouter({
@@ -119,4 +127,5 @@ router.beforeEach((to, from, next) => {
     next();
   }
 });
+
 export default router;
