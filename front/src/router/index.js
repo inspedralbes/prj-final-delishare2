@@ -12,7 +12,7 @@ import { useAuthStore } from '@/stores/authStore';  // Importa el store de auten
 import UserProfile from '@/components/UserProfile.vue';
 import Formulario from '@/views/Formulario.vue';
 import RecetasList from '@/views/RecetasList.vue';
-
+import UsersList from '@/views/UsersList.vue'; // Importamos la nueva vista
 
 const routes = [
   {
@@ -26,7 +26,12 @@ const routes = [
     name: 'RecetasList',
     component: RecetasList,
     meta: { requiresAuth: false },
-
+  },
+  {
+    path: '/users',
+    name: 'UsersList',
+    component: UsersList,
+    meta: { requiresAuth: true }, // Añadido - normalmente la lista de usuarios requiere autenticación
   },
   {
     path: '/formulario',
@@ -93,7 +98,6 @@ const routes = [
     component: () => import('@/views/Perfil.vue'),
     meta: { requiresAuth: false },
   },
-  
 ];
 
 const router = createRouter({
@@ -116,4 +120,3 @@ router.beforeEach((to, from, next) => {
   }
 });
 export default router;
-

@@ -99,6 +99,26 @@ deleteRecipe(id) {
         throw error;
       });
   },
+  fetchAllUsers() {
+    return apiClient.get('/users')
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching all users:', error);
+        throw error;
+      });
+  },
+  deleteUser(userId) {
+    return apiClient.delete(`/users/${userId}`)
+      .then(response => {
+        console.log(`Usuario con ID ${userId} eliminado correctamente`);
+        return response.data;
+      })
+      .catch(error => {
+        console.error(`Error al eliminar el usuario con ID ${userId}:`, error);
+        throw error;
+      });
+  },
+  
   createRecipe(recipeData) {
     return apiClient.post('/recipes', {
       ...recipeData,
