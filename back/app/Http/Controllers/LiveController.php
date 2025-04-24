@@ -12,6 +12,42 @@ use Illuminate\Validation\ValidationException;
 
 class LiveController extends Controller
 {
+/**
+ * Obtener los lives programados por el chef autenticado
+ */
+public function misLivesProgramados()
+{
+    try {
+        $user = Auth::user();
+
+        if ($user->role !== 'chef') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Solo los chefs pueden ver sus lives programados'
+            ], 403);
+        }
+
+        $lives = Live::with(['recipe'])
+                    ->where('user_id', $user->id)
+                    ->where('dia', '>=', now()->format('Y-m-d'))
+                    ->orderBy('dia')
+                    ->orderBy('hora')
+                    ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $lives
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Error al obtener los lives programados del chef: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener tus lives programados',
+            'error' => env('APP_DEBUG') ? $e->getMessage() : null
+        ], 500);
+    }
+}
+
     /**
      * Listar todos los lives (públicos)
      */

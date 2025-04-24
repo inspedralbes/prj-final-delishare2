@@ -20,6 +20,12 @@ $users = [
         'role' => 'chef',
     ],
     [
+        'name' => 'ias1',
+        'email' => 'ias1@gmail.com',
+        'password' => bcrypt('123456789'),
+        'role' => 'chef',
+    ],
+    [
         'name' => 'sim',
         'email' => 'sim@gmail.com',
         'password' => bcrypt('123456789'),

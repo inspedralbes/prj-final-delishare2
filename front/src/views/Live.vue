@@ -1,311 +1,343 @@
 <template>
-    <div class="lives-container">
-      <div class="header">
-        <h1>🎥 Lives Programados</h1>
-        <p>Únete a nuestras transmisiones en vivo de cocina</p>
-      </div>
-  
-      <div v-if="loading" class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando lives...</p>
-      </div>
-  
-      <div v-else-if="error" class="error-message">
-        <p>⚠️ {{ error }}</p>
-        <button @click="fetchLives" class="retry-btn">Reintentar</button>
-      </div>
-  
-      <div v-else-if="lives.length === 0" class="no-lives">
-        <p>No hay lives programados actualmente.</p>
-      </div>
-  
-      <div v-else class="lives-grid">
-        <div v-for="live in lives" :key="live.id" class="live-card">
-          <div class="live-header">
-            <img :src="live.chef.img || defaultProfile" alt="Chef" class="chef-avatar">
-            <div class="chef-info">
-              <h3>{{ live.chef.name }}</h3>
-              <p class="chef-role">Chef profesional</p>
+  <div class="lives-container">
+    <div class="header">
+      <h1>🎥 Lives Programados</h1>
+      <p>Únete a nuestras transmisiones en vivo de cocina</p>
+    </div>
+
+    <div v-if="loading" class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Cargando lives...</p>
+    </div>
+
+    <div v-else-if="error" class="error-message">
+      <p>⚠️ {{ error }}</p>
+      <button @click="fetchLives" class="retry-btn">Reintentar</button>
+    </div>
+
+    <div v-else-if="lives.length === 0" class="no-lives">
+      <p>No hay lives programados actualmente.</p>
+    </div>
+
+    <div v-else class="lives-grid">
+      <div v-for="live in lives" :key="live.id" class="live-card">
+        <div class="live-header">
+          <img :src="live.chef.img || defaultProfile" alt="Chef" class="chef-avatar">
+          <div class="chef-info">
+            <h3>{{ live.chef.name }}</h3>
+            <p class="chef-role">Chef profesional</p>
+          </div>
+        </div>
+
+        <div class="live-content">
+          <h2>{{ live.recipe.title }}</h2>
+          <p class="recipe-description">{{ live.recipe.description }}</p>
+
+          <div class="live-datetime">
+            <div class="date">
+              <span class="icon">📅</span>
+              {{ formatDate(live.dia) }}
+            </div>
+            <div class="time">
+              <span class="icon">⏰</span>
+              {{ live.hora }}
             </div>
           </div>
-          
-          <div class="live-content">
-            <h2>{{ live.recipe.title }}</h2>
-            <p class="recipe-description">{{ live.recipe.description }}</p>
-            
-            <div class="live-datetime">
-              <div class="date">
-                <span class="icon">📅</span>
-                {{ formatDate(live.dia) }}
-              </div>
-              <div class="time">
-                <span class="icon">⏰</span>
-                {{ live.hora }}
-              </div>
-            </div>
-          </div>
-          
-          <div class="live-actions">
-            <button class="reminder-btn" @click="setReminder(live)">
-              ⏰ Recordarme
-            </button>
-            <button class="join-btn" @click="joinLive(live)">
-              🎥 Unirse al Live
-            </button>
-          </div>
+        </div>
+
+        <div class="live-actions">
+          <button class="reminder-btn" @click="setReminder(live)">
+            ⏰ Recordarme
+          </button>
+          <button class="join-btn" @click="joinLive(live)">
+            🎥 Unirse al Live
+          </button>
         </div>
       </div>
     </div>
-  </template>
-  
+  </div>
+</template>
 
-  <script>
-  import { ref, onMounted } from 'vue';
-  import { useAuthStore } from '@/stores/authStore';
-  import communicationManager from '@/services/communicationManager';
-  import defaultProfile from '@/assets/images/profile.svg';
-  
-  export default {
-    setup() {
-      const authStore = useAuthStore();
-      const lives = ref([]);
-      const loading = ref(true);
-      const error = ref(null);
-      const fetchLives = async () => {
-  try {
-    loading.value = true;
-    error.value = null;
-    
-    const response = await communicationManager.getLives();
-    
-    // Acepta tanto response.data como response directo
-    const responseData = response.data || response;
-    
-    if (!responseData || !Array.isArray(responseData)) {
-      throw new Error('Formato de respuesta inesperado');
-    }
-    
-    lives.value = responseData;
-  } catch (err) {
-    console.error('Error fetching lives:', err);
-    error.value = err.message || 'Error al cargar los lives programados';
-  } finally {
-    loading.value = false;
+
+<script>
+import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import { useAuthStore } from '@/stores/authStore';
+import communicationManager from '@/services/communicationManager';
+import defaultProfile from '@/assets/images/profile.svg';
+
+export default {
+  setup() {
+    const router = useRouter();
+    const authStore = useAuthStore();
+    const lives = ref([]);
+    const loading = ref(true);
+    const error = ref(null);
+    const fetchLives = async () => {
+      try {
+        loading.value = true;
+        error.value = null;
+
+        const response = await communicationManager.getLives();
+
+        // Acepta tanto response.data como response directo
+        const responseData = response.data || response;
+
+        if (!responseData || !Array.isArray(responseData)) {
+          throw new Error('Formato de respuesta inesperado');
+        }
+
+        lives.value = responseData;
+      } catch (err) {
+        console.error('Error fetching lives:', err);
+        error.value = err.message || 'Error al cargar los lives programados';
+      } finally {
+        loading.value = false;
+      }
+    };
+    const setReminder = (live) => {
+      const title = encodeURIComponent(`Live de cocina: ${live.recipe.title}`);
+      const description = encodeURIComponent(live.recipe.description);
+      const location = encodeURIComponent('Online');
+
+      // Convertir fecha y hora a formato de Google Calendar (UTC)
+      const startDate = new Date(`${live.dia}T${live.hora}`);
+      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // duración 1 hora
+
+      const formatDate = (date) =>
+        date.toISOString().replace(/-|:|\.\d\d\d/g, '');
+
+      const start = formatDate(startDate);
+      const end = formatDate(endDate);
+
+      const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${description}&location=${location}&sf=true&output=xml`;
+
+      window.open(calendarUrl, '_blank');
+    };
+
+    const joinLive = (live) => {
+    router.push(`/chat/${live.id}`);
+  };
+    // Añade esta verificación básica de formato de fecha
+    const formatDate = (dateString) => {
+      try {
+        if (!dateString) return 'Fecha no definida';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return 'Fecha inválida';
+
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        return date.toLocaleDateString('es-ES', options);
+      } catch (e) {
+        console.error('Error formateando fecha:', e);
+        return 'Fecha inválida';
+      }
+    };
+
+    onMounted(() => {
+      // Envuelve en try-catch por si hay errores durante el montaje
+      try {
+        fetchLives();
+      } catch (e) {
+        console.error('Error en onMounted:', e);
+        error.value = 'Error inicializando el componente';
+        loading.value = false;
+      }
+    });
+
+    return {
+      lives,
+      loading,
+      error,
+      defaultProfile,
+      fetchLives,
+      formatDate,
+      authStore,
+      joinLive,
+      setReminder
+    };
   }
 };
-  
-      // Añade esta verificación básica de formato de fecha
-      const formatDate = (dateString) => {
-        try {
-          if (!dateString) return 'Fecha no definida';
-          const date = new Date(dateString);
-          if (isNaN(date.getTime())) return 'Fecha inválida';
-          
-          const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-          return date.toLocaleDateString('es-ES', options);
-        } catch (e) {
-          console.error('Error formateando fecha:', e);
-          return 'Fecha inválida';
-        }
-      };
-  
-      onMounted(() => {
-        // Envuelve en try-catch por si hay errores durante el montaje
-        try {
-          fetchLives();
-        } catch (e) {
-          console.error('Error en onMounted:', e);
-          error.value = 'Error inicializando el componente';
-          loading.value = false;
-        }
-      });
-  
-      return {
-        lives,
-        loading,
-        error,
-        defaultProfile,
-        fetchLives,
-        formatDate,
-        authStore
-      };
-    }
-  };
-  </script>
-  
-  <style scoped>
-  .lives-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
+</script>
+
+<style scoped>
+.lives-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  color: #2c3e50;
+}
+
+.header p {
+  font-size: 1.2rem;
+  color: #7f8c8d;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+}
+
+.spinner {
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
   }
-  
-  .header {
-    text-align: center;
-    margin-bottom: 2rem;
+
+  100% {
+    transform: rotate(360deg);
   }
-  
-  .header h1 {
-    font-size: 2.5rem;
-    color: #2c3e50;
-  }
-  
-  .header p {
-    font-size: 1.2rem;
-    color: #7f8c8d;
-  }
-  
-  .loading-spinner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 200px;
-  }
-  
-  .spinner {
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #3498db;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin 1s linear infinite;
-    margin-bottom: 1rem;
-  }
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  
-  .error-message {
-    text-align: center;
-    padding: 2rem;
-    background-color: #ffecec;
-    border-radius: 8px;
-    color: #e74c3c;
-  }
-  
-  .retry-btn {
-    margin-top: 1rem;
-    padding: 0.5rem 1rem;
-    background-color: #e74c3c;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .no-lives {
-    text-align: center;
-    padding: 2rem;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-  }
-  
-  .lives-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 2rem;
-  }
-  
-  .live-card {
-    background-color: white;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-  }
-  
-  .live-card:hover {
-    transform: translateY(-5px);
-  }
-  
-  .live-header {
-    display: flex;
-    align-items: center;
-    padding: 1.5rem;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #eee;
-  }
-  
-  .chef-avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-right: 1rem;
-  }
-  
-  .chef-info h3 {
-    margin: 0;
-    font-size: 1.2rem;
-  }
-  
-  .chef-role {
-    margin: 0;
-    color: #7f8c8d;
-    font-size: 0.9rem;
-  }
-  
-  .live-content {
-    padding: 1.5rem;
-  }
-  
-  .live-content h2 {
-    margin-top: 0;
-    color: #2c3e50;
-  }
-  
-  .recipe-description {
-    color: #7f8c8d;
-    margin-bottom: 1.5rem;
-  }
-  
-  .live-datetime {
-    display: flex;
-    gap: 1.5rem;
-    margin-bottom: 1rem;
-  }
-  
-  .live-datetime .date,
-  .live-datetime .time {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  
-  .live-actions {
-    display: flex;
-    padding: 0 1.5rem 1.5rem;
-    gap: 1rem;
-  }
-  
-  .reminder-btn, .join-btn {
-    flex: 1;
-    padding: 0.75rem;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .reminder-btn {
-    background-color: #f1c40f;
-    color: #34495e;
-  }
-  
-  .join-btn {
-    background-color: #e74c3c;
-    color: white;
-  }
-  
-  .reminder-btn:hover {
-    background-color: #f39c12;
-  }
-  
-  .join-btn:hover {
-    background-color: #c0392b;
-  }
-  </style>
+}
+
+.error-message {
+  text-align: center;
+  padding: 2rem;
+  background-color: #ffecec;
+  border-radius: 8px;
+  color: #e74c3c;
+}
+
+.retry-btn {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.no-lives {
+  text-align: center;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.lives-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.live-card {
+  background-color: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.live-card:hover {
+  transform: translateY(-5px);
+}
+
+.live-header {
+  display: flex;
+  align-items: center;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #eee;
+}
+
+.chef-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 1rem;
+}
+
+.chef-info h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.chef-role {
+  margin: 0;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.live-content {
+  padding: 1.5rem;
+}
+
+.live-content h2 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.recipe-description {
+  color: #7f8c8d;
+  margin-bottom: 1.5rem;
+}
+
+.live-datetime {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.live-datetime .date,
+.live-datetime .time {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.live-actions {
+  display: flex;
+  padding: 0 1.5rem 1.5rem;
+  gap: 1rem;
+}
+
+.reminder-btn,
+.join-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.reminder-btn {
+  background-color: #f1c40f;
+  color: #34495e;
+}
+
+.join-btn {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.reminder-btn:hover {
+  background-color: #f39c12;
+}
+
+.join-btn:hover {
+  background-color: #c0392b;
+}
+</style>

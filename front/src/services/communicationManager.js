@@ -503,84 +503,93 @@ getUserLikedRecipes: async () => {
         throw error;
       });
   },
-  getLives() {
-    return apiClient.get('/lives')
-      .then(response => {
-        // Acepta tanto la estructura estándar de Laravel como un array directo
-        const responseData = response.data?.data || response.data;
-        
-        if (Array.isArray(responseData)) {
-          return {
-            data: responseData,
-            success: response.data?.success || true
-          };
-        }
-        throw new Error('Formato de datos inesperado');
-      })
-      .catch(error => {
-        console.error('Error fetching lives:', error);
-        if (error.response) {
-          if (error.response.status === 404) {
-            throw new Error('Endpoint no encontrado');
-          } else if (error.response.status === 500) {
-            throw new Error('Error del servidor al obtener lives');
-          }
-          // Maneja la estructura de error de Laravel
-          if (error.response.data?.message) {
-            throw new Error(error.response.data.message);
-          }
-        }
-        throw error;
-      });
-  },
-  /**
-   * Crear un nuevo live (solo para chefs)
-   */
-  createLive(liveData) {
-    return apiClient.post('/lives', liveData)
-      .then(response => response.data)
-      .catch(error => {
-        if (error.response?.status === 403) {
-          throw new Error('Solo los chefs pueden crear lives');
-        }
-        console.error('Error creating live:', error);
-        throw error;
-      });
-  },
 
-  /**
-   * Obtener detalles de un live específico
-   */
-  getLiveDetails(liveId) {
-    return apiClient.get(`/lives/${liveId}`)
-      .then(response => response.data)
-      .catch(error => {
-        if (error.response?.status === 404) {
-          throw new Error('Live no encontrado');
-        }
-        console.error('Error fetching live details:', error);
-        throw error;
-      });
-  },
+  // Obtener todos los lives disponibles
+getLives() {
+  return apiClient.get('/lives')
+    .then(response => {
+      const responseData = response.data?.data || response.data;
+      if (Array.isArray(responseData)) {
+        return {
+          data: responseData,
+          success: response.data?.success || true
+        };
+      }
+      throw new Error('Formato de datos inesperado');
+    })
+    .catch(error => {
+      console.error('Error fetching lives:', error);
+      const status = error.response?.status;
+      if (status === 404) throw new Error('Endpoint no encontrado');
+      if (status === 500) throw new Error('Error del servidor al obtener lives');
+      throw new Error(error.response?.data?.message || error.message);
+    });
+},
 
-  /**
-   * Actualizar un live existente (solo el chef dueño)
-   */
-  updateLive(liveId, updateData) {
-    return apiClient.put(`/lives/${liveId}`, updateData)
-      .then(response => response.data)
-      .catch(error => {
-        if (error.response?.status === 403) {
-          throw new Error('No tienes permiso para actualizar este live');
-        }
-        if (error.response?.status === 404) {
-          throw new Error('Live no encontrado');
-        }
-        console.error('Error updating live:', error);
-        throw error;
-      });
-  },
+// Crear un nuevo live (solo chefs)
+createLive(liveData) {
+  return apiClient.post('/lives', liveData)
+    .then(response => response.data)
+    .catch(error => {
+      if (error.response?.status === 403) {
+        throw new Error('Solo los chefs pueden crear lives');
+      }
+      console.error('Error creando live:', error);
+      throw error;
+    });
+},
 
+// Obtener detalles de un live específico
+getLiveDetails(liveId) {
+  return apiClient.get(`/lives/${liveId}`)
+    .then(response => response.data)
+    .catch(error => {
+      if (error.response?.status === 404) {
+        throw new Error('Live no encontrado');
+      }
+      console.error('Error obteniendo detalles del live:', error);
+      throw error;
+    });
+},
+
+// Actualizar un live (solo chef dueño)
+updateLive(liveId, updateData) {
+  return apiClient.put(`/lives/${liveId}`, updateData)
+    .then(response => response.data)
+    .catch(error => {
+      if (error.response?.status === 403) {
+        throw new Error('No tienes permiso para actualizar este live');
+      }
+      if (error.response?.status === 404) {
+        throw new Error('Live no encontrado');
+      }
+      console.error('Error actualizando live:', error);
+      throw error;
+    });
+},
+
+// Obtener los lives del chef autenticado
+async getChefLives() {
+  try {
+    const response = await apiClient.get('/mis-lives');
+    const lives = response.data?.data || [];
+    return { lives };
+  } catch (error) {
+    console.error('Error en fetch getChefLives:', error);
+    throw new Error(error.response?.data?.message || 'Error al obtener los lives del chef');
+  }
+},
+
+// Eliminar un live (solo chef dueño)
+async deleteLive(liveId) {
+  try {
+    const response = await apiClient.delete(`/lives/${liveId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error eliminando live:', error);
+    throw new Error(error.response?.data?.message || 'Error al eliminar el live');
+  }
+},
 
 }
 

@@ -12,12 +12,19 @@ import { useAuthStore } from '@/stores/authStore';  // Importa el store de auten
 import UserProfile from '@/components/UserProfile.vue';
 import Formulario from '@/views/Formulario.vue';
 import Live from '@/views/Live.vue';
+import ChatRoom from '@/components/ChatRoom.vue';
 
 const routes = [
   {
     path: '/Chat',
     name: 'ChatBot',
     component: Chat,
+     meta: { requiresAuth: false },
+  },
+  {
+    path: '/chat/:liveId',
+    name: 'ChatRoom',
+    component: ChatRoom,
      meta: { requiresAuth: false },
   },
   {

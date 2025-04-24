@@ -120,9 +120,11 @@ Route::middleware('auth:sanctum')->get('/folders/{folder}/recipes', [FolderContr
 Route::get('/recipes/{id}/download', [RecipeController::class, 'downloadFullRecipe']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
+    // Todas las rutas de lives protegidas
     Route::get('/lives', [LiveController::class, 'index']);         // Listar todos los lives (futuros)
     Route::post('/lives', [LiveController::class, 'store']);        // Crear un nuevo live (solo chefs)
     Route::get('/lives/{live}', [LiveController::class, 'show']);   // Ver detalles de un live específico
     Route::put('/lives/{live}', [LiveController::class, 'update']); // Actualizar un live (solo el chef dueño)
     Route::delete('/lives/{live}', [LiveController::class, 'destroy']); // Eliminar un live (solo el chef dueño)
-});
+    Route::get('/lives/chef', [LiveController::class, 'chefLives']); // Lives del chef actual
+});Route::get('/mis-lives', [LiveController::class, 'misLivesProgramados'])->middleware('auth:sanctum');
