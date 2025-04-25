@@ -237,7 +237,14 @@ deleteRecipe(id) {
         throw error;
       });
   },
-
+  createCategory(categoryData) {
+    return apiClient.post('/categories', categoryData)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error creating category:', error.response?.data || error.message);
+        throw error;
+      });
+  },
 
   async getUserNotifications() {
     try {
