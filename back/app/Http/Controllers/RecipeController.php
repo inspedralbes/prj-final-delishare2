@@ -283,7 +283,6 @@ public function getRecipesByUser(Request $request)
     ], 200);
 }
 
-// En RecipeController.php
 public function getRecipeComments($recipeId)
 {
     $comments = DB::table('recipe_user')
@@ -511,6 +510,7 @@ public function filterByIngredient($ingredient)
         'recipes' => $filteredRecipes,
     ], 200);
 }
+
 public function getAllComments()
 {
     $comments = DB::table('recipe_user')

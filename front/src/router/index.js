@@ -15,6 +15,8 @@ import RecetasList from '@/views/RecetasList.vue';
 import UsersList from '@/views/UsersList.vue';
 import CuisinesView from '@/views/CuisinesView.vue'; 
 import CategoriesView from '@/views/CategoriesView.vue';
+import CommentsView from '../views/CommentsView.vue';
+
 
 
 const routes = [
@@ -113,6 +115,12 @@ const routes = [
     component: CategoriesView,
     meta: { requiresAuth: true } 
   },
+  {
+    path: '/comments',
+    name: 'comments',
+    component: CommentsView,
+    meta: { requiresAuth: false } 
+  }
 ];
 
 const router = createRouter({

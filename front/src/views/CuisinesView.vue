@@ -127,8 +127,8 @@
           };
           const result = await communicationManager.createCuisine(newCuisine);
           this.successMessage = `Cuina creada: ${result.country}`;
-          this.cuisines.push(result); // Agregar la nueva cuina a la lista
-          this.newCuisineName = ''; // Limpiar el campo de entrada
+          this.cuisines.push(result); 
+          this.newCuisineName = ''; 
         } catch (err) {
           this.error = err.message;
           console.error('Error creant la cuina:', err);
@@ -146,7 +146,6 @@
   </script>
   
   <style scoped>
-  /* Estilos previos ... */
   
   .create-cuisine-form button:disabled {
   background-color: #cccccc;

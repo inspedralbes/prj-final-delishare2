@@ -408,6 +408,24 @@ deleteRecipe(id) {
         throw error;
       });
   },
+  getAllComments() {
+    return apiClient.get('/comments')
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching all comments:', error);
+        throw error;
+      });
+  },
+  deleteComment(recipeId, commentText) {
+    return apiClient.delete(`/recipes/${recipeId}/comments`, {
+      data: { comment: commentText }
+    })
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error eliminando comentario:', error);
+        throw error;
+      });
+  },
   createFolder(folderName) {
     return apiClient.post('/folders', { name: folderName })
       .then(response => response.data)
