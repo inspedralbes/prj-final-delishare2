@@ -16,19 +16,13 @@
         <table class="cuisines-table">
           <thead>
             <tr>
-              <th>ID</th>
               <th>Nom</th>
-              <th>Creat el</th>
-              <th>Actualitzat el</th>
               <th>Accions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="cuisine in cuisines" :key="cuisine.id">
-              <td>{{ cuisine.id }}</td>
               <td>{{ cuisine.country }}</td>
-              <td>{{ formatDate(cuisine.created_at) }}</td>
-              <td>{{ formatDate(cuisine.updated_at) }}</td>
               <td>
                 <button @click="mostrarModalEliminar(cuisine.id)" class="delete-btn">Eliminar</button>
               </td>
@@ -45,7 +39,7 @@
       <div class="create-cuisine-form">
         <h3>Afegir Nova Cuina</h3>
         <input v-model="newCuisineName" type="text" placeholder="Nom de la cuina" />
-        <button @click="crearCuina">Crear Cuina</button>
+        <button @click="crearCuina" :disabled="!newCuisineName.trim()">Crear Cuina</button>
       </div>
   
       <!-- Modal -->
@@ -132,7 +126,7 @@
             country: this.newCuisineName,
           };
           const result = await communicationManager.createCuisine(newCuisine);
-          this.successMessage = `Cuina creada: ${result.name}`;
+          this.successMessage = `Cuina creada: ${result.country}`;
           this.cuisines.push(result); // Agregar la nueva cuina a la lista
           this.newCuisineName = ''; // Limpiar el campo de entrada
         } catch (err) {
@@ -154,12 +148,11 @@
   <style scoped>
   /* Estilos previos ... */
   
-  .create-cuisine-form {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+  .create-cuisine-form button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
   
   .create-cuisine-form input {
     padding: 8px;
