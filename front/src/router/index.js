@@ -13,7 +13,9 @@ import UserProfile from '@/components/UserProfile.vue';
 import Formulario from '@/views/Formulario.vue';
 import RecetasList from '@/views/RecetasList.vue';
 import UsersList from '@/views/UsersList.vue';
-import CuisinesView from '@/views/CuisinesView.vue'; // Importamos la nueva vista
+import CuisinesView from '@/views/CuisinesView.vue'; 
+import CategoriesView from '@/views/CategoriesView.vue';
+
 
 const routes = [
   {
@@ -99,12 +101,17 @@ const routes = [
     component: () => import('@/views/Perfil.vue'),
     meta: { requiresAuth: false },
   },
-  // Nueva ruta para las cocinas
   {
     path: '/cuisines',
     name: 'CuisinesView',
     component: CuisinesView,
-    meta: { requiresAuth: false } // Ajusta según tus necesidades de autenticación
+    meta: { requiresAuth: false } 
+  },
+  {
+    path: '/categories',
+    name: 'CategoriesView',
+    component: CategoriesView,
+    meta: { requiresAuth: true } 
   },
 ];
 

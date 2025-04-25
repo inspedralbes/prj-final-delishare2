@@ -219,6 +219,25 @@ deleteRecipe(id) {
         throw error;
       });
   },
+  deleteCategory(id) {
+    return apiClient.delete(`/categories/${id}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error(`Error deleting category with ID ${id}:`, error);
+        throw error;
+      });
+  },
+
+  // Método para crear una categoría (por si lo necesitas)
+  createCategory(categoryData) {
+    return apiClient.post('/categories', categoryData)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error creating category:', error);
+        throw error;
+      });
+  },
+
 
   async getUserNotifications() {
     try {
