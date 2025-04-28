@@ -66,8 +66,69 @@ foreach ($users as $userData) {
         $recipes = [
             [
                 'user_id' => $user2->id,
-                'category_id' => $categoryInstances[0]->id,
-                'cuisine_id' => $cuisineInstances[0]->id,
+                'category_id' => $categoryInstances[4]->id, // Postres
+                'cuisine_id' => $cuisineInstances[0]->id, // Italia
+                'title' => 'Tiramisu',
+                'description' => 'Delicioso postre italiano de capas de bizcocho empapadas en café y crema de mascarpone.',
+                'ingredients' => [
+                    [
+                        'quantity' => '300',
+                        'unit' => 'g',
+                        'name' => 'Bizcochos de soletilla'
+                    ],
+                    [
+                        'quantity' => '500',
+                        'unit' => 'g',
+                        'name' => 'Queso mascarpone'
+                    ],
+                    [
+                        'quantity' => '4',
+                        'unit' => 'unitats',
+                        'name' => 'Ous'
+                    ],
+                    [
+                        'quantity' => '100',
+                        'unit' => 'g',
+                        'name' => 'Azúcar'
+                    ],
+                    [
+                        'quantity' => '200',
+                        'unit' => 'ml',
+                        'name' => 'Café fuerte'
+                    ],
+                    [
+                        'quantity' => '2',
+                        'unit' => 'culleradetes',
+                        'name' => 'Extracto de vainilla'
+                    ],
+                    [
+                        'quantity' => '30',
+                        'unit' => 'g',
+                        'name' => 'Cacao en polvo'
+                    ]
+                ],
+                'steps' => [
+                    'Batir las yemas con el azúcar hasta obtener una mezcla cremosa.',
+                    'Añadir el mascarpone a la mezcla de yemas y azúcar.',
+                    'Montar las claras a punto de nieve y mezclar con la crema de mascarpone.',
+                    'Sumergir los bizcochos en el café con extracto de vainilla.',
+                    'Colocar una capa de bizcochos empapados en el fondo de un recipiente.',
+                    'Cubrir con una capa de la mezcla de mascarpone.',
+                    'Repetir las capas hasta terminar los ingredientes.',
+                    'Dejar reposar en la nevera durante al menos 4 horas.',
+                    'Espolvorear con cacao en polvo antes de servir.'
+                ],
+                'nutrition' => ['Calories' => '350', 'Protein' => '8g'],
+                'image' => 'https://res.cloudinary.com/dt5vjbgab/image/upload/v1745825570/mulxnnw9tm6bhg5grl0f.jpg',
+                'video' => 'https://res.cloudinary.com/dt5vjbgab/video/upload/v1745825740/abgohb7pxjiva2t6cptd.mp4',
+                'prep_time' => 20,
+                'cook_time' => 0,
+                'servings' => 6,
+            ],
+            [
+                'user_id' => $user2->id,
+                'category_id' => $categoryInstances[4]->id, // Postres
+                'cuisine_id' => $cuisineInstances[0]->id, // Italia
                 'title' => 'Spaghetti Carbonara',
                 'description' => 'A classic Italian pasta dish with eggs, cheese, pancetta, and pepper.',
                 'ingredients' => [
@@ -108,51 +169,6 @@ foreach ($users as $userData) {
                 'video' => 'https://res.cloudinary.com/dt5vjbgab/video/upload/v1743764405/n9zv48fpmb9rz1zz2hwq.mp4',
                 'prep_time' => 10,
                 'cook_time' => 15,
-                'servings' => 2,
-            ],
-            [
-                'user_id' => $user2->id,
-                'category_id' => $categoryInstances[4]->id, // Postres
-                'cuisine_id' => $cuisineInstances[2]->id, // Índia
-                'title' => 'Lassi de Mango',
-                'description' => 'Refrescante bebida india de yogur y mango.',
-                'ingredients' => [
-                    [
-                        'quantity' => '200',
-                        'unit' => 'ml',
-                        'name' => 'Iogurt natural'
-                    ],
-                    [
-                        'quantity' => '100',
-                        'unit' => 'ml',
-                        'name' => 'Aigua'
-                    ],
-                    [
-                        'quantity' => '1',
-                        'unit' => 'cullerada',
-                        'name' => 'Sucre moreno'
-                    ],
-                    [
-                        'quantity' => '0.5',
-                        'unit' => 'culleradeta',
-                        'name' => 'Cardamom en pols'
-                    ],
-                    [
-                        'quantity' => '0.25',
-                        'unit' => 'culleradeta',
-                        'name' => 'Canela en pols'
-                    ]
-                ],
-                'steps' => [
-                    'Mezclar todos los ingredientes en la licuadora',
-                    'Licuar hasta obtener una mezcla homogénea',
-                    'Servir frío'
-                ],
-                'nutrition' => ['Calories' => '150', 'Protein' => '5g'],
-                'image' => 'https://res.cloudinary.com/dt5vjbgab/image/upload/v1743763266/l2myknmc5vhmx3dzdhn4.jpg',
-                'video' => 'https://res.cloudinary.com/dt5vjbgab/video/upload/v1743764249/bn5bz3ulcvjt07dm50is.mp4',
-                'prep_time' => 5,
-                'cook_time' => 0,
                 'servings' => 2,
             ]
         ];
