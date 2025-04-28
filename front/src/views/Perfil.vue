@@ -53,6 +53,10 @@
           <button @click="setActiveTab('name')">Canviar nom d'usuari i email</button>
           <button @click="setActiveTab('password')">Canviar contrasenya</button>
           <button @click="setActiveTab('liked')">Veure receptes que m'agraden</button>
+          <div v-if="isAdmin" class="admin-button-container">
+  <button @click="goToAdmin" class="admin-button">Administración</button>
+</div>
+
           <button @click="confirmLogout('logOut')">Tancar sessió</button>
         </div>
       </div>
@@ -286,7 +290,9 @@ import binIcon from '@/assets/images/bin.svg';
 export default {
   components: { RecipeCard },
   setup() {
-    
+    const goToAdmin = () => {
+  router.push('/recetas');
+};
     const minDate = computed(() => {
       const today = new Date();
       const dd = String(today.getDate()).padStart(2, '0');
@@ -301,6 +307,15 @@ export default {
       const role = authStore.user?.role || user.value?.role;
       return authStore.isAuthenticated && role === 'chef';
     });
+
+    const isAdmin = computed(() => {
+  const role = authStore.user?.role || user.value?.role;
+  if (!role) {
+    console.log("El rol no está definido.");
+  }
+  return authStore.isAuthenticated && role === 'admin';
+});
+
 
     const newLive = ref({
       recipe_id: '',
@@ -694,6 +709,8 @@ export default {
       minDate,
       toggleLiveForm,
       isChef,
+      isAdmin,
+      goToAdmin,
       createLive,
       scheduledLives,
       loadScheduledLives,
