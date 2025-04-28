@@ -510,7 +510,6 @@ public function filterByIngredient($ingredient)
         'recipes' => $filteredRecipes,
     ], 200);
 }
-
 public function getAllComments()
 {
     $comments = DB::table('recipe_user')
@@ -520,6 +519,7 @@ public function getAllComments()
         ->select(
             'users.name as user_name',
             'recipes.title as recipe_title',
+            'recipe_user.recipe_id', // <- 🔥 AÑADIDO
             'recipe_user.comment',
             'recipe_user.created_at',
             'recipe_user.updated_at'
@@ -532,34 +532,33 @@ public function getAllComments()
 
 public function deleteCommentByText(Request $request, $recipeId)
 {
+    $request->validate([
+        'comment' => 'required|string'
+    ]);
+
     $commentText = $request->input('comment');
 
-    // Busca el comentario sin depender del user_id
-    $comment = DB::table('recipe_user')
+    // Verificar si existe el comentario
+    $affected = DB::table('recipe_user')
         ->where('recipe_id', $recipeId)
         ->where('comment', $commentText)
-        ->first();
+        ->update([
+            'comment' => null,
+            'updated_at' => now()
+        ]);
 
-    // Si no se encuentra el comentario
-    if (!$comment) {
+    if ($affected === 0) {
         return response()->json([
             'success' => false,
             'message' => 'Comentario no encontrado'
-        ]);
+        ], 404);
     }
-
-    // Actualiza el campo 'comment' a null o cadena vacía
-    DB::table('recipe_user')
-        ->where('recipe_id', $recipeId)
-        ->where('comment', $commentText)
-        ->update(['comment' => null, 'updated_at' => now()]);
 
     return response()->json([
         'success' => true,
         'message' => 'Comentario eliminado correctamente'
     ]);
 }
-
 
 public function getRecommendedRecipes(Request $request)
 {

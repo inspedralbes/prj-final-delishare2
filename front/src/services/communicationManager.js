@@ -418,14 +418,14 @@ deleteRecipe(id) {
   },
   deleteComment(recipeId, commentText) {
     return apiClient.delete(`/recipes/${recipeId}/comments`, {
-      data: { comment: commentText }
+        data: { comment: commentText }
     })
-      .then(response => response.data)
-      .catch(error => {
+    .then(response => response.data)
+    .catch(error => {
         console.error('Error eliminando comentario:', error);
         throw error;
-      });
-  },
+    });
+},
   createFolder(folderName) {
     return apiClient.post('/folders', { name: folderName })
       .then(response => response.data)
