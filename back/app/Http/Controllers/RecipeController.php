@@ -16,9 +16,31 @@ class RecipeController extends Controller
 {
     public function index()
     {
-        return Recipe::with(['user', 'category', 'cuisine'])->get();
+        return Recipe::with(['user', 'category', 'cuisine'])
+            ->get()
+            ->map(function ($recipe) {
+                return [
+                    'id' => $recipe->id,
+                    'title' => $recipe->title,
+                    'description' => $recipe->description,
+                    'image_url' => $recipe->image,
+                    'video_url' => $recipe->video,
+                    'ingredients' => $recipe->ingredients,
+                    'steps' => $recipe->steps,
+                    'prep_time' => $recipe->prep_time,
+                    'cook_time' => $recipe->cook_time,
+                    'servings' => $recipe->servings,
+                    'nutrition' => $recipe->nutrition,
+                    'likes_count' => $recipe->likes_count,
+                    'created_at' => $recipe->created_at,
+                    'updated_at' => $recipe->updated_at,
+                    'user' => $recipe->user,
+                    'category' => $recipe->category,
+                    'cuisine' => $recipe->cuisine,
+                ];
+            });
     }
-
+    
     public function show($id)
     {
         $recipe = Recipe::with(['user', 'category', 'cuisine'])->findOrFail($id);
@@ -104,6 +126,7 @@ public function update(Request $request, $id)
         $recipe->delete();
         return response()->json(['message' => 'Recipe deleted successfully']);
     }
+    
     public function getNotifications(Request $request)
     {
         $userId = $request->user()->id;
@@ -261,7 +284,6 @@ public function getRecipesByUser(Request $request)
     ], 200);
 }
 
-// En RecipeController.php
 public function getRecipeComments($recipeId)
 {
     $comments = DB::table('recipe_user')
@@ -489,18 +511,54 @@ public function filterByIngredient($ingredient)
         'recipes' => $filteredRecipes,
     ], 200);
 }
-
-
-// Eliminar un comentario
-public function deleteComment(Request $request, $recipeId)
+public function getAllComments()
 {
-    $userId = $request->user()->id;
+    $comments = DB::table('recipe_user')
+        ->whereNotNull('comment')
+        ->join('users', 'recipe_user.user_id', '=', 'users.id')
+        ->join('recipes', 'recipe_user.recipe_id', '=', 'recipes.id')
+        ->select(
+            'users.name as user_name',
+            'recipes.title as recipe_title',
+            'recipe_user.recipe_id', // <- 🔥 AÑADIDO
+            'recipe_user.comment',
+            'recipe_user.created_at',
+            'recipe_user.updated_at'
+        )
+        ->orderBy('recipe_user.updated_at', 'desc')
+        ->get();
 
-    RecipeUser::where('user_id', $userId)
+    return response()->json($comments);
+}
+
+public function deleteCommentByText(Request $request, $recipeId)
+{
+    $request->validate([
+        'comment' => 'required|string'
+    ]);
+
+    $commentText = $request->input('comment');
+
+    // Verificar si existe el comentario
+    $affected = DB::table('recipe_user')
         ->where('recipe_id', $recipeId)
-        ->update(['comment' => null, 'updated_at' => now()]);
+        ->where('comment', $commentText)
+        ->update([
+            'comment' => null,
+            'updated_at' => now()
+        ]);
 
-    return response()->json(['message' => 'Comentario eliminado correctamente']);
+    if ($affected === 0) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Comentario no encontrado'
+        ], 404);
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Comentario eliminado correctamente'
+    ]);
 }
 
 public function getRecommendedRecipes(Request $request)

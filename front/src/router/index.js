@@ -11,6 +11,13 @@ import Guardadas from '@/views/Guardadas.vue';
 import { useAuthStore } from '@/stores/authStore';  // Importa el store de autenticación
 import UserProfile from '@/components/UserProfile.vue';
 import Formulario from '@/views/Formulario.vue';
+import RecetasList from '@/views/RecetasList.vue';
+import UsersList from '@/views/UsersList.vue';
+import CuisinesView from '@/views/CuisinesView.vue'; 
+import CategoriesView from '@/views/CategoriesView.vue';
+import CommentsView from '../views/CommentsView.vue';
+
+
 import Live from '@/views/Live.vue';
 import ChatRoom from '@/components/ChatRoom.vue';
 
@@ -19,7 +26,7 @@ const routes = [
     path: '/Chat',
     name: 'ChatBot',
     component: Chat,
-     meta: { requiresAuth: false },
+    meta: { requiresAuth: false },
   },
   {
     path: '/chat/:liveId',
@@ -34,10 +41,22 @@ const routes = [
      meta: { requiresAuth: false },
   },
   {
+    path: '/recetas',
+    name: 'RecetasList',
+    component: RecetasList,
+    meta: { requiresAuth: false },
+  },
+  {
+    path: '/users',
+    name: 'UsersList',
+    component: UsersList,
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/formulario',
     name: 'Formulario',
     component: Formulario,
-     meta: { requiresAuth: false },
+    meta: { requiresAuth: false },
   },
   {
     path: '/notifications',
@@ -57,7 +76,7 @@ const routes = [
     component: SearchPage,
     meta: { requiresAuth: false },
   },
-    {
+  {
     path: '/user/:userId',
     name: 'UserProfile',
     component: UserProfile,
@@ -70,7 +89,7 @@ const routes = [
   },
   {
     path: '/',
-    name: 'LandingPage', // Cambiado para que la ruta raíz muestre LandingPage
+    name: 'LandingPage',
     component: LandingPage,
     meta: { requiresAuth: false }
   },
@@ -98,7 +117,24 @@ const routes = [
     component: () => import('@/views/Perfil.vue'),
     meta: { requiresAuth: false },
   },
-  
+  {
+    path: '/cuisines',
+    name: 'CuisinesView',
+    component: CuisinesView,
+    meta: { requiresAuth: false } 
+  },
+  {
+    path: '/categories',
+    name: 'CategoriesView',
+    component: CategoriesView,
+    meta: { requiresAuth: true } 
+  },
+  {
+    path: '/comments',
+    name: 'comments',
+    component: CommentsView,
+    meta: { requiresAuth: false } 
+  }
 ];
 
 const router = createRouter({
@@ -120,5 +156,5 @@ router.beforeEach((to, from, next) => {
     next();
   }
 });
-export default router;
 
+export default router;

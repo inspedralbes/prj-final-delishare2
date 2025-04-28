@@ -28,9 +28,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifications', [NotificationController::class, 'createNotification']);
     Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 });
+
 // Usuarios
 Route::get('userInfo/{id}', [InfoUserController::class, 'show']);
-Route::get('user/{id}', [UserController::class, 'show']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users/{id}', [UserController::class, 'show']);
+    Route::delete('/users/{id}', [UserController::class, 'destroy']);
+    Route::post('/users/', [UserController::class, 'store']);
+
+    ;
+});
 
 // Categorías
 Route::middleware('auth:sanctum')->post('/categories', [CategoryController::class, 'store']);
@@ -97,7 +105,10 @@ Route::post('/recipes/filter-by-ingredients', [RecipeController::class, 'filterB
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/recipes/{id}/comment', [RecipeController::class, 'addComment']);
     Route::get('/recipes/{id}/comments', [RecipeController::class, 'getRecipeComments']);
-    Route::delete('/recipes/{id}/comment', [RecipeController::class, 'deleteComment']);
+    Route::delete('recipes/{recipeId}/comments', [RecipeController::class, 'deleteCommentByText']);
+    Route::get('/comments', [RecipeController::class, 'getAllComments']);
+
+
 });
 
 

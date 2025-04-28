@@ -40,14 +40,7 @@ const communicationManager = {
         throw error;
       });
   },  
-  fetchRecipes() {
-    return apiClient.get('/recipes')
-      .then(response => response.data)
-      .catch(error => {
-        console.error('Error fetching recipes:', error);
-        throw error;
-      });
-  },
+
 
   fetchCategories() {
     return apiClient.get('/categories')
@@ -66,6 +59,51 @@ const communicationManager = {
         throw error;
       });
   },
+  deleteCuisine(id) {
+    return apiClient.delete(`/cuisines/${id}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error(`Error deleting cuisine with ID ${id}:`, error);
+        throw error;
+      });
+  },  
+  createCuisine(cuisineData) {
+    return apiClient.post('/cuisines', cuisineData)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error creando cocina:', error.response?.data || error.message);
+        throw error;
+      });
+  }
+,  
+  deleteRecipe(id) {
+    return apiClient.delete(`/recipes/${id}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error(`Error al eliminar la receta con ID ${id}:`, error);
+        throw error;
+      });
+  }
+,  
+// Función para obtener todas las recetas
+fetchRecipes() {
+  return apiClient.get('/recipes')
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error fetching recipes:', error);
+      throw error;
+    });
+},
+
+// Función para eliminar una receta por su ID
+deleteRecipe(id) {
+  return apiClient.delete(`/recipes/${id}`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error(`Error al eliminar la receta con ID ${id}:`, error);
+      throw error;
+    });
+},
   fetchRecipeDetails(recipeId) {
     // Asegúrate de que recipeId sea string si tu backend lo espera así
     return apiClient.get(`/recipes/${String(recipeId)}`)
@@ -78,6 +116,26 @@ const communicationManager = {
         throw error;
       });
   },
+  fetchAllUsers() {
+    return apiClient.get('/users')
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching all users:', error);
+        throw error;
+      });
+  },
+  deleteUser(userId) {
+    return apiClient.delete(`/users/${userId}`)
+      .then(response => {
+        console.log(`Usuario con ID ${userId} eliminado correctamente`);
+        return response.data;
+      })
+      .catch(error => {
+        console.error(`Error al eliminar el usuario con ID ${userId}:`, error);
+        throw error;
+      });
+  },
+  
   createRecipe(recipeData) {
     return apiClient.post('/recipes', {
       ...recipeData,
@@ -158,6 +216,32 @@ const communicationManager = {
       .then(response => response.data)
       .catch(error => {
         console.error('Error fetching categories:', error);
+        throw error;
+      });
+  },
+  deleteCategory(id) {
+    return apiClient.delete(`/categories/${id}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error(`Error deleting category with ID ${id}:`, error);
+        throw error;
+      });
+  },
+
+  // Método para crear una categoría (por si lo necesitas)
+  createCategory(categoryData) {
+    return apiClient.post('/categories', categoryData)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error creating category:', error);
+        throw error;
+      });
+  },
+  createCategory(categoryData) {
+    return apiClient.post('/categories', categoryData)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error creating category:', error.response?.data || error.message);
         throw error;
       });
   },
@@ -324,6 +408,24 @@ const communicationManager = {
         throw error;
       });
   },
+  getAllComments() {
+    return apiClient.get('/comments')
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching all comments:', error);
+        throw error;
+      });
+  },
+  deleteComment(recipeId, commentText) {
+    return apiClient.delete(`/recipes/${recipeId}/comments`, {
+        data: { comment: commentText }
+    })
+    .then(response => response.data)
+    .catch(error => {
+        console.error('Error eliminando comentario:', error);
+        throw error;
+    });
+},
   createFolder(folderName) {
     return apiClient.post('/folders', { name: folderName })
       .then(response => response.data)
