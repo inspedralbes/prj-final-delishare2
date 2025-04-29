@@ -3,63 +3,98 @@
     <!-- Página de espera para usuarios normales -->
     <div v-if="!isLiveStarted && !isChef" class="waiting-room">
       <div class="waiting-content">
-        <h2>🕒 Esperando a que el chef inicie el live...</h2>
-        <div class="waiting-info">
-          <p>Usuarios esperando: {{ waitingUsers.length }}</p>
-          <p>Chef: {{ chefName || 'Conectando...' }}</p>
+        <div class="waiting-animation">
+          <div class="cooking-icon">👨‍🍳</div>
+          <div class="pulse-animation"></div>
         </div>
-        <div class="loader"></div>
+        <h2>Esperando a que el chef inicie el live...</h2>
+        <div class="waiting-info">
+          <p><span class="info-icon">👥</span> Usuarios esperando: <strong>{{ waitingUsers.length }}</strong></p>
+          <p><span class="info-icon">🍳</span> Chef: <strong>{{ chefName || 'Conectando...' }}</strong></p>
+        </div>
+        <div class="loader">
+          <div class="dot-flashing"></div>
+        </div>
       </div>
     </div>
 
     <!-- Panel de control del chef -->
     <div v-if="isChef && !isLiveStarted" class="chef-control-panel">
-      <h2>👨‍🍳 Panel del Chef</h2>
-      <p>Estás a punto de iniciar el chat en vivo</p>
-      <div class="user-count">
-        <span>Usuarios esperando: {{ waitingUsers.length }}</span>
+      <div class="chef-header">
+        <h2><span class="chef-icon">👨‍🍳</span> Panel del Chef</h2>
+        <p>Preparado para iniciar tu transmisión en vivo</p>
       </div>
-      <div class="video-controls">
-        <button @click="toggleCamera" class="camera-button">
-          {{ isCameraOn ? '📷 Apagar Cámara' : '📷 Encender Cámara' }}
-        </button>
-        <video ref="chefPreviewVideo" autoplay muted playsinline class="preview-video"
-          :class="{ 'video-active': isCameraOn, 'video-inactive': !isCameraOn }"></video>
+      <div class="user-count">
+        <span class="users-waiting">👥 {{ waitingUsers.length }} usuario(s) esperando</span>
+      </div>
+      <div class="video-controls-container">
+        <div class="preview-container">
+          <video ref="chefPreviewVideo" autoplay muted playsinline class="preview-video"
+            :class="{ 'video-active': isCameraOn, 'video-inactive': !isCameraOn }"></video>
+          <div class="video-overlay" v-if="!isCameraOn">
+            <p>Cámara apagada</p>
+          </div>
+        </div>
+        <div class="control-buttons">
+          <button @click="toggleCamera" class="control-button camera" :class="{ 'active': isCameraOn }">
+            <span class="button-icon">{{ isCameraOn ? '📷' : '📷' }}</span>
+            <span class="button-text">{{ isCameraOn ? 'Cámara ON' : 'Cámara OFF' }}</span>
+          </button>
+          <button @click="toggleAudio" class="control-button audio" :class="{ 'active': isAudioOn }">
+            <span class="button-icon">{{ isAudioOn ? '🎤' : '🎤' }}</span>
+            <span class="button-text">{{ isAudioOn ? 'Audio ON' : 'Audio OFF' }}</span>
+          </button>
+        </div>
       </div>
       <button @click="startLiveChat" class="start-button" :disabled="!isConnected">
-        🚀 Iniciar Live Chat
+        <span class="button-icon">🚀</span>
+        <span class="button-text">Iniciar Live Chat</span>
       </button>
     </div>
 
     <!-- Chat activo -->
     <div v-if="isLiveStarted" class="active-chat">
       <div class="video-container" v-if="showVideo || isChef">
-        <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" autoplay :muted="isChef" playsinline class="live-video"
-          :class="{ 'video-active': isStreamActive, 'video-inactive': !isStreamActive }">
+        <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" autoplay :muted="isMuted || isChef" playsinline
+          class="live-video" :class="{ 'video-active': isStreamActive, 'video-inactive': !isStreamActive }">
         </video>
         <div class="video-overlay" v-if="!isStreamActive && !isChef">
           <p>El chef ha apagado la cámara</p>
         </div>
-        <div class="video-controls" v-if="isChef">
-          <button @click="toggleCamera" class="camera-button">
-            {{ isCameraOn ? '📷 Apagar Cámara' : '📷 Encender Cámara' }}
+        <div class="live-controls" v-if="isChef">
+          <button @click="toggleCamera" class="live-control-button camera" :class="{ 'active': isCameraOn }">
+            <span class="control-icon">{{ isCameraOn ? '📷' : '📷' }}</span>
           </button>
+          <button @click="toggleAudio" class="live-control-button audio" :class="{ 'active': isAudioOn }">
+            <span class="control-icon">{{ isAudioOn ? '🎤' : '🎤' }}</span>
+          </button>
+        </div>
+        <div class="viewer-controls" v-if="!isChef && isStreamActive">
+          <button @click="toggleMute" class="live-control-button mute" :class="{ 'active': isMuted }">
+            <span class="control-icon">{{ isMuted ? '🔇' : '🔊' }}</span>
+          </button>
+        </div>
+        <div class="viewer-count" v-if="isChef">
+          <span class="eye-icon">👁️</span> {{ activeUsers.length }} espectador(es)
         </div>
       </div>
 
       <div class="chat-header">
-        <h3>Chat en vivo</h3>
+        <h3>💬 Chat en vivo</h3>
         <div class="active-users">
+          <span class="online-icon">🟢</span>
           <span v-for="(user, index) in activeUsers" :key="index">
             {{ user }}{{ index < activeUsers.length - 1 ? ', ' : '' }} </span>
               <span v-if="activeUsers.length === 0">No hay otros usuarios conectados</span>
         </div>
       </div>
+
       <div class="chat-messages" ref="messagesContainer">
-        <div v-for="(msg, index) in messages" :key="index"
-          :class="['message', msg.username === username ? 'my-message' : 'other-message']">
+        <div v-for="(msg, index) in messages" :key="index" :class="['message', msg.username === username ? 'my-message' : 'other-message',
+          { 'system-message': msg.isSystem, 'chef-message': msg.isChef && !msg.isSystem }]">
           <div class="message-meta">
-            <strong v-if="msg.username !== username">{{ msg.username }}</strong>
+            <span class="user-badge" v-if="msg.isChef && !msg.isSystem">👨‍🍳</span>
+            <strong v-if="msg.username !== username && !msg.isSystem">{{ msg.username }}</strong>
             <span class="message-time">{{ formatTime(msg.timestamp) }}</span>
           </div>
           <div class="message-content">{{ msg.message }}</div>
@@ -69,12 +104,16 @@
       <div class="chat-input">
         <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Escribe tu mensaje..."
           :disabled="!isConnected" />
-        <button @click="sendMessage" :disabled="!isConnected || !newMessage.trim()">Enviar</button>
+        <button @click="sendMessage" :disabled="!isConnected || !newMessage.trim()" class="send-button">
+          <span class="send-icon">✉️</span>
+          <span class="send-text">Enviar</span>
+        </button>
       </div>
     </div>
 
     <div v-if="!isConnected" class="connection-status">
-      🔄 Conectando al chat...
+      <div class="connection-loader"></div>
+      <span>Conectando al chat...</span>
     </div>
   </div>
 </template>
@@ -113,6 +152,8 @@ export default {
     const peerConnections = ref({});
     const localStream = ref(null);
     const videoInitialized = ref(false);
+    const isMuted = ref(false);
+    const isAudioOn = ref(false);
 
     const configuration = {
       iceServers: [
@@ -124,14 +165,41 @@ export default {
       ]
     };
 
+    const toggleMute = () => {
+      isMuted.value = !isMuted.value;
+      if (userVideo.value) {
+        userVideo.value.muted = isMuted.value;
+      }
+    };
+
+    const toggleAudio = () => {
+      if (localStream.value) {
+        const audioTracks = localStream.value.getAudioTracks();
+        if (audioTracks.length > 0) {
+          isAudioOn.value = !audioTracks[0].enabled;
+          audioTracks[0].enabled = !audioTracks[0].enabled;
+
+          if (isLiveStarted.value && socket.value) {
+            socket.value.emit('chefAudioStatus', {
+              liveId: liveId.value,
+              status: audioTracks[0].enabled
+            });
+          }
+        }
+      }
+    };
+
+
     const toggleCamera = async () => {
       try {
         if (isCameraOn.value) {
+          // Apagar cámara y audio
           if (localStream.value) {
             localStream.value.getTracks().forEach(track => track.stop());
             localStream.value = null;
           }
           isCameraOn.value = false;
+          isAudioOn.value = false;
           isStreamActive.value = false;
 
           if (isLiveStarted.value && socket.value) {
@@ -139,32 +207,36 @@ export default {
               liveId: liveId.value,
               status: false
             });
+            socket.value.emit('chefAudioStatus', {
+              liveId: liveId.value,
+              status: false
+            });
           }
-
-          if (chefPreviewVideo.value) {
-            chefPreviewVideo.value.srcObject = null;
-          }
-          if (chefLiveVideo.value) {
-            chefLiveVideo.value.srcObject = null;
-          }
-
-          closeAllPeerConnections();
         } else {
+          // Encender cámara y audio
           const constraints = {
             video: {
               width: { ideal: 1280 },
               height: { ideal: 720 },
               facingMode: 'user'
             },
-            audio: true
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            }
           };
 
           const stream = await navigator.mediaDevices.getUserMedia(constraints);
           localStream.value = stream;
+          isAudioOn.value = true;
 
-          if (!isLiveStarted.value && chefPreviewVideo.value) {
+          // Configurar el audio para que no esté muteado (solo para el chef)
+          if (isChef.value && chefPreviewVideo.value) {
+            chefPreviewVideo.value.muted = false;
             chefPreviewVideo.value.srcObject = stream;
-          } else if (isLiveStarted.value && chefLiveVideo.value) {
+          } else if (isChef.value && chefLiveVideo.value) {
+            chefLiveVideo.value.muted = false;
             chefLiveVideo.value.srcObject = stream;
           }
 
@@ -181,7 +253,7 @@ export default {
         }
       } catch (error) {
         console.error('Error al cambiar estado de la cámara:', error);
-        alert('Error al acceder a la cámara: ' + error.message);
+        alert('Error al acceder a la cámara/micrófono: ' + error.message);
       }
     };
 
@@ -214,7 +286,6 @@ export default {
         peerConnections.value[socketId].close();
       }
 
-      console.log(`Creando nueva conexión peer con: ${socketId}`);
       const pc = new RTCPeerConnection(configuration);
       peerConnections.value[socketId] = pc;
 
@@ -228,36 +299,34 @@ export default {
         }
       };
 
+      // Solo el chef añade sus tracks
       if (isChef.value && localStream.value) {
-        console.log(`Chef: agregando ${localStream.value.getTracks().length} tracks a la conexión con ${socketId}`);
         localStream.value.getTracks().forEach(track => {
           pc.addTrack(track, localStream.value);
         });
       }
 
+      // Configuración para los usuarios que reciben el stream
       if (!isChef.value) {
         pc.ontrack = (event) => {
-          console.log(`Usuario: track recibido de tipo: ${event.track.kind}`);
-          
+          console.log('Recibiendo tracks:', event.streams);
           if (userVideo.value && event.streams && event.streams[0]) {
-            console.log('Asignando stream al elemento video');
-            const videoElement = userVideo.value;
-            videoElement.srcObject = event.streams[0];
-            
-            // Solución para el error de reproducción
-            const playPromise = videoElement.play();
-            
+            userVideo.value.srcObject = event.streams[0];
+
+            // Forzar la reproducción del audio/video
+            const playPromise = userVideo.value.play();
+
             if (playPromise !== undefined) {
               playPromise.then(_ => {
-                console.log('Video reproducido con éxito');
+                console.log('Reproducción exitosa');
                 isStreamActive.value = true;
               })
-              .catch(error => {
-                console.warn("Error al reproducir video:", error);
-                // Intentar nuevamente con muted
-                videoElement.muted = true;
-                videoElement.play().catch(e => console.warn("Segundo intento fallido:", e));
-              });
+                .catch(error => {
+                  console.error("Error al reproducir:", error);
+                  // Intentar con muted si falla
+                  userVideo.value.muted = true;
+                  userVideo.value.play().catch(e => console.error("Error en segundo intento:", e));
+                });
             }
           }
         };
@@ -265,7 +334,6 @@ export default {
 
       return pc;
     };
-
     const startCall = async (socketId) => {
       if (!isChef.value || !localStream.value || !socket.value) {
         console.log('No se puede iniciar llamada: condiciones no cumplidas');
@@ -537,7 +605,7 @@ export default {
               console.log('Solicitando stream de video al iniciar live');
               socket.value.emit('requestVideoStream', { liveId: liveId.value });
             }
-            
+
             const helloMessage = {
               liveId: liveId.value,
               username: username.value,
@@ -545,7 +613,7 @@ export default {
               isChef: isChef.value
             };
             socket.value.emit('sendChatMessage', helloMessage);
-            
+
             messages.value.push({
               username: username.value,
               message: 'Hola!',
@@ -590,7 +658,7 @@ export default {
             userVideo.value.srcObject = null;
             videoInitialized.value = false;
           }
-          
+
           scrollToBottom();
         });
 
@@ -637,11 +705,11 @@ export default {
             isSystem: true
           });
           activeUsers.value = data.users || [];
-          
+
           if (isChef.value && isCameraOn.value && localStream.value && data.socketId) {
             startCall(data.socketId);
           }
-          
+
           scrollToBottom();
         });
 
@@ -708,7 +776,9 @@ export default {
       isConnected, isLiveStarted, isChef, chefName, messagesContainer,
       canSendMessages, startLiveChat, sendMessage, formatTime,
       loadingUser, userError, chefPreviewVideo, chefLiveVideo,
-      userVideo, isCameraOn, isStreamActive, showVideo, toggleCamera,
+      userVideo, isCameraOn, isAudioOn,
+      toggleAudio, isStreamActive, isMuted,
+      toggleMute, showVideo, toggleCamera,
       requestChefVideo
     };
   }
@@ -716,121 +786,237 @@ export default {
 </script>
 
 <style scoped>
+/* Variables CSS */
+:root {
+  --primary-color: #FF6B6B;
+  --secondary-color: #4ECDC4;
+  --dark-color: #292F36;
+  --light-color: #F7FFF7;
+  --accent-color: #FFE66D;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
+  --border-radius: 12px;
+  --chat-header-height: 60px;
+  --chat-input-height: 80px;
+}
+
+/* Estilos base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* Contenedor principal */
 .live-chat-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
   max-width: 1200px;
   margin: 0 auto;
-  background-color: #f5f5f5;
+  background-color: #F7F7F7;
+  overflow: hidden;
 }
 
+/* Sala de espera */
 .waiting-room {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
 .waiting-content {
   text-align: center;
   padding: 2rem;
+  max-width: 500px;
+  width: 100%;
+}
+
+.waiting-animation {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 2rem;
+}
+
+.cooking-icon {
+  font-size: 4rem;
+  position: relative;
+  z-index: 2;
+  animation: bounce 2s infinite;
+}
+
+.pulse-animation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--secondary-color);
+  border-radius: 50%;
+  opacity: 0.2;
+  animation: pulse 2s infinite;
+}
+
+.waiting-room h2 {
+  color: var(--dark-color);
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
 }
 
 .waiting-info {
+  background: white;
+  padding: 1rem;
+  border-radius: var(--border-radius);
   margin: 1.5rem 0;
-  font-size: 1.1rem;
-  color: #555;
+  box-shadow: var(--shadow);
 }
 
-.loader {
-  border: 5px solid #f3f3f3;
-  border-top: 5px solid #3498db;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
-  margin: 2rem auto;
+.waiting-info p {
+  margin: 0.5rem 0;
+  color: var(--dark-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.info-icon {
+  margin-right: 10px;
+  font-size: 1.2rem;
 }
 
+/* Animaciones */
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.8); opacity: 0.2; }
+  50% { transform: scale(1.1); opacity: 0.3; }
+  100% { transform: scale(0.8); opacity: 0.2; }
+}
+
+.dot-flashing {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background-color: var(--primary-color);
+  color: var(--primary-color);
+  animation: dot-flashing 1s infinite linear alternate;
+  animation-delay: 0.5s;
+  margin: 20px auto;
+}
+
+.dot-flashing::before,
+.dot-flashing::after {
+  content: '';
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.dot-flashing::before {
+  left: -15px;
+  animation: dot-flashing 1s infinite alternate;
+  animation-delay: 0s;
+}
+
+.dot-flashing::after {
+  left: 15px;
+  animation: dot-flashing 1s infinite alternate;
+  animation-delay: 1s;
+}
+
+@keyframes dot-flashing {
+  0% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 0.5; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Panel del chef */
 .chef-control-panel {
-  padding: 2rem;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
   text-align: center;
+  max-width: 600px;
+  width: 100%;
+  margin: 1rem auto;
+}
+
+.chef-header h2 {
+  color: var(--dark-color);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.chef-header p {
+  color: #666;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.chef-icon {
+  margin-right: 10px;
 }
 
 .user-count {
-  margin: 1rem 0;
-  font-size: 1.2rem;
-  font-weight: bold;
+  margin: 1.5rem 0;
 }
 
-.video-controls {
+.users-waiting {
+  background: var(--accent-color);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.video-controls-container {
   margin: 1.5rem 0;
+}
+
+.preview-container {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  aspect-ratio: 16/9;
 }
 
 .preview-video {
   width: 100%;
-  max-width: 500px;
-  border-radius: 8px;
-  margin-top: 1rem;
-  background-color: #000;
-}
-
-.video-active {
-  display: block;
-}
-
-.video-inactive {
-  display: none;
-}
-
-.start-button {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 0.8rem 1.5rem;
-  font-size: 1.1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.start-button:hover {
-  background-color: #45a049;
-}
-
-.start-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-}
-
-.active-chat {
-  display: flex;
-  flex-direction: column;
   height: 100%;
-}
-
-.video-container {
-  position: relative;
-  width: 100%;
   background-color: #000;
-}
-
-.live-video {
-  width: 100%;
-  max-height: 500px;
-  object-fit: contain;
+  display: block;
+  object-fit: cover;
 }
 
 .video-overlay {
@@ -847,40 +1033,257 @@ export default {
   font-size: 1.2rem;
 }
 
+.control-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.control-button {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 30px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow);
+  font-size: 0.95rem;
+}
+
+.control-button.camera {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.control-button.camera.active {
+  background: #4CAF50;
+  color: white;
+}
+
+.control-button.audio {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.control-button.audio.active {
+  background: #2196F3;
+  color: white;
+}
+
+.button-icon {
+  margin-right: 8px;
+  font-size: 1.1rem;
+}
+
+.start-button {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1.5rem auto 0;
+  font-weight: bold;
+  width: 100%;
+  max-width: 300px;
+}
+
+.start-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(255, 107, 107, 0.4);
+}
+
+.start-button:disabled {
+  background: #cccccc;
+  transform: none;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Chat activo */
+.active-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+  overflow: hidden;
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  background-color: #000;
+  aspect-ratio: 16/9;
+}
+
+.live-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.live-controls {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 8px;
+  border-radius: 20px;
+}
+
+.live-control-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.live-control-button.active {
+  background: var(--primary-color);
+}
+
+.live-control-button:hover {
+  transform: scale(1.1);
+}
+
+.viewer-controls {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.live-control-button.mute {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.live-control-button.mute.active {
+  background: #FF6B6B;
+}
+
+.live-control-button.mute:hover {
+  transform: scale(1.1);
+}
+
+.viewer-count {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+}
+
+.eye-icon {
+  margin-right: 5px;
+}
+
 .chat-header {
   padding: 1rem;
-  background-color: #fff;
-  border-bottom: 1px solid #eee;
+  background: var(--dark-color);
+  color: white;
+  min-height: var(--chat-header-height);
+}
+
+.chat-header h3 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  font-size: 1.2rem;
 }
 
 .active-users {
-  font-size: 0.9rem;
-  color: #666;
+  font-size: 0.8rem;
   margin-top: 0.5rem;
+  color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  line-height: 1.4;
+}
+
+.online-icon {
+  margin-right: 5px;
 }
 
 .chat-messages {
   flex: 1;
   overflow-y: auto;
   padding: 1rem;
-  background-color: #fff;
+  background: #f9f9f9;
+  scroll-behavior: smooth;
+  min-height: 0; /* Fix for flexbox scrolling in some browsers */
 }
 
 .message {
   margin-bottom: 1rem;
-  padding: 0.8rem;
-  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
   max-width: 80%;
+  position: relative;
+  animation: fadeIn 0.3s ease-out;
+  word-break: break-word;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .my-message {
   margin-left: auto;
-  background-color: #dcf8c6;
+  background: var(--secondary-color);
+  color: white;
+  border-bottom-right-radius: 4px;
 }
 
 .other-message {
   margin-right: auto;
-  background-color: #f1f1f1;
+  background: white;
+  color: #333;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.chef-message {
+  border-left: 4px solid var(--primary-color);
+}
+
+.system-message {
+  margin-left: auto;
+  margin-right: auto;
+  background: #f0f0f0;
+  color: #666;
+  text-align: center;
+  max-width: 90%;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
 }
 
 .message-meta {
@@ -890,66 +1293,203 @@ export default {
   font-size: 0.8rem;
 }
 
-.message-time {
+.my-message .message-meta {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.other-message .message-meta {
   color: #666;
 }
 
+.user-badge {
+  margin-right: 5px;
+}
+
+.message-time {
+  opacity: 0.8;
+}
+
 .message-content {
-  word-wrap: break-word;
+  line-height: 1.4;
 }
 
 .chat-input {
   display: flex;
   padding: 1rem;
-  background-color: #fff;
+  background: white;
   border-top: 1px solid #eee;
+  min-height: var(--chat-input-height);
+  align-items: center;
 }
 
 .chat-input input {
   flex: 1;
-  padding: 0.8rem;
+  padding: 0.8rem 1rem;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 30px;
   margin-right: 0.5rem;
   font-size: 1rem;
+  transition: var(--transition);
+  min-width: 0; /* Fix for flexbox overflow */
 }
 
-.chat-input button {
+.chat-input input:focus {
+  outline: none;
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.2);
+}
+
+.send-button {
   padding: 0.8rem 1.5rem;
-  background-color: #4CAF50;
+  background: var(--primary-color);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 30px;
   cursor: pointer;
   font-size: 1rem;
+  display: flex;
+  align-items: center;
+  transition: var(--transition);
+  white-space: nowrap;
 }
 
-.chat-input button:disabled {
-  background-color: #cccccc;
+.send-button:hover {
+  background: #ff5252;
+  transform: translateY(-2px);
+}
+
+.send-button:disabled {
+  background: #cccccc;
   cursor: not-allowed;
+  transform: none;
+}
+
+.send-icon {
+  margin-right: 5px;
 }
 
 .connection-status {
   padding: 1rem;
   text-align: center;
-  background-color: #fff3cd;
+  background: #fff3cd;
   color: #856404;
   border-radius: 4px;
   margin: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.camera-button {
-  background-color: #2196F3;
-  color: white;
-  border: none;
-  padding: 0.6rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  margin-right: 0.5rem;
+.connection-loader {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(133, 100, 4, 0.3);
+  border-radius: 50%;
+  border-top-color: #856404;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 10px;
 }
 
-.camera-button:hover {
-  background-color: #0b7dda;
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .live-chat-container {
+    height: 100vh;
+    border-radius: 0;
+  }
+
+  .waiting-content,
+  .chef-control-panel {
+    padding: 1rem;
+  }
+
+  .video-container {
+    max-height: 40vh;
+  }
+
+  .message {
+    max-width: 90%;
+    padding: 0.6rem 0.8rem;
+  font-size: 0.95rem;
+  }
+
+  .control-buttons {
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  .control-button {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .start-button {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .chat-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .active-users {
+    font-size: 0.75rem;
+  }
+
+  .chat-input {
+    padding: 0.8rem;
+    padding-bottom: 100px;
+  }
+
+  .chat-input input {
+    padding: 0.6rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .send-button {
+    padding: 0.6rem 1rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .waiting-room h2 {
+    font-size: 1.2rem;
+  }
+
+  .waiting-info p {
+    font-size: 0.85rem;
+  }
+
+  .chef-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .control-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .control-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .send-text {
+    display: none;
+  }
+
+  .send-button {
+    width: auto;
+    padding: 0.8rem;
+    border-radius: 50%;
+  }
+
+  .send-icon {
+    margin-right: 0;
+  }
 }
 </style>

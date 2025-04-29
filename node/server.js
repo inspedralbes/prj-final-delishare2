@@ -208,9 +208,8 @@ io.on('connection', (socket) => {
       socket.emit('error', { message: error.message });
     }
   });
-
   socket.on('offer', ({ liveId, target, offer }) => {
-    console.log(`${socket.id} envía oferta a ${target}`);
+    console.log(`Oferta recibida de ${socket.id} para ${target} - Tipo: ${offer.type}`);
     io.to(target).emit('offer', { 
       from: socket.id, 
       offer,
@@ -219,7 +218,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('answer', ({ liveId, target, answer }) => {
-    console.log(`${socket.id} envía respuesta a ${target}`);
+    console.log(`Respuesta recibida de ${socket.id} para ${target} - Tipo: ${answer.type}`);
     io.to(target).emit('answer', { 
       from: socket.id, 
       answer,
