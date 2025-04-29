@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
@@ -15,14 +16,11 @@ const io = new Server(http, {
   }
 });
 
-// Estructura para manejar las salas
-const liveRooms = new Map(); // liveId -> { chef, chefSocketId, waitingUsers, activeUsers, isLiveActive }
-
+const liveRooms = new Map();
 
 io.on('connection', (socket) => {
   console.log('🔌 Nuevo usuario conectado:', socket.id);
 
-  // Extraer datos de la conexión
   const { liveId, username, isChef } = socket.handshake.query;
   if (liveId && username) {
     socket.liveId = liveId;
@@ -30,43 +28,47 @@ io.on('connection', (socket) => {
     socket.isChef = isChef === 'true';
   }
 
-  // Unirse a una sala de live
   socket.on('joinLiveRoom', ({ liveId, username, isChef }, callback) => {
     try {
-      // Validación de datos
       if (!liveId || !username) {
         throw new Error('Datos de conexión incompletos');
       }
 
-      // Actualizar datos del socket
       socket.liveId = liveId;
       socket.username = username;
       socket.isChef = Boolean(isChef);
 
       socket.join(liveId);
 
-      // Inicializar sala si no existe
       if (!liveRooms.has(liveId)) {
         liveRooms.set(liveId, {
           chef: null,
           chefSocketId: null,
-          waitingUsers: new Map(), // Ahora usamos Map para guardar socketId y username
+          waitingUsers: new Map(),
           activeUsers: new Map(),
-          isLiveActive: false
+          isLiveActive: false,
+          hasVideo: false
         });
       }
 
       const room = liveRooms.get(liveId);
 
-      // Registrar chef si corresponde
       if (socket.isChef) {
         room.chef = username;
         room.chefSocketId = socket.id;
       }
 
-      // Gestionar usuarios en espera/activos
+      if (room.isLiveActive && !socket.isChef && room.hasVideo && room.chefSocketId) {
+        console.log(`Nuevo usuario ${socket.id} se une a sala activa con video. Notificando al chef ${room.chefSocketId}`);
+        io.to(room.chefSocketId).emit('newViewer', socket.id);
+      }
+
       if (room.isLiveActive) {
         room.activeUsers.set(socket.id, username);
+        
+        if (!socket.isChef && room.chefSocketId && room.hasVideo) {
+          io.to(room.chefSocketId).emit('newViewer', socket.id);
+        }
       } else {
         if (socket.isChef) {
           room.waitingUsers.delete(socket.id);
@@ -75,24 +77,33 @@ io.on('connection', (socket) => {
         }
       }
 
-      // Notificar a todos en la sala
       const updateData = {
         waitingUsers: Array.from(room.waitingUsers.values()),
         activeUsers: Array.from(room.activeUsers.values()),
-        chefName: room.chef
+        chefName: room.chef,
+        hasVideo: room.hasVideo,
+        isLiveActive: room.isLiveActive
       };
 
       io.to(liveId).emit('waitingRoomUpdate', updateData);
 
-      // Notificar cuando un usuario se une (solo si el live está activo)
       if (room.isLiveActive && !socket.isChef) {
+        const userList = Array.from(room.activeUsers.entries()).map(([socketId, name]) => {
+          return { socketId, username: name };
+        });
+        
         io.to(liveId).emit('userJoined', {
           username,
+          socketId: socket.id,
           users: Array.from(room.activeUsers.values())
         });
       }
 
-      callback && callback({ success: true });
+      callback && callback({ 
+        success: true,
+        isLiveActive: room.isLiveActive,
+        hasVideo: room.hasVideo 
+      });
 
     } catch (error) {
       console.error('❌ Error en joinLiveRoom:', error);
@@ -100,35 +111,71 @@ io.on('connection', (socket) => {
     }
   });
 
-  // El chef inicia el live
-  socket.on('chefStartLive', ({ liveId }, callback) => {
+  socket.on('requestVideoStream', ({ liveId }) => {
+    try {
+      console.log(`Usuario ${socket.id} solicita stream de video para sala ${liveId}`);
+      
+      const room = liveRooms.get(liveId);
+      if (!room) throw new Error('Sala no encontrada');
+  
+      if (room.chefSocketId && room.hasVideo) {
+        console.log(`Notificando al chef ${room.chefSocketId} sobre nuevo espectador ${socket.id}`);
+        io.to(room.chefSocketId).emit('newViewer', socket.id);
+      } else {
+        console.log('No hay chef con video disponible');
+      }
+    } catch (error) {
+      console.error('Error en requestVideoStream:', error);
+      socket.emit('error', { message: 'Error al solicitar video: ' + error.message });
+    }
+  });
+
+  socket.on('requestActiveUsers', ({ liveId }, callback) => {
     try {
       const room = liveRooms.get(liveId);
       if (!room) throw new Error('Sala no encontrada');
 
-      // Verificar que sea el chef
+      const activeUsersList = Array.from(room.activeUsers.entries()).map(([socketId, username]) => {
+        return { socketId, username };
+      });
+
+      callback && callback({
+        success: true,
+        activeUsers: activeUsersList
+      });
+    } catch (error) {
+      console.error('Error en requestActiveUsers:', error);
+      callback && callback({ success: false, message: error.message });
+    }
+  });
+
+  socket.on('chefStartLive', ({ liveId, hasVideo }, callback) => {
+    try {
+      const room = liveRooms.get(liveId);
+      if (!room) throw new Error('Sala no encontrada');
+
       if (room.chefSocketId !== socket.id) {
         throw new Error('No autorizado para iniciar el live');
       }
 
       room.isLiveActive = true;
+      room.hasVideo = hasVideo || false;
 
-      // Mover todos los usuarios de waiting a active
       room.waitingUsers.forEach((username, socketId) => {
         room.activeUsers.set(socketId, username);
       });
       room.waitingUsers.clear();
 
-      // Asegurar que el chef está en activeUsers
       room.activeUsers.set(socket.id, room.chef);
 
-      // Notificar a todos
       const startData = {
         activeUsers: Array.from(room.activeUsers.values()),
-        chefName: room.chef
+        chefName: room.chef,
+        hasVideo: room.hasVideo
       };
 
       io.to(liveId).emit('liveStarted', startData);
+      
       callback && callback({ success: true });
 
     } catch (error) {
@@ -137,13 +184,11 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Mensajes del chat
   socket.on('sendChatMessage', ({ liveId, username, message, isChef }) => {
     try {
       const room = liveRooms.get(liveId);
       if (!room) throw new Error('Sala no encontrada');
 
-      // Verificar permisos para enviar mensajes
       if (!room.isLiveActive && !isChef) {
         throw new Error('El chat no ha comenzado todavía');
       }
@@ -164,7 +209,41 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Manejar desconexión
+  socket.on('offer', ({ liveId, target, offer }) => {
+    console.log(`${socket.id} envía oferta a ${target}`);
+    io.to(target).emit('offer', { 
+      from: socket.id, 
+      offer,
+      liveId 
+    });
+  });
+
+  socket.on('answer', ({ liveId, target, answer }) => {
+    console.log(`${socket.id} envía respuesta a ${target}`);
+    io.to(target).emit('answer', { 
+      from: socket.id, 
+      answer,
+      liveId 
+    });
+  });
+
+  socket.on('iceCandidate', ({ liveId, target, candidate }) => {
+    io.to(target).emit('iceCandidate', { 
+      from: socket.id, 
+      candidate,
+      liveId 
+    });
+  });
+
+  socket.on('chefCameraStatus', ({ liveId, status }) => {
+    const room = liveRooms.get(liveId);
+    if (room && room.chefSocketId === socket.id) {
+      console.log(`Chef cambió estado de cámara a: ${status}`);
+      room.hasVideo = status;
+      io.to(liveId).emit('chefCameraStatus', { status });
+    }
+  });
+
   socket.on('disconnect', () => {
     try {
       if (!socket.liveId) return;
@@ -172,34 +251,34 @@ io.on('connection', (socket) => {
       const room = liveRooms.get(socket.liveId);
       if (!room) return;
 
-      // Eliminar usuario de las listas
       room.waitingUsers.delete(socket.id);
       const disconnectedUsername = room.activeUsers.get(socket.id);
       room.activeUsers.delete(socket.id);
 
-      // Si era el chef, limpiar referencia
       if (room.chefSocketId === socket.id) {
         room.chef = null;
         room.chefSocketId = null;
+        room.hasVideo = false;
+        
+        io.to(socket.liveId).emit('chefDisconnected');
       }
 
-      // Notificar a los demás solo si el live está activo
       if (room.isLiveActive && disconnectedUsername) {
         io.to(socket.liveId).emit('userLeft', {
           username: disconnectedUsername,
+          socketId: socket.id,
           users: Array.from(room.activeUsers.values()),
           message: `${disconnectedUsername} ha abandonado el chat`
         });
       } else {
-        // Actualizar sala de espera
         io.to(socket.liveId).emit('waitingRoomUpdate', {
           waitingUsers: Array.from(room.waitingUsers.values()),
           activeUsers: Array.from(room.activeUsers.values()),
-          chefName: room.chef
+          chefName: room.chef,
+          hasVideo: room.hasVideo
         });
       }
 
-      // Eliminar sala si está vacía
       if (room.waitingUsers.size === 0 && room.activeUsers.size === 0) {
         liveRooms.delete(socket.liveId);
       }
@@ -209,7 +288,49 @@ io.on('connection', (socket) => {
     }
   });
 
-  http.listen(port, () => {
-    console.log(`🚀 Servidor de chat corriendo en el puerto ${port}`);
+  socket.on('leaveRoom', ({ liveId, username }) => {
+    try {
+      if (!liveId) return;
+      
+      const room = liveRooms.get(liveId);
+      if (!room) return;
+
+      room.waitingUsers.delete(socket.id);
+      room.activeUsers.delete(socket.id);
+
+      if (room.chefSocketId === socket.id) {
+        room.chef = null;
+        room.chefSocketId = null;
+        room.hasVideo = false;
+        io.to(liveId).emit('chefDisconnected');
+      }
+
+      if (room.isLiveActive) {
+        io.to(liveId).emit('userLeft', {
+          username: username,
+          socketId: socket.id,
+          users: Array.from(room.activeUsers.values())
+        });
+      } else {
+        io.to(liveId).emit('waitingRoomUpdate', {
+          waitingUsers: Array.from(room.waitingUsers.values()),
+          activeUsers: Array.from(room.activeUsers.values()),
+          chefName: room.chef,
+          hasVideo: room.hasVideo
+        });
+      }
+
+      if (room.waitingUsers.size === 0 && room.activeUsers.size === 0) {
+        liveRooms.delete(liveId);
+      }
+      
+      socket.leave(liveId);
+    } catch (error) {
+      console.error('❌ Error en leaveRoom:', error);
+    }
   });
+});
+
+http.listen(port, () => {
+  console.log(`🚀 Servidor de chat corriendo en el puerto ${port}`);
 });
