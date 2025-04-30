@@ -243,16 +243,6 @@ export default {
         const recipeId = this.recipe.id;
         const response = await communicationManager.downloadPDF(recipeId);
 
-        const blob = new Blob([response], { type: 'application/pdf' });
-        const url = window.URL.createObjectURL(blob);
-
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `${this.recipe.title || 'recepta'}.pdf`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
         this.showPopup('PDF descarregat amb èxit');
       } catch (error) {
         console.error('Error al descarregar el PDF:', error);
