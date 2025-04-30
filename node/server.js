@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
@@ -6,8 +5,10 @@ const { Server } = require('socket.io');
 
 const port = process.env.PORT || 4000;
 
+// Configura middleware para servir archivos estáticos desde la carpeta 'public'
 app.use(express.static('public'));
 
+// Configura el servidor Socket.IO con opciones CORS
 const io = new Server(http, {
   cors: {
     origin: "*",
@@ -16,11 +17,14 @@ const io = new Server(http, {
   }
 });
 
+// Mapa para almacenar las salas de transmisión en vivo
 const liveRooms = new Map();
 
+/// Maneja nuevas conexiones de socket
 io.on('connection', (socket) => {
   console.log('🔌 Nuevo usuario conectado:', socket.id);
 
+  // Extrae parámetros de conexión del handshake
   const { liveId, username, isChef } = socket.handshake.query;
   if (liveId && username) {
     socket.liveId = liveId;
@@ -28,18 +32,21 @@ io.on('connection', (socket) => {
     socket.isChef = isChef === 'true';
   }
 
+  /// Maneja la solicitud de unirse a una sala de transmisión
   socket.on('joinLiveRoom', ({ liveId, username, isChef }, callback) => {
     try {
       if (!liveId || !username) {
         throw new Error('Datos de conexión incompletos');
       }
 
+      // Asigna propiedades al socket
       socket.liveId = liveId;
       socket.username = username;
       socket.isChef = Boolean(isChef);
 
       socket.join(liveId);
 
+      // Crea la sala si no existe
       if (!liveRooms.has(liveId)) {
         liveRooms.set(liveId, {
           chef: null,
@@ -53,16 +60,19 @@ io.on('connection', (socket) => {
 
       const room = liveRooms.get(liveId);
 
+      // Si es chef, actualiza la información del chef
       if (socket.isChef) {
         room.chef = username;
         room.chefSocketId = socket.id;
       }
 
+      // Maneja usuarios que se unen a una transmisión activa con video
       if (room.isLiveActive && !socket.isChef && room.hasVideo && room.chefSocketId) {
         console.log(`Nuevo usuario ${socket.id} se une a sala activa con video. Notificando al chef ${room.chefSocketId}`);
         io.to(room.chefSocketId).emit('newViewer', socket.id);
       }
 
+      // Agrega usuario a la lista correspondiente
       if (room.isLiveActive) {
         room.activeUsers.set(socket.id, username);
         
@@ -77,6 +87,7 @@ io.on('connection', (socket) => {
         }
       }
 
+      // Prepara datos de actualización para la sala de espera
       const updateData = {
         waitingUsers: Array.from(room.waitingUsers.values()),
         activeUsers: Array.from(room.activeUsers.values()),
@@ -87,6 +98,7 @@ io.on('connection', (socket) => {
 
       io.to(liveId).emit('waitingRoomUpdate', updateData);
 
+      // Notifica a la sala cuando un usuario se une a una transmisión activa
       if (room.isLiveActive && !socket.isChef) {
         const userList = Array.from(room.activeUsers.entries()).map(([socketId, name]) => {
           return { socketId, username: name };
@@ -111,6 +123,7 @@ io.on('connection', (socket) => {
     }
   });
 
+  /// Maneja solicitudes de transmisión de video
   socket.on('requestVideoStream', ({ liveId }) => {
     try {
       console.log(`Usuario ${socket.id} solicita stream de video para sala ${liveId}`);
@@ -130,6 +143,7 @@ io.on('connection', (socket) => {
     }
   });
 
+  /// Proporciona la lista de usuarios activos en una sala
   socket.on('requestActiveUsers', ({ liveId }, callback) => {
     try {
       const room = liveRooms.get(liveId);
@@ -149,6 +163,7 @@ io.on('connection', (socket) => {
     }
   });
 
+  /// Maneja el inicio de una transmisión por parte del chef
   socket.on('chefStartLive', ({ liveId, hasVideo }, callback) => {
     try {
       const room = liveRooms.get(liveId);
@@ -158,9 +173,11 @@ io.on('connection', (socket) => {
         throw new Error('No autorizado para iniciar el live');
       }
 
+      // Actualiza estado de la sala
       room.isLiveActive = true;
       room.hasVideo = hasVideo || false;
 
+      // Mueve usuarios de espera a activos
       room.waitingUsers.forEach((username, socketId) => {
         room.activeUsers.set(socketId, username);
       });
@@ -168,6 +185,7 @@ io.on('connection', (socket) => {
 
       room.activeUsers.set(socket.id, room.chef);
 
+      // Prepara datos de inicio de transmisión
       const startData = {
         activeUsers: Array.from(room.activeUsers.values()),
         chefName: room.chef,
@@ -184,6 +202,7 @@ io.on('connection', (socket) => {
     }
   });
 
+  /// Maneja el envío de mensajes de chat
   socket.on('sendChatMessage', ({ liveId, username, message, isChef }) => {
     try {
       const room = liveRooms.get(liveId);
@@ -193,6 +212,7 @@ io.on('connection', (socket) => {
         throw new Error('El chat no ha comenzado todavía');
       }
 
+      // Crea objeto de mensaje con timestamp
       const timestamp = new Date();
       const msgData = {
         username,
@@ -208,6 +228,8 @@ io.on('connection', (socket) => {
       socket.emit('error', { message: error.message });
     }
   });
+
+  /// Maneja ofertas WebRTC para conexión P2P
   socket.on('offer', ({ liveId, target, offer }) => {
     console.log(`Oferta recibida de ${socket.id} para ${target} - Tipo: ${offer.type}`);
     io.to(target).emit('offer', { 
@@ -217,6 +239,7 @@ io.on('connection', (socket) => {
     });
   });
 
+  /// Maneja respuestas WebRTC para conexión P2P
   socket.on('answer', ({ liveId, target, answer }) => {
     console.log(`Respuesta recibida de ${socket.id} para ${target} - Tipo: ${answer.type}`);
     io.to(target).emit('answer', { 
@@ -226,6 +249,7 @@ io.on('connection', (socket) => {
     });
   });
 
+  /// Maneja candidatos ICE para conexión WebRTC
   socket.on('iceCandidate', ({ liveId, target, candidate }) => {
     io.to(target).emit('iceCandidate', { 
       from: socket.id, 
@@ -234,6 +258,7 @@ io.on('connection', (socket) => {
     });
   });
 
+  /// Maneja cambios en el estado de la cámara del chef
   socket.on('chefCameraStatus', ({ liveId, status }) => {
     const room = liveRooms.get(liveId);
     if (room && room.chefSocketId === socket.id) {
@@ -243,6 +268,7 @@ io.on('connection', (socket) => {
     }
   });
 
+  /// Maneja la desconexión de un socket
   socket.on('disconnect', () => {
     try {
       if (!socket.liveId) return;
@@ -250,10 +276,12 @@ io.on('connection', (socket) => {
       const room = liveRooms.get(socket.liveId);
       if (!room) return;
 
+      // Elimina usuario de las listas
       room.waitingUsers.delete(socket.id);
       const disconnectedUsername = room.activeUsers.get(socket.id);
       room.activeUsers.delete(socket.id);
 
+      // Maneja desconexión del chef
       if (room.chefSocketId === socket.id) {
         room.chef = null;
         room.chefSocketId = null;
@@ -262,6 +290,7 @@ io.on('connection', (socket) => {
         io.to(socket.liveId).emit('chefDisconnected');
       }
 
+      // Notifica a la sala sobre la desconexión
       if (room.isLiveActive && disconnectedUsername) {
         io.to(socket.liveId).emit('userLeft', {
           username: disconnectedUsername,
@@ -278,6 +307,7 @@ io.on('connection', (socket) => {
         });
       }
 
+      // Elimina sala si está vacía
       if (room.waitingUsers.size === 0 && room.activeUsers.size === 0) {
         liveRooms.delete(socket.liveId);
       }
@@ -287,6 +317,7 @@ io.on('connection', (socket) => {
     }
   });
 
+  /// Maneja la salida voluntaria de una sala
   socket.on('leaveRoom', ({ liveId, username }) => {
     try {
       if (!liveId) return;
@@ -294,9 +325,11 @@ io.on('connection', (socket) => {
       const room = liveRooms.get(liveId);
       if (!room) return;
 
+      // Elimina usuario de las listas
       room.waitingUsers.delete(socket.id);
       room.activeUsers.delete(socket.id);
 
+      // Maneja salida del chef
       if (room.chefSocketId === socket.id) {
         room.chef = null;
         room.chefSocketId = null;
@@ -304,6 +337,7 @@ io.on('connection', (socket) => {
         io.to(liveId).emit('chefDisconnected');
       }
 
+      // Notifica a la sala sobre la salida
       if (room.isLiveActive) {
         io.to(liveId).emit('userLeft', {
           username: username,
@@ -319,6 +353,7 @@ io.on('connection', (socket) => {
         });
       }
 
+      // Elimina sala si está vacía
       if (room.waitingUsers.size === 0 && room.activeUsers.size === 0) {
         liveRooms.delete(liveId);
       }
@@ -330,6 +365,7 @@ io.on('connection', (socket) => {
   });
 });
 
+// Inicia el servidor HTTP
 http.listen(port, () => {
   console.log(`🚀 Servidor de chat corriendo en el puerto ${port}`);
 });
