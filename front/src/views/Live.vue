@@ -5,6 +5,20 @@
       <p>Únete a nuestras transmisiones en vivo de cocina</p>
     </div>
 
+    <!-- Añadido el buscador aquí -->
+    <div class="search-container">
+      <div class="search-box">
+        <input
+          type="text"
+          v-model="searchQuery"
+          @input="handleSearch"
+          placeholder="Buscar lives por título o chef..."
+          class="search-input"
+        />
+        <span class="search-icon">🔍</span>
+      </div>
+    </div>
+
     <div v-if="loading" class="loading-spinner">
       <div class="spinner"></div>
       <p>Cargando lives...</p>
@@ -15,12 +29,16 @@
       <button @click="fetchLives" class="retry-btn">Reintentar</button>
     </div>
 
-    <div v-else-if="lives.length === 0" class="no-lives">
+    <div v-else-if="filteredLives.length === 0 && searchQuery" class="no-results">
+      <p>No se encontraron resultados para "{{ searchQuery }}"</p>
+    </div>
+
+    <div v-else-if="displayedLives.length === 0" class="no-lives">
       <p>No hay lives programados actualmente.</p>
     </div>
 
     <div v-else class="lives-grid">
-      <div v-for="live in lives" :key="live.id" class="live-card">
+      <div v-for="live in displayedLives" :key="live.id" class="live-card">
         <div class="live-header">
           <img :src="live.chef.img || defaultProfile" alt="Chef" class="chef-avatar">
           <div class="chef-info">
@@ -58,10 +76,9 @@
   </div>
 </template>
 
-
 <script>
 import { useRouter } from 'vue-router';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
 import communicationManager from '@/services/communicationManager';
 import defaultProfile from '@/assets/images/profile.svg';
@@ -73,6 +90,30 @@ export default {
     const lives = ref([]);
     const loading = ref(true);
     const error = ref(null);
+    const searchQuery = ref('');
+
+    const filteredLives = computed(() => {
+      if (!searchQuery.value.trim()) {
+        return lives.value;
+      }
+      
+      const query = searchQuery.value.toLowerCase();
+      return lives.value.filter(live => {
+        return (
+          live.recipe.title.toLowerCase().includes(query) ||
+          live.chef.name.toLowerCase().includes(query)
+        );
+      });
+    });
+
+    const displayedLives = computed(() => {
+      return searchQuery.value ? filteredLives.value : lives.value;
+    });
+
+    const handleSearch = () => {
+      // La lógica de búsqueda ahora se maneja en las propiedades computadas
+    };
+
     const fetchLives = async () => {
       try {
         loading.value = true;
@@ -95,6 +136,7 @@ export default {
         loading.value = false;
       }
     };
+
     const setReminder = (live) => {
       const title = encodeURIComponent(`Live de cocina: ${live.recipe.title}`);
       const description = encodeURIComponent(live.recipe.description);
@@ -114,15 +156,16 @@ export default {
 
       window.open(calendarUrl, '_blank');
     };
+
     const joinLive = (live) => {
-  router.push({
-    name: 'ChatRoom', // Usa el nombre de la ruta
-    params: { 
-      liveId: live.id // Asegúrate que live.id existe
-    }
-  });
-};
-    // Añade esta verificación básica de formato de fecha
+      router.push({
+        name: 'ChatRoom', // Usa el nombre de la ruta
+        params: { 
+          liveId: live.id // Asegúrate que live.id existe
+        }
+      });
+    };
+
     const formatDate = (dateString) => {
       try {
         if (!dateString) return 'Fecha no definida';
@@ -138,7 +181,6 @@ export default {
     };
 
     onMounted(() => {
-      // Envuelve en try-catch por si hay errores durante el montaje
       try {
         fetchLives();
       } catch (e) {
@@ -153,8 +195,12 @@ export default {
       loading,
       error,
       defaultProfile,
+      searchQuery,
+      filteredLives,
+      displayedLives,
       fetchLives,
       formatDate,
+      handleSearch,
       authStore,
       joinLive,
       setReminder
@@ -166,7 +212,7 @@ export default {
 <style scoped>
 .lives-container {
   max-width: 1200px;
-  margin: 0 auto;
+  margin:  auto;
   padding: 2rem;
 }
 
@@ -183,6 +229,50 @@ export default {
 .header p {
   font-size: 1.2rem;
   color: #7f8c8d;
+}
+
+/* Estilos para el buscador */
+.search-container {
+  margin-bottom: 2rem;
+}
+
+.search-box {
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 20px;
+  padding-left: 45px;
+  border: 2px solid #e0e0e0;
+  border-radius: 30px;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.3s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.search-input:focus {
+  border-color: #e74c3c;
+}
+
+.search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  color: #7f8c8d;
+}
+
+.no-results {
+  text-align: center;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  color: #e74c3c;
 }
 
 .loading-spinner {
