@@ -1,7 +1,8 @@
 <template>
     <div class="users-container">
       <h1 class="title">Lista de Usuarios</h1>
-      
+      <BotonesCrud/>
+
       <div v-if="loading" class="loading-spinner">
         <div class="spinner"></div>
         <p class="loading-text">Cargando usuarios...</p>
@@ -92,9 +93,12 @@
   
   <script>
   import communicationManager from '@/services/communicationManager';
-  
+  import BotonesCrud from '@/components/BotonesCrud.vue';
   export default {
     name: 'UsersList',
+    components: {
+    BotonesCrud
+  },
     data() {
       return {
         users: [],

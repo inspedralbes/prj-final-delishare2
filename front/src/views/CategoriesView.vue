@@ -1,7 +1,8 @@
 <template>
     <div class="categories-container">
       <h1>Llista de Categories</h1>
-      
+      <BotonesCrud/>
+
       <div v-if="loading" class="loading">Carregant categories...</div>
       
       <div v-if="error" class="error">
@@ -59,9 +60,12 @@
   
   <script>
   import communicationManager from '@/services/communicationManager';
-  
+  import BotonesCrud from '@/components/BotonesCrud.vue';
   export default {
     name: 'CategoriesView',
+    components: {
+    BotonesCrud
+  },
     data() {
       return {
         categories: [],

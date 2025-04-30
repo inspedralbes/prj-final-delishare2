@@ -1,7 +1,8 @@
 <template>
     <div class="cuisines-container">
       <h1>Llista de Cuines</h1>
-  
+      <BotonesCrud/>
+
       <div v-if="loading" class="loading">Carregant cuines...</div>
   
       <div v-if="error" class="error">
@@ -58,9 +59,12 @@
   
   <script>
   import communicationManager from '@/services/communicationManager';
-  
+  import BotonesCrud from '@/components/BotonesCrud.vue';
   export default {
     name: 'CuisinesView',
+    components: {
+    BotonesCrud
+  },
     data() {
       return {
         cuisines: [],

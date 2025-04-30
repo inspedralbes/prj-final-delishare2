@@ -1,7 +1,8 @@
 <template>
   <div class="comments-container">
     <h1 class="title">Comentarios de Recetas</h1>
-    
+    <BotonesCrud/>
+
     <div v-if="loading" class="loading">Cargando comentarios...</div>
     
     <div v-if="error" class="error">
@@ -72,9 +73,12 @@
 
 <script>
 import communicationManager from '../services/communicationManager';
-
+import BotonesCrud from '@/components/BotonesCrud.vue';
 export default {
   name: 'CommentsView',
+  components: {
+    BotonesCrud
+  },
   data() {
     return {
       comments: [],

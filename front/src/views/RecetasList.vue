@@ -1,7 +1,8 @@
 <template>
   <div class="recetas-container">
     <h1 class="title">Todas las Recetas</h1>
-    
+    <BotonesCrud/>
+
     <div v-if="loading" class="loading">
       <div class="spinner"></div>
       <p>Cargando recetas...</p>
@@ -52,9 +53,14 @@
 
 <script>
 import communicationManager from '@/services/communicationManager';
+import BotonesCrud  from '@/components/BotonesCrud.vue';
+
 
 export default {
   name: 'RecetasList',
+  components: {
+    BotonesCrud
+  },
   data() {
     return {
       recetas: [],
