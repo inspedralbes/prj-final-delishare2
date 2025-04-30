@@ -1,6 +1,45 @@
 <template>
   <div id="app">
-    <Navbar />
+    <Navbar /><div class="
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    ..
+    .."></div>
     <router-view></router-view> 
   </div>
 </template>

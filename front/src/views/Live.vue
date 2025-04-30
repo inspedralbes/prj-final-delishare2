@@ -114,10 +114,14 @@ export default {
 
       window.open(calendarUrl, '_blank');
     };
-
     const joinLive = (live) => {
-    router.push(`/chat/${live.id}`);
-  };
+  router.push({
+    name: 'ChatRoom', // Usa el nombre de la ruta
+    params: { 
+      liveId: live.id // Asegúrate que live.id existe
+    }
+  });
+};
     // Añade esta verificación básica de formato de fecha
     const formatDate = (dateString) => {
       try {
