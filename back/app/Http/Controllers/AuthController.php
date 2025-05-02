@@ -82,7 +82,7 @@ public function login(Request $request)
 }
 public function getUserInfo($userId)
 {
-    $user = User::with(['recipes', 'folders'])->find($userId);
+    $user = User::with(['recipes', 'folders.recipes'])->find($userId);
     
     if (!$user) {
         return response()->json(['message' => 'Usuario no encontrado'], 404);
@@ -100,7 +100,14 @@ public function getUserInfo($userId)
             'updated_at' => $user->updated_at,
         ],
         'recipes' => $user->recipes,
-        'folders' => $user->folders
+        'folders' => $user->folders->map(function($folder) {
+            return [
+                'id' => $folder->id,
+                'name' => $folder->name,
+                'recipes_count' => $folder->recipes->count(),
+                'recipes' => $folder->recipes // Incluir las recetas si es necesario
+            ];
+        })
     ]);
 }
     public function updatePerfil(Request $request)

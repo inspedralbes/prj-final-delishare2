@@ -71,23 +71,30 @@
       <p v-if="!user.recipes || user.recipes.length === 0">Aquest usuari no té receptes publicades.</p>
     </div>
 
-    <!-- Mostrar carpetes de l'usuari i les seves receptes -->
-    <div v-else-if="activeSection === 'folders'">
+       <!-- Mostrar carpetes de l'usuari i les seves receptes -->
+       <div v-else-if="activeSection === 'folders'">
       <div v-if="user.folders && user.folders.length > 0">
         <p><strong>Carpetes:</strong></p>
-        <div v-for="folder in user.folders" :key="folder.id">
-          <p><strong>{{ folder.name }}</strong></p>
-          <div class="recipes">
-            <div v-for="recipe in user.recipes_in_folders[folder.name]" :key="recipe.id">
-              <RecipeCard :recipeId="recipe.id" :title="recipe.title" :description="recipe.description"
-                :image="recipe.image" />
-            </div>
+        <div v-for="folder in user.folders" :key="folder.id" class="folder-container">
+          <div class="folder-header">
+            <h3>{{ folder.name }} ({{ folder.recipes.length }} receta{{ folder.recipes.length !== 1 ? 's' : '' }})</h3>
           </div>
+          
+          <div class="recipes" v-if="folder.recipes && folder.recipes.length > 0">
+            <RecipeCard 
+              v-for="recipe in folder.recipes" 
+              :key="recipe.id" 
+              :recipeId="recipe.id" 
+              :title="recipe.title"
+              :description="recipe.description" 
+              :image="recipe.image" 
+            />
+          </div>
+          <p v-else class="no-recipes">Aquesta carpeta no té receptes.</p>
         </div>
       </div>
       <p v-if="!user.folders || user.folders.length === 0">Aquest usuari no té carpetes.</p>
     </div>
-
     <!-- Mostrar Lives programados -->
     <div v-else-if="activeSection === 'lives'">
       <p><strong>Lives programados:</strong></p>

@@ -103,28 +103,68 @@ class FolderController extends Controller
     return response()->json(['message' => 'Carpeta eliminada con éxito'], 200);
     }
 
+    public function index()
+    {
+        $user = auth()->user();
+        $folders = $user->folders()->withCount('recipes')->get();
+    
+        return response()->json($folders->map(function($folder) {
+            return [
+                'id' => $folder->id,
+                'name' => $folder->name,
+                'created_at' => $folder->created_at,
+                'recipes_count' => $folder->recipes_count,
+                'user_id' => $folder->user_id
+            ];
+        })); 
+    }
+public function getRecipes($folderId)
+{
+    $folder = Folder::with('recipes.user', 'recipes.category', 'recipes.cuisine')->find($folderId);
 
-    public function index(){
-    $user = auth()->user();
-    $folders = $user->folders;  
-
-    return response()->json($folders);
-}
-
-
-
-    public function getRecipes(Folder $folder){
+    if (!$folder) {
+        return response()->json(['error' => 'Carpeta no encontrada'], 404);
+    }
 
     if ($folder->user_id !== auth()->id()) {
         return response()->json(['error' => 'No autorizado'], 403);
     }
 
-    $recipes = $folder->recipes;
-
     return response()->json([
-        'folder' => $folder,
-        'recipes' => $recipes,
+        'folder' => [
+            'id' => $folder->id,
+            'name' => $folder->name,
+            'created_at' => $folder->created_at
+        ],
+        'recipes' => $folder->recipes->map(function($recipe) {
+            return [
+                'id' => $recipe->id,
+                'title' => $recipe->title,
+                'description' => $recipe->description,
+                'image_url' => $recipe->image,
+                'video_url' => $recipe->video,
+                'ingredients' => $recipe->ingredients,
+                'steps' => $recipe->steps,
+                'prep_time' => $recipe->prep_time,
+                'cook_time' => $recipe->cook_time,
+                'servings' => $recipe->servings,
+                'nutrition' => $recipe->nutrition,
+                'likes_count' => $recipe->likes_count,
+                'created_at' => $recipe->created_at,
+                'user' => $recipe->user ? [
+                    'id' => $recipe->user->id,
+                    'name' => $recipe->user->name
+                ] : null,
+                'category' => $recipe->category ? [
+                    'id' => $recipe->category->id,
+                    'name' => $recipe->category->name
+                ] : null,
+                'cuisine' => $recipe->cuisine ? [
+                    'id' => $recipe->cuisine->id,
+                    'country' => $recipe->cuisine->country
+                ] : null
+            ];
+        })
     ]);
 }
-
 }

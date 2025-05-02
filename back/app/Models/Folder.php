@@ -14,9 +14,9 @@ class Folder extends Model
     {
         return $this->belongsTo(User::class);
     }
-
-    public function recipes()
-    {
-        return $this->belongsToMany(Recipe::class, 'folder_recipe');
-    }
+public function recipes()
+{
+    return $this->belongsToMany(Recipe::class, 'folder_recipe', 'folder_id', 'recipe_id')
+                ->withTimestamps();
+}
 }
