@@ -16,6 +16,7 @@ use App\Http\Controllers\LiveController;
 
 Route::get('/user/{id}/recipes', [InfoUserController::class, 'showRecipes']);
 Route::middleware('auth:sanctum')->group(function () {
+
     Route::post('/recommendations/preferences', [RecommendationController::class, 'storePreferences']);
     Route::get('/user/preferences', [RecommendationController::class, 'getPreferenceNames']);
     Route::get('/recipes/recommended', [RecipeController::class, 'getRecommendedRecipes'])->middleware('auth:sanctum');
@@ -23,6 +24,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/liked-recipes', [RecipeController::class, 'getUserLikedRecipes']);
 
 });
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/userInfo/{userId}', [AuthController::class, 'getUserInfo']);
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'getUserNotifications']);
     Route::post('/notifications', [NotificationController::class, 'createNotification']);
@@ -75,6 +80,7 @@ Route::get('/', function () {
 // Rutas para configuarcion de user
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/userInfo/{userId}', [AuthController::class, 'getUserInfo']);
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 Route::middleware('auth:sanctum')->group(function () {
 Route::post('/updatePerfile', [AuthController::class, 'updatePerfil']);  });   

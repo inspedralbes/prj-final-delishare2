@@ -63,4 +63,16 @@ class User extends Authenticatable
     {
         return $this->role === 'chef';
     }
+    // En app/Models/User.php
+public function recipesInFolders()
+{
+    return $this->hasManyThrough(
+        Recipe::class,
+        Folder::class,
+        'user_id', // Foreign key on folders table
+        'id', // Foreign key on recipes table
+        'id', // Local key on users table
+        'id' // Local key on folders table
+    );
+}
 }

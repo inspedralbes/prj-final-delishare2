@@ -58,28 +58,51 @@ class AuthController extends Controller
     ], 201);
 }
 
-    public function login(Request $request)
-    {
-        $user = User::where('name', $request->name)->first();
+public function login(Request $request)
+{
+    $user = User::where('name', $request->name)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Credenciales inválidas'], 401);
-        }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-        $user->update(['personal_access_token' => $token]);
-
-        return response()->json([
-            'user' => [
-                'id_user' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'bio' => $user->bio,
-            ],
-            'token' => $token,
-        ], 201);
+    if (!$user || !Hash::check($request->password, $user->password)) {
+        return response()->json(['message' => 'Credenciales inválidas'], 401);
     }
 
+    $token = $user->createToken('auth_token')->plainTextToken;
+    $user->update(['personal_access_token' => $token]);
+
+    return response()->json([
+        'user' => [
+            'id_user' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'bio' => $user->bio,
+            'role' => $user->role, // Añade esta línea
+        ],
+        'token' => $token,
+    ], 201);
+}
+public function getUserInfo($userId)
+{
+    $user = User::with(['recipes', 'folders'])->find($userId);
+    
+    if (!$user) {
+        return response()->json(['message' => 'Usuario no encontrado'], 404);
+    }
+
+    return response()->json([
+        'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'img' => $user->img,
+            'bio' => $user->bio,
+            'created_at' => $user->created_at,
+            'updated_at' => $user->updated_at,
+        ],
+        'recipes' => $user->recipes,
+        'folders' => $user->folders
+    ]);
+}
     public function updatePerfil(Request $request)
     {
         $validator = Validator::make($request->all(), [

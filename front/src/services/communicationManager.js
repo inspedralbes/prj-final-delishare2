@@ -692,7 +692,33 @@ async deleteLive(liveId) {
     throw new Error(error.response?.data?.message || 'Error al eliminar el live');
   }
 },
+ // Obtener información de un usuario específico
+ getUserInfo: async (userId) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error("No token found");
 
+    const response = await axios.get(`http://127.0.0.1:8000/api/userInfo/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+},
+// Obtener los lives de un chef específico por su ID
+getChefLivesByUserId: async (userId) => {
+  try {
+    const response = await apiClient.get(`/chef/${userId}/lives`);
+    return response.data?.data || response.data || [];
+  } catch (error) {
+    console.error('Error fetching chef lives:', error);
+    if (error.response?.status === 404) {
+      return []; // Retorna array vacío si no hay lives
+    }
+    throw error;
+  }
+},
 }
 
 export default communicationManager;
