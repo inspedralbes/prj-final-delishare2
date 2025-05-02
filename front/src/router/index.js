@@ -7,7 +7,6 @@ import InfoReceta from '@/views/InfoReceta.vue';
 import AgregarReceta from '@/views/AgregarReceta.vue';
 import login from '@/components/login.vue';
 import register from '@/components/register.vue';
-import Guardadas from '@/views/Guardadas.vue';
 import { useAuthStore } from '@/stores/authStore';  // Importa el store de autenticación
 import UserProfile from '@/components/UserProfile.vue';
 import Formulario from '@/views/Formulario.vue';
@@ -105,12 +104,7 @@ const routes = [
     props: true,
     meta: { requiresAuth: true },
   },
-  {
-    path: '/guardar',
-    name: 'Guardadas',
-    component: Guardadas,
-    meta: { requiresAuth: false },
-  },
+ 
   {
     path: '/perfil',
     name: 'Perfil',

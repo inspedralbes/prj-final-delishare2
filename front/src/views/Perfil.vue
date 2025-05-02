@@ -54,8 +54,8 @@
           <button @click="setActiveTab('password')">Canviar contrasenya</button>
           <button @click="setActiveTab('liked')">Veure receptes que m'agraden</button>
           <div v-if="isAdmin" class="admin-button-container">
-  <button @click="goToAdmin" class="admin-button">Administración</button>
-</div>
+            <button @click="goToAdmin" class="admin-button">Administración</button>
+          </div>
 
           <button @click="confirmLogout('logOut')">Tancar sessió</button>
         </div>
@@ -137,7 +137,6 @@
         </div>
       </div>
 
-
       <!-- Formulario editar live -->
       <div v-if="showEditForm" class="live-form-overlay" @click="showEditForm = false">
         <div class="live-form-container" @click.stop>
@@ -188,6 +187,7 @@
           </div>
         </div>
       </div>
+
       <!-- Botones para ver secciones -->
       <div v-if="isChef && !showLiveForm && !settingsMenuOpen && activeTab === ''" class="toggle-buttons">
         <button @click="toggleSection('recipes')" :class="{ active: showRecipes && !showLivesSection }">
@@ -224,11 +224,129 @@
             </g>
           </svg>
         </button>
+        <button @click="toggleSection('saved')" :class="{ active: showSavedSection }">
+          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M5 6.2C5 5.07989 5 4.51984 5.21799 4.09202C5.40973 3.71569 5.71569 3.40973 6.09202 3.21799C6.51984 3 7.07989 3 8.2 3H15.8C16.9201 3 17.4802 3 17.908 3.21799C18.2843 3.40973 18.5903 3.71569 18.782 4.09202C19 4.51984 19 5.07989 19 6.2V21L12 16L5 21V6.2Z"
+              stroke="#000000" stroke-width="2" stroke-linejoin="round" />
+          </svg>
+        </button>
       </div>
+
+      <!-- Sección de guardadas -->
+      <div v-if="showSavedSection" class="user-recipes saved-section">
+        <div v-if="popupMessage" class="popup-notification">
+          {{ popupMessage }}
+        </div>
+
+        <div class="guardades-container">
+          <!-- Botones de navegación mejorados -->
+          <div class="tabs-container">
+            <div class="tabs">
+              <button :class="{ active: savedActiveTab === 'guardades' }" @click="savedActiveTab = 'guardades'">
+                <span class="tab-icon">📌</span> Guardades
+              </button>
+              <button :class="{ active: savedActiveTab === 'carpetes' }" @click="savedActiveTab = 'carpetes'">
+                <span class="tab-icon">🗂️</span> Les meves carpetes
+              </button>
+            </div>
+          </div>
+          <!-- Sección de receptes guardades -->
+          <div v-if="savedActiveTab === 'guardades'" class="guardades">
+            <h3 class="section-title">📌 Receptes guardades</h3>
+            <div v-if="loadingGuardades" class="loading-container">
+              <div class="loading-spinner"></div>
+              <p>Carregant...</p>
+            </div>
+            <div v-else>
+              <div class="recipe-cards">
+                <div v-for="recipe in savedRecipes" :key="recipe.id" class="recipe-item">
+                  <div class="recipe-card-wrapper">
+                    <RecipeCard :recipe-id="recipe.id" :title="recipe.title" :image="recipe.image"
+                      :description="recipe.description" />
+                    <button @click="removeSavedRecipe(recipe.id)" class="delete-btn-overlay">
+                      <img :src="binIcon" alt="Eliminar" class="delete-icon" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div v-if="savedRecipes.length === 0" class="no-recipes-container">
+                <p class="no-recipes">No tens receptes guardades.</p>
+                <button @click="goToExplore" class="explore-btn">Explorar receptes</button>
+              </div>
+            </div>
+          </div>
+          <!-- Sección de carpetes -->
+          <div v-if="savedActiveTab === 'carpetes'" class="carpetes">
+            <h3 class="section-title">🗂️ Les meves carpetes</h3>
+
+            <!-- Vista de carpeta única -->
+            <div v-if="selectedFolder" class="selected-folder-view">
+              <button @click="goBackFromFolder" class="back-btn">
+                <span class="back-icon">←</span> Tornar enrere
+              </button>
+              <h4 class="folder-title">"{{ selectedFolder.name }}"</h4>
+              <div class="recipe-cards" v-if="selectedFolderRecipes.length > 0">
+                <div v-for="recipe in selectedFolderRecipes" :key="recipe.id" class="recipe-item">
+                  <div class="recipe-card-wrapper">
+                    <RecipeCard :recipe-id="recipe.id" :title="recipe.title" :image="recipe.image"
+                      :description="recipe.description" />
+                    <button @click="removeRecipeFromFolder(recipe.id, selectedFolder.id)" class="delete-btn-overlay">
+                      <img :src="binIcon" alt="Eliminar" class="delete-icon" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="no-recipes-container">
+                <p class="no-recipes">No hi ha receptes en aquesta carpeta.</p>
+              </div>
+            </div>
+
+
+
+            <div v-else class="folders-view">
+              <div class="create-folder-section">
+                <button v-if="!showCreateFolderInput" @click="showCreateFolderInput = true" class="create-folder-btn">
+                  <span class="plus-icon">+</span> Crear carpeta
+                </button>
+                <div v-if="showCreateFolderInput" class="create-folder-input">
+                  <input type="text" v-model="newFolderName" placeholder="Nom de la carpeta" @keyup.enter="createFolder"
+                    ref="folderNameInput" autofocus />
+                  <div class="button-group">
+                    <button @click="createFolder" class="submit-btn">Guardar</button>
+                    <button @click="showCreateFolderInput = false" class="cancel-btn">Cancelar</button>
+                  </div>
+                </div>
+              </div>
+              <div v-if="folders.length > 0" class="folders-grid">
+                <div class="folder-card" v-for="folder in folders" :key="folder.id"
+                  @click="fetchFolderRecipes(folder.id)">
+                  <div class="folder-image-container">
+                    <img src="@/assets/images/folder2.png" alt="Folder" class="folder-icon" />
+                    <div class="folder-overlay">
+                      <span class="folder-name">{{ folder.name }}</span>
+                      <button @click.stop="deleteFolder(folder.id)" class="delete-folder-btn">
+                        <img :src="binIcon" alt="Delete" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-if="folders.length === 0" class="no-folders-container">
+                <p class="no-folders">No tens cap carpeta.</p>
+                <p class="folder-hint">Crea carpetes per organitzar les teves receptes favorites!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="button-container">
+          <button @click="cancelEdit" class="back-main-btn">🔙 Tornar</button>
+        </div>
+      </div>
+
 
       <!-- Lives programados -->
       <div v-if="showLivesSection && !showLiveForm" class="user-recipes">
-    
         <h3 class="section-title">📅 Mis lives programados</h3>
         <div v-if="scheduledLives.length === 0" class="no-lives">
           <p>No tienes ningún live programado todavía.</p>
@@ -280,7 +398,6 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import RecipeCard from '@/components/RecipeCard.vue';
 import axios from 'axios';
-
 import defaultProfile from '@/assets/images/profile.svg';
 import settingsIcon from '@/assets/images/settings.svg';
 import eyeOpenIcon from '@/assets/images/eye-open.svg';
@@ -290,9 +407,21 @@ import binIcon from '@/assets/images/bin.svg';
 export default {
   components: { RecipeCard },
   setup() {
-    const goToAdmin = () => {
-  router.push('/recetas');
-};
+    const authStore = useAuthStore();
+    const router = useRouter();
+
+    // Saved section variables
+    const showSavedSection = ref(false);
+    const savedActiveTab = ref('guardades');
+    const loadingGuardades = ref(true);
+    const savedRecipes = ref([]);
+    const folders = ref([]);
+    const selectedFolder = ref(null);
+    const selectedFolderRecipes = ref([]);
+    const showCreateFolderInput = ref(false);
+    const newFolderName = ref('');
+
+    // Profile variables
     const minDate = computed(() => {
       const today = new Date();
       const dd = String(today.getDate()).padStart(2, '0');
@@ -302,36 +431,16 @@ export default {
     });
     const scheduledLives = ref([]);
     const showLivesSection = ref(false);
-
-    const isChef = computed(() => {
-      const role = authStore.user?.role || user.value?.role;
-      return authStore.isAuthenticated && role === 'chef';
-    });
-
-    const isAdmin = computed(() => {
-  const role = authStore.user?.role || user.value?.role;
-  if (!role) {
-    console.log("El rol no está definido.");
-  }
-  return authStore.isAuthenticated && role === 'admin';
-});
-
-
     const newLive = ref({
       recipe_id: '',
       dia: '',
       hora: ''
     });
-
     const editingLive = ref(null);
     const showEditForm = ref(false);
     const showLiveForm = ref(false);
-    const cloudName = 'dt5vjbgab';
-    const uploadPreset = 'perfiles';
     const userImage = ref('/default-avatar.png');
     const likedRecipes = ref([]);
-    const authStore = useAuthStore();
-    const router = useRouter();
     const user = ref({ name: '', email: '', img: '/default-avatar.png' });
     const recipes = ref([]);
     const settingsMenuOpen = ref(false);
@@ -349,28 +458,149 @@ export default {
     const showConfirmPassword = ref(false);
     const newBio = ref('');
 
-    // Manejar clic en el botón de live
+    const isChef = computed(() => {
+      const role = authStore.user?.role || user.value?.role;
+      return authStore.isAuthenticated && role === 'chef';
+    });
+
+    const isAdmin = computed(() => {
+      const role = authStore.user?.role || user.value?.role;
+      return authStore.isAuthenticated && role === 'admin';
+    });
+
+    // Saved section methods
+    const fetchSavedRecipes = async () => {
+      loadingGuardades.value = true;
+      try {
+        const response = await communicationManager.getSavedRecipes();
+        savedRecipes.value = response;
+      } catch (error) {
+        console.error('Error al obtenir receptes guardades:', error);
+        popupMessage.value = "Error al carregar receptes guardades";
+        setTimeout(() => { popupMessage.value = ''; }, 3000);
+      } finally {
+        loadingGuardades.value = false;
+      }
+    };
+
+    const removeSavedRecipe = async (recipeId) => {
+      try {
+        await communicationManager.toggleSaveRecipe(recipeId);
+        savedRecipes.value = savedRecipes.value.filter(r => r.id !== recipeId);
+        popupMessage.value = "Recepta eliminada de guardades";
+        setTimeout(() => { popupMessage.value = ''; }, 3000);
+      } catch (error) {
+        console.error('Error en eliminar la recepta:', error);
+        popupMessage.value = "Error en eliminar la recepta";
+        setTimeout(() => { popupMessage.value = ''; }, 3000);
+      }
+    };
+
+    const fetchUserFolders = async () => {
+      try {
+        const userFolders = await communicationManager.fetchUserFolders();
+        folders.value = userFolders;
+      } catch (error) {
+        console.error('Error carregant carpetes', error);
+        popupMessage.value = "Error al carregar carpetes";
+        setTimeout(() => { popupMessage.value = ''; }, 3000);
+      }
+    };
+
+    const fetchFolderRecipes = async (folderId) => {
+      try {
+        const recipesFromFolder = await communicationManager.fetchFolderRecipes(folderId);
+        selectedFolderRecipes.value = recipesFromFolder;
+        selectedFolder.value = folders.value.find(folder => folder.id === folderId);
+      } catch (error) {
+        console.error('Error obtenint receptes de la carpeta', error);
+        popupMessage.value = "Error al carregar receptes de la carpeta";
+        setTimeout(() => { popupMessage.value = ''; }, 3000);
+      }
+    };
+
+    const createFolder = async () => {
+      if (newFolderName.value.trim() === '') {
+        popupMessage.value = "El nom de la carpeta no pot estar buit";
+        setTimeout(() => { popupMessage.value = ''; }, 3000);
+        return;
+      }
+      try {
+        await communicationManager.createFolder(newFolderName.value);
+        popupMessage.value = 'Carpeta creada correctament';
+        setTimeout(() => { popupMessage.value = ''; }, 3000);
+        showCreateFolderInput.value = false;
+        newFolderName.value = '';
+        await fetchUserFolders();
+      } catch (error) {
+        console.error('Error creant la carpeta', error);
+        popupMessage.value = "Error en crear la carpeta";
+        setTimeout(() => { popupMessage.value = ''; }, 3000);
+      }
+    };
+
+    const deleteFolder = async (folderId) => {
+      try {
+        await communicationManager.deleteFolder(folderId);
+        popupMessage.value = 'Carpeta eliminada correctament';
+        setTimeout(() => { popupMessage.value = ''; }, 3000);
+        await fetchUserFolders();
+        if (selectedFolder.value && selectedFolder.value.id === folderId) {
+          selectedFolder.value = null;
+          selectedFolderRecipes.value = [];
+        }
+      } catch (error) {
+        console.error('Error eliminant la carpeta', error);
+        popupMessage.value = "Error en eliminar la carpeta";
+        setTimeout(() => { popupMessage.value = ''; }, 3000);
+      }
+    };
+
+    const removeRecipeFromFolder = async (recipeId, folderId) => {
+      try {
+        await communicationManager.removeRecipeFromFolder(recipeId, folderId);
+        selectedFolderRecipes.value = selectedFolderRecipes.value.filter(
+          recipe => recipe.id !== recipeId
+        );
+        popupMessage.value = 'Recepta eliminada de la carpeta';
+        setTimeout(() => { popupMessage.value = ''; }, 3000);
+      } catch (error) {
+        console.error('Error eliminant la recepta de la carpeta', error);
+        popupMessage.value = "Error en eliminar la recepta";
+        setTimeout(() => { popupMessage.value = ''; }, 3000);
+      }
+    };
+
+    const goBackFromFolder = () => {
+      selectedFolder.value = null;
+      selectedFolderRecipes.value = [];
+    };
+
+    // Profile methods
+    const toggleSection = (section) => {
+      showRecipes.value = section === 'recipes';
+      showLivesSection.value = section === 'lives';
+      showSavedSection.value = section === 'saved';
+
+      if (section === 'lives') {
+        loadScheduledLives();
+      }
+      if (section === 'saved') {
+        fetchSavedRecipes();
+        fetchUserFolders();
+      }
+    };
+
     const handleLiveButtonClick = () => {
       showLivesSection.value = false;
       showRecipes.value = false;
       toggleLiveForm();
     };
 
-    function toggleSection(section) {
-      if (section === 'recipes') {
-        showRecipes.value = true;
-        showLivesSection.value = false;
-      } else if (section === 'lives') {
-        showRecipes.value = false;
-        showLivesSection.value = true;
-        loadScheduledLives(); // Añadir esta línea para cargar los lives al cambiar a esta sección
-      }
-    }
     const toggleSettingsMenu = () => {
-  settingsMenuOpen.value = !settingsMenuOpen.value;
-};
+      settingsMenuOpen.value = !settingsMenuOpen.value;
+    };
 
-    // Mostrar la sección de lives programados
     const showScheduledLives = async () => {
       showRecipes.value = false;
       showLivesSection.value = true;
@@ -378,7 +608,6 @@ export default {
       await loadScheduledLives();
     };
 
-    // Ocultar la sección de lives programados
     const hideLivesSection = () => {
       showLivesSection.value = false;
       showRecipes.value = true;
@@ -459,7 +688,6 @@ export default {
       }
     };
 
-
     const createLive = async () => {
       try {
         if (!newLive.value.recipe_id || !newLive.value.dia || !newLive.value.hora) {
@@ -479,8 +707,7 @@ export default {
 
         toggleLiveForm();
         await loadScheduledLives();
-        showScheduledLives(); // Mostrar la sección de lives después de crear uno nuevo
-
+        showScheduledLives();
       } catch (error) {
         console.error('Error al crear el live:', error);
         const errorMessage = error.response?.data?.message ||
@@ -491,26 +718,6 @@ export default {
         setTimeout(() => { popupMessage.value = ''; }, 3000);
       }
     };
-
-    // También asegúrate de cargar los lives programados en el onMounted:
-    onMounted(async () => {
-      try {
-        const userData = await communicationManager.getUser();
-        user.value = userData;
-        newName.value = userData.name;
-        newEmail.value = userData.email;
-        newBio.value = userData.bio || '';
-        const userRecipes = await communicationManager.getUserRecipes(userData.id);
-        recipes.value = userRecipes.recipes;
-
-        // Añadir esta línea para cargar los lives al montar el componente
-        if (isChef.value) {
-          await loadScheduledLives();
-        }
-      } catch (error) {
-        console.error('Error obteniendo datos del usuario:', error);
-      }
-    });
 
     const deleteRecipe = async (recipeId) => {
       try {
@@ -541,11 +748,11 @@ export default {
 
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("upload_preset", uploadPreset);
+      formData.append("upload_preset", 'perfiles');
 
       try {
         const response = await axios.put(
-          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+          `https://api.cloudinary.com/v1_1/dt5vjbgab/image/upload`,
           formData
         );
         const uploadedImageUrl = response.data.secure_url;
@@ -566,6 +773,7 @@ export default {
         setTimeout(() => { popupMessage.value = ''; }, 3000);
       }
     };
+
     const setActiveTab = (tab) => {
       activeTab.value = tab;
       showRecipes.value = false;
@@ -642,6 +850,7 @@ export default {
       activeTab.value = '';
       showRecipes.value = true;
       showLivesSection.value = false;
+      showSavedSection.value = false;
     };
 
     const confirmLogout = () => {
@@ -659,7 +868,51 @@ export default {
       showLogoutConfirmation.value = false;
     };
 
+    const goToAdmin = () => {
+      router.push('/recetas');
+    };
+
+    onMounted(async () => {
+      try {
+        const userData = await communicationManager.getUser();
+        user.value = userData;
+        newName.value = userData.name;
+        newEmail.value = userData.email;
+        newBio.value = userData.bio || '';
+        const userRecipes = await communicationManager.getUserRecipes(userData.id);
+        recipes.value = userRecipes.recipes;
+
+        if (isChef.value) {
+          await loadScheduledLives();
+        }
+
+        // Load saved data
+        await fetchSavedRecipes();
+        await fetchUserFolders();
+      } catch (error) {
+        console.error('Error obteniendo datos del usuario:', error);
+      }
+    });
+
     return {
+      // Saved section
+      showSavedSection,
+      savedActiveTab,
+      loadingGuardades,
+      savedRecipes,
+      folders,
+      selectedFolder,
+      selectedFolderRecipes,
+      showCreateFolderInput,
+      newFolderName,
+      removeSavedRecipe,
+      fetchFolderRecipes,
+      createFolder,
+      deleteFolder,
+      removeRecipeFromFolder,
+      goBackFromFolder,
+
+      // Profile
       authStore,
       toggleSection,
       router,
@@ -680,7 +933,6 @@ export default {
       newPassword,
       confirmPassword,
       currentPassword,
-      showRecipes,
       popupMessage,
       showLogoutConfirmation,
       showCurrentPassword,
@@ -693,9 +945,7 @@ export default {
       defaultProfile,
       goToLogin,
       toggleSettingsMenu,
-      setActiveTab,
       updatePassword,
-      cancelEdit,
       confirmLogout,
       logout,
       cancelLogout,
@@ -719,7 +969,6 @@ export default {
       editLive,
       editingLive,
       showEditForm,
-      editLive,
       saveEditedLive,
       showLivesSection,
       showScheduledLives,
@@ -728,42 +977,408 @@ export default {
   }
 };
 </script>
-
 <style scoped>
-/* Nuevos estilos para el botón de ver lives */
-.view-lives-button {
-  margin: 20px 0;
-  text-align: center;
+/* Estilos generales */
+.profile-container {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  color: #333;
 }
 
-.view-lives-btn {
+/* Popup de notificación */
+.popup-notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   background-color: #4CAF50;
   color: white;
+  padding: 15px 25px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    top: -50px;
+    opacity: 0;
+  }
+  to {
+    top: 20px;
+    opacity: 1;
+  }
+}
+
+/* Header de perfil */
+.profile-header {
+  text-align: center;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.settings-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
   border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
   cursor: pointer;
+  padding: 10px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.settings-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.settings-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.web-button-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.web-button {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.web-button:hover {
+  transform: scale(1.1);
+}
+
+.profile-picture {
+  display: inline-block;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 5px solid #0c0636;
+  margin-bottom: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.profile-picture:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.profile-picture img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-header h2 {
+  font-size: 2rem;
+  margin: 10px 0;
+  color: #0c0636;
+}
+
+.user-bio {
+  max-width: 600px;
+  margin: 0 auto;
+  color: #666;
+  line-height: 1.6;
+}
+
+/* Menú de ajustes */
+.settings-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.settings-menu {
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.3s ease;
+}
+
+.settings-menu button {
+  display: block;
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  background: none;
+  border: none;
+  text-align: left;
   font-size: 16px;
-  transition: background-color 0.3s;
+  color: #333;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
-.view-lives-btn:hover {
-  background-color: #45a049;
+.settings-menu button:hover {
+  background-color: #f0f0f0;
+  color: #0c0636;
 }
 
-/* Estilos para la sección de lives */
+.admin-button-container {
+  margin-top: 20px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+.admin-button {
+  background-color: #0c0636;
+  color: white !important;
+  text-align: center !important;
+  font-weight: 600;
+}
+
+.admin-button:hover {
+  background-color: #1a1464 !important;
+}
+
+/* Confirmación de logout */
+.popup-confirmation {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  text-align: center;
+  max-width: 90%;
+  width: 400px;
+}
+
+.popup-confirmation p {
+  margin-bottom: 20px;
+  font-size: 18px;
+}
+
+.confirm-btn, .cancel-btn {
+  padding: 10px 20px;
+  margin: 0 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.confirm-btn {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.confirm-btn:hover {
+  background-color: #3e8e41;
+}
+
+.cancel-btn {
+  background-color: #f1f1f1;
+  color: #333;
+}
+
+.cancel-btn:hover {
+  background-color: #e0e0e0;
+}
+
+/* Formularios de ajustes */
+.settings-form {
+  background-color: white;
+  border-radius: 12px;
+  padding: 30px;
+  margin: 20px auto;
+  max-width: 600px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.wide-form {
+  max-width: 800px;
+}
+
+.settings-form label {
+  display: block;
+  margin: 15px 0 8px;
+  font-weight: 600;
+  color: #0c0636;
+}
+
+.settings-form input,
+.settings-form textarea,
+.settings-form select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.settings-form input:focus,
+.settings-form textarea:focus,
+.settings-form select:focus {
+  border-color: #0c0636;
+  box-shadow: 0 0 0 2px rgba(12, 6, 54, 0.2);
+  outline: none;
+}
+
+.settings-form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.submit-btn {
+  background-color: #0c0636;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  margin-top: 20px;
+  margin-right: 15px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.submit-btn:hover {
+  background-color: #1a1464;
+  transform: translateY(-2px);
+}
+
+/* Subida de imagen */
+.upload-image-container {
+  text-align: center;
+  padding: 30px;
+  border: 2px dashed #ddd;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.upload-image-container:hover {
+  border-color: #0c0636;
+}
+
+.upload-label {
+  font-weight: 600;
+  font-size: 18px;
+  margin-bottom: 15px;
+  display: block;
+  color: #0c0636;
+}
+
+.upload-area {
+  cursor: pointer;
+}
+
+.upload-area input[type="file"] {
+  display: none;
+}
+
+.upload-instructions {
+  color: #666;
+  margin-top: 15px;
+}
+
+/* Contraseña */
+.password-input-container {
+  position: relative;
+}
+
+.password-toggle-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.password-toggle-icon:hover {
+  opacity: 1;
+}
+
+/* Sección de recetas */
+.user-recipes {
+  margin-top: 40px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 1.8rem;
+  color: #0c0636;
+  margin-bottom: 30px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.recipe-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.no-liked-recipes, .no-lives {
+  text-align: center;
+  padding: 40px 0;
+  color: #666;
+}
+
+.liked-recipe-card {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.liked-recipe-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Lives programados */
 .live-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
-  margin: 20px 0;
 }
 
 .live-card {
-  background: white;
-  border-radius: 10px;
-  padding: 15px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.live-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
 }
 
 .live-info h4 {
@@ -774,153 +1389,64 @@ export default {
 .live-actions {
   display: flex;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 15px;
+}
+
+.edit-btn, .delete-btn {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
 }
 
 .edit-btn {
   background-color: #2196F3;
   color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
+}
+
+.edit-btn:hover {
+  background-color: #0b7dda;
 }
 
 .delete-btn {
   background-color: #f44336;
   color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
 }
 
-.no-lives {
-  text-align: center;
-  padding: 20px;
-  color: #666;
+.delete-btn:hover {
+  background-color: #d32f2f;
 }
 
-.web-button-container {
-  position: absolute;
-  top: 10px;
-  right: -23px;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-/* Estilos modificados para el botón de programar live */
-.program-live-btn-container {
+/* Formulario de live */
+.live-form-overlay {
   position: fixed;
-  bottom: 80px;
-  /* Aumentado para evitar superposición con el navbar */
-  right: 30px;
-  z-index: 950;
-  /* Aumentado el z-index para asegurar visibilidad */
-}
-
-.program-live-btn {
-  background: linear-gradient(135deg, #ff4757, #ff6b81);
-  color: white;
-  border: none;
-  border-radius: 50px;
-  padding: 14px 24px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 6px 16px rgba(255, 71, 87, 0.4);
-  transition: all 0.3s ease;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 10px;
-  transform: translateY(0);
 }
 
-.program-live-btn:hover {
-  background: linear-gradient(135deg, #ff6b81, #ff4757);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(255, 71, 87, 0.5);
-}
-
-.program-live-btn:active {
-  transform: translateY(1px);
-  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.4);
-}
-
-.live-icon {
-  font-size: 20px;
-  display: inline-block;
-  animation: pulse 2s infinite;
-}
-
-.btn-text {
-  letter-spacing: 0.5px;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.1);
-  }
-
-  100% {
-    transform: scale(1);
-  }
-}
-
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Aseguramos que el menú de configuración no tape el botón */
-.settings-menu {
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-@media screen and (max-width: 768px) {
-  .program-live-btn-container {
-    bottom: 100px;
-    /* Más espacio en móviles para evitar el navbar */
-    right: 20px;
-  }
-
-  .program-live-btn {
-    padding: 12px 20px;
-  }
-}
-
-/* También mejoramos el formulario de live para que combine mejor */
 .live-form-container {
-  background: white;
-  padding: 35px;
-  border-radius: 16px;
+  background-color: white;
+  border-radius: 12px;
+  padding: 30px;
   width: 90%;
   max-width: 500px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
-  animation: slideUp 0.4s ease-out;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.3s ease;
 }
 
 .live-form-container h3 {
   margin-top: 0;
-  color: #ff4757;
+  color: #0c0636;
   text-align: center;
-  margin-bottom: 25px;
-  font-size: 24px;
-  font-weight: 600;
 }
 
 .form-group {
@@ -930,14 +1456,14 @@ export default {
 .form-group label {
   display: block;
   margin-bottom: 8px;
-  font-weight: 500;
-  color: #333;
+  font-weight: 600;
+  color: #0c0636;
 }
 
-.form-group select,
-.form-group input {
+.form-group input,
+.form-group select {
   width: 100%;
-  padding: 12px;
+  padding: 12px 15px;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 16px;
@@ -946,513 +1472,553 @@ export default {
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  margin-top: 25px;
+  gap: 15px;
+  margin-top: 30px;
 }
 
-.form-actions button {
-  padding: 10px 20px;
+/* Botones de sección */
+.toggle-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.toggle-buttons button {
+  background: none;
+  border: none;
+  padding: 12px 20px;
   border-radius: 8px;
-  font-size: 16px;
   cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
 }
 
-.submit-btn {
+.toggle-buttons button.active {
   background-color: #0c0636;
   color: white;
-  border: none;
 }
 
-.submit-btn:hover {
-  background-color: #322b5f;
+.toggle-buttons button:hover:not(.active) {
+  background-color: #e0e0e0;
 }
 
-.cancel-btn {
-  background-color: #f8f9fa;
-  color: #333;
-  border: 1px solid #ddd;
-}
-
-.cancel-btn:hover {
-  background-color: #e9ecef;
-}
-
-/* Añade estos nuevos estilos */
+/* No autenticado */
 .auth-required-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 70vh;
+  height: 60vh;
 }
 
 .auth-required-message {
   text-align: center;
-  padding: 2rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  max-width: 400px;
-  width: 100%;
+  max-width: 500px;
+  padding: 40px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .auth-required-message p {
-  margin-bottom: 1.5rem;
-  font-size: 1.1rem;
-  color: #343a40;
+  font-size: 18px;
+  margin-bottom: 30px;
+  color: #333;
 }
 
 .login-button {
-  padding: 0.75rem 1.5rem;
-  background-color: #4CAF50;
+  background-color: #0c0636;
   color: white;
   border: none;
-  border-radius: 4px;
-  font-size: 1rem;
+  padding: 12px 30px;
+  font-size: 16px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
 }
 
 .login-button:hover {
-  background-color: #45a049;
+  background-color: #1a1464;
+  transform: translateY(-2px);
 }
 
-* {
-  font-family: 'Times New Roman', Times, serif;
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.web-button {
-  width: 60px;
-  height: 60px;
+/* Responsive */
+@media screen and (max-width: 768px) {
+  .profile-header {
+    padding-top: 40px;
+  }
+  
+  .profile-picture {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .recipe-cards, .live-cards {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+  
+  .settings-form {
+    padding: 20px;
+  }
 }
 
-.profile-container {
-  padding: 20px;
-  position: relative;
+@media screen and (max-width: 480px) {
+  .profile-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .recipe-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .submit-btn, .cancel-btn {
+    width: 100%;
+    margin: 5px 0;
+  }
+  
+  .toggle-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
 }
 
-.profile-header {
-  text-align: center;
-  position: relative;
+/* Estilos para la sección de guardadas (copiados del código anterior) */
+.guardades-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
-.profile-header .profile-picture img {
-  border-radius: 50%;
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
+.tabs-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
 }
 
-.profile-header h2,
-.profile-header p {
-  margin: 10px 0;
-}
-
-.liked-section {
-  margin-top: 60px;
-}
-
-.section-title {
-  font-size: 1.6rem;
-  color: #030127;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.no-liked-recipes {
-  text-align: center;
-  font-size: 1.1rem;
-  color: #666;
-  padding: 30px 0;
-}
-
-.liked-recipe-card {
+.tabs {
+  display: flex;
+  background-color: #f5f5f5;
+  border-radius: 12px;
+  padding: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   width: 100%;
-  max-width: 350px;
+  max-width: 400px;
+}
+
+.tabs button {
+  flex: 1;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #555;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tabs button.active {
+  background-color: #0c0636;
+  color: white;
+}
+
+.tab-icon {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(12, 6, 54, 0.2);
+  border-radius: 50%;
+  border-top-color: #0c0636;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.recipe-item {
+  position: relative;
+  transition: transform 0.3s ease;
+}
+
+.recipe-item:hover {
+  transform: translateY(-5px);
+}
+
+.recipe-card-wrapper {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.recipe-card-wrapper:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.delete-btn-overlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.recipe-card-wrapper:hover .delete-btn-overlay {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.delete-btn-overlay:hover {
+  background-color: #ff4d4d;
+}
+
+.delete-btn-overlay:hover .delete-icon {
+  filter: brightness(10);
+}
+
+.delete-icon {
+  width: 18px;
+  height: 18px;
+  transition: all 0.3s ease;
+}
+
+.no-recipes-container, .no-folders-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.no-recipes, .no-folders {
+  font-size: 18px;
+  color: #555;
+  margin-bottom: 15px;
+}
+
+.folder-hint {
+  font-size: 16px;
+  color: #777;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.explore-btn {
+  margin-top: 20px;
+  padding: 12px 24px;
+  background-color: #0c0636;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.explore-btn:hover {
+  background-color: #1a1464;
+  transform: translateY(-2px);
+}
+
+.selected-folder-view {
+  animation: fadeIn 0.4s ease;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: #0c0636;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 20px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  background-color: #eeeeff;
+}
+
+.back-icon {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+.folder-title {
+  font-size: 22px;
+  color: #0c0636;
+  margin-bottom: 30px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.create-folder-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.create-folder-btn {
+  display: flex;
+  align-items: center;
+  background-color: #0c0636;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.create-folder-btn:hover {
+  background-color: #1a1464;
+  transform: translateY(-2px);
+}
+
+.plus-icon {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+.create-folder-input {
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  animation: fadeIn 0.3s ease;
+}
+
+.create-folder-input input {
+  width: 100%;
+  padding: 12px 15px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  transition: all 0.3s ease;
+}
+
+.create-folder-input input:focus {
+  border-color: #0c0636;
+  box-shadow: 0 0 0 2px rgba(12, 6, 54, 0.2);
+  outline: none;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.folders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 25px;
+  margin-top: 30px;
+}
+
+.folder-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.folder-card:hover {
+  transform: translateY(-5px);
+}
+
+.folder-image-container {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.folder-card:hover .folder-image-container {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.folder-icon {
+  width: 70%;
+  height: auto;
+  transition: all 0.3s ease;
+}
+
+.folder-card:hover .folder-icon {
+  transform: scale(1.05);
+}
+
+.folder-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.folder-name {
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80%;
+}
+
+.delete-folder-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.delete-folder-btn:hover {
+  background: rgba(255, 77, 77, 0.8);
+}
+
+.delete-folder-btn img {
+  width: 16px;
+  height: 16px;
+  filter: brightness(10);
 }
 
 .button-container {
   display: flex;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 40px;
+  margin-bottom: 60px;
 }
 
-.recipe-cards {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 50px;
-}
-
-.delete-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 5px;
-}
-
-.delete-icon {
-  width: 20px;
-  height: 20px;
-}
-
-.settings-btn {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.settings-icon {
-  width: 24px;
-  height: 24px;
-}
-
-.settings-menu {
-  position: absolute;
-  top: 30px;
-  right: 0;
-  background: white;
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  width: 250px;
-  height: auto;
-}
-
-.settings-form {
-  margin-top: 70px;
-}
-
-.settings-menu button {
-  padding: 12px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: #030127;
-  margin-bottom: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.settings-menu button:hover {
-  background-color: #322b5f;
-}
-
-.settings-form label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.settings-form input {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  margin-bottom: 10px;
-  box-sizing: border-box;
-}
-
-.submit-btn,
-.cancel-btn {
-  padding: 5px 15px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  margin-top: 10px;
-  margin-right: 10px;
-}
-
-.submit-btn {
-  background-color: #0c0636;
-  color: white;
-}
-
-.submit-btn:hover {
-  background-color: #322b5f;
-}
-
-.cancel-btn {
-  background-color: #9c1208;
-  color: white;
-}
-
-.cancel-btn:hover {
-  background-color: #e53935;
-}
-
-.password-input-container {
-  position: relative;
-  width: 100%;
-}
-
-.toggle-buttons button {
-  margin-right: 10px;
-  padding: 8px 12px;
-  border: none;
-  cursor: pointer;
-  background-color: #ffffff;
-  border-radius: 5px;
-}
-
-
-.password-toggle-icon {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-}
-
-button {
-  background-color: #0c0636;
-  color: white;
-  border-radius: 5px;
-
-}
-
-.wide-form {
-  width: 250px;
-  height: 150px;
-  padding: 20px;
-  margin: 20px auto;
-  margin-top: 60px;
-  background: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  border: 2px solid #ccc;
-}
-
-.wide-form input[type="file"] {
-  width: 80%;
-  padding: 10px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  background: #f5f5f5;
-  margin-top: 15px;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.wide-form input[type="file"]::-webkit-file-upload-button {
-  background-color: #0c0636;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.wide-form input[type="file"]::-webkit-file-upload-button:hover {
-  background-color: #7582e7;
-}
-
-.wide-form button {
-  width: 80%;
-  padding: 10px;
-  margin-top: 15px;
-  background-color: #0c0636;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.wide-form button:hover {
-  background-color: #7582e7;
-}
-
-.custom-file-upload input[type="file"] {
-  display: none;
-}
-
-.custom-file-upload {
-  display: inline-block;
-  padding: 10px 15px;
-  color: #0c0636;
-  font-size: 14px;
-  border: 2px solid #0c0636;
-  font-weight: bold;
-  border-radius: 5px;
-  cursor: pointer;
-  text-align: center;
-  transition: background 0.3s ease;
-}
-
-.custom-file-upload:hover {
-  background-color: #7582e7;
-}
-
-.popup-notification {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: #3498db;
-  color: #fff;
-  padding: 10px 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  animation: fadeIn 0.5s ease;
-}
-
-.settings-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: transparent;
-  z-index: 900;
-}
-
-.popup-confirmation {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 10px;
-}
-
-.popup-confirmation p {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  text-align: center;
-  width: 100%;
-  max-width: 300px;
-}
-
-.popup-confirmation button {
-  font-size: 16px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  margin: 5px;
-  padding: 10px 20px;
-  transition: background-color 0.3s ease;
-  width: 100px;
-}
-
-.upload-image-container {
-  margin-top: -50px;
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-
-.upload-label {
-  display: block;
-  margin-top: 150px;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
+.back-main-btn {
+  padding: 12px 25px;
+  background-color: #f5f5f5;
   color: #333;
-
-}
-
-.user-bio {
-  max-width: 80%;
-  margin: 0 auto;
-  padding: 10px;
-  font-style: italic;
-  color: #555;
-  line-height: 1.4;
-  white-space: pre-line;
-  /* Para mantener los saltos de línea */
-}
-
-.upload-area {
-  border: 2px dashed #0c0636;
-  border-radius: 15px;
-  padding: 1.5rem;
-  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.upload-area:hover {
-  background-color: #e6e6e6;
-  border-color: #059669;
+.back-main-btn:hover {
+  background-color: #e5e5e5;
 }
 
-.upload-area input[type="file"] {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.upload-instructions {
-  font-size: 0.9rem;
-  color: #666;
-  margin-top: 0.5rem;
-}
-
-.uploaded-image-preview {
-  margin-top: 1rem;
-  max-width: 100%;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-
-.cancel-btn:hover {
-  background-color: #e53935;
-}
-
-.popup-confirmation .confirm-btn {
-  background-color: #0c0636;
-  color: white;
-}
-
-.popup-confirmation .confirm-btn:hover {
-  background-color: #322b5f;
-}
-
-.popup-confirmation .cancel-btn {
-  background-color: #9c1208;
-  color: white;
-}
-
-.popup-confirmation .cancel-btn:hover {
-  background-color: #e53935;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
+/* Responsive adjustments para sección guardadas */
+@media screen and (max-width: 768px) {
+  .recipe-cards {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
   }
+  
+  .folders-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+  }
+  
+  .tabs button {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+  
+  .section-title {
+    font-size: 1.5rem;
+  }
+}
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
+@media screen and (max-width: 480px) {
+  .recipe-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .folders-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+  }
+  
+  .create-folder-input {
+    padding: 15px;
   }
 }
 </style>
