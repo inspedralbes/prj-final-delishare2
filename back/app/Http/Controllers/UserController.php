@@ -1,11 +1,10 @@
 <?php
 namespace App\Http\Controllers;
-
-
-
+use Illuminate\Support\Facades\Auth;
 use App\Models\User;
-
 use Illuminate\Http\Request;
+use App\Mail\VerificationMail;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
@@ -43,4 +42,40 @@ class UserController extends Controller
         $user->delete();
         return response()->json(['message' => 'User deleted successfully']);
     }
+
+    public function getAuthenticatedUser(Request $request)
+{
+    $user = Auth::user();
+
+    if (!$user) {
+        return response()->json(['message' => 'No autorizado'], 401);
+    }
+
+    return response()->json([
+        'email' => $user->email,
+        'name' => $user->name,
+    ]);
+}
+public function sendVerificationEmail(Request $request)
+{
+    $user = Auth::user();
+
+    if (!$user) {
+        return response()->json(['message' => 'No autorizado'], 401);
+    }
+
+    $request->validate([
+        'message' => 'required|string',
+    ]);
+
+    $email = $user->email;
+    $username = $user->name;
+    $messageContent = $request->input('message');
+
+    // Enviar correo a midelishare@gmail.com
+    Mail::to('midelishare@gmail.com')->send(new VerificationMail($email, $username, $messageContent));
+
+    return response()->json(['message' => 'Correo enviado correctamente']);
+}
+
 }

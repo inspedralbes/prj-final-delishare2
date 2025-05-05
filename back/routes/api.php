@@ -145,3 +145,5 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/lives/{live}', [LiveController::class, 'destroy']); // Eliminar un live (solo el chef dueño)
     Route::get('/lives/chef', [LiveController::class, 'chefLives']); // Lives del chef actual
 });Route::get('/mis-lives', [LiveController::class, 'misLivesProgramados'])->middleware('auth:sanctum');
+
+Route::middleware('auth:sanctum')->post('/send-verification', [UserController::class, 'sendVerificationEmail']);

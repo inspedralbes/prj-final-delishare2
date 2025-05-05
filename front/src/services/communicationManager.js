@@ -105,8 +105,16 @@ const communicationManager = {
         console.error('Error creando cocina:', error.response?.data || error.message);
         throw error;
       });
-  }
-  ,
+  },
+  sendVerificationRequest(message) {
+    return apiClient.post('/send-verification', { message })
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error al enviar la solicitud de verificación:', error.response?.data || error.message);
+        throw error;
+      });
+  },
+  
   deleteRecipe(id) {
     return apiClient.delete(`/recipes/${id}`)
       .then(response => response.data)

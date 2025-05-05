@@ -56,6 +56,10 @@
           <div v-if="isAdmin" class="admin-button-container">
             <button @click="goToAdmin" class="admin-button">Administración</button>
           </div>
+          <!-- Dentro del settings-menu, después del botón de administración -->
+<div v-if="!isChef && !isAdmin" class="verification-button-container">
+  <button @click="goToVerification" class="verification-button">Pedir Verificación</button>
+</div>
 
           <button @click="confirmLogout('logOut')">Tancar sessió</button>
         </div>
@@ -793,7 +797,9 @@ export default {
         showConfirmPassword.value = !showConfirmPassword.value;
       }
     };
-
+    const goToVerification = () => {
+  router.push('/verificacion');
+};
     const updateProfile = async () => {
       try {
         await communicationManager.updateProfile({
@@ -972,7 +978,8 @@ export default {
       saveEditedLive,
       showLivesSection,
       showScheduledLives,
-      hideLivesSection
+      hideLivesSection,
+      goToVerification
     };
   }
 };

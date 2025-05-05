@@ -15,8 +15,7 @@ import UsersList from '@/views/UsersList.vue';
 import CuisinesView from '@/views/CuisinesView.vue'; 
 import CategoriesView from '@/views/CategoriesView.vue';
 import CommentsView from '../views/CommentsView.vue';
-
-
+import Verification from '@/components/Verification.vue'
 import Live from '@/views/Live.vue';
 import ChatRoom from '@/components/ChatRoom.vue';
 
@@ -32,6 +31,11 @@ const routes = [
     name: 'ChatRoom',
     component: ChatRoom,
      meta: { requiresAuth: false },
+  },
+  {
+    path: '/verificacion',
+    name: 'Verification',
+    component: Verification
   },
   {
     path: '/live',
