@@ -1,204 +1,197 @@
 <template>
-    <div class="users-container">
-      <h1 class="title">Lista de Usuarios</h1>
-      <BotonesCrud/>
+  <div class="users-container">
+    <h1 class="title">Lista de Usuarios</h1>
+    <BotonesCrud />
 
-      <div v-if="loading" class="loading-spinner">
-        <div class="spinner"></div>
-        <p class="loading-text">Cargando usuarios...</p>
+    <div v-if="loading" class="loading-spinner">
+      <div class="spinner"></div>
+      <p class="loading-text">Cargando usuarios...</p>
+    </div>
+
+    <div v-else-if="error" class="error-message">
+      <p class="error-text">{{ error }}</p>
+      <button @click="fetchUsers" class="retry-button">Reintentar</button>
+    </div>
+
+    <div v-else>
+      <div class="search-box">
+        <input
+          type="text"
+          v-model="searchTerm"
+          placeholder="Buscar usuarios..."
+          class="search-input"
+        />
       </div>
-      
-      <div v-else-if="error" class="error-message">
-        <p class="error-text">{{ error }}</p>
-        <button @click="fetchUsers" class="retry-button">
-          Reintentar
-        </button>
+
+      <div v-if="filteredUsers.length === 0" class="no-results">
+        <p>No se encontraron usuarios con ese criterio de búsqueda.</p>
       </div>
-      
-      <div v-else>
-        <div class="search-box">
-          <input 
-            type="text" 
-            v-model="searchTerm" 
-            placeholder="Buscar usuarios..." 
-            class="search-input"
-          />
-        </div>
-        
-        <div v-if="filteredUsers.length === 0" class="no-results">
-          <p>No se encontraron usuarios con ese criterio de búsqueda.</p>
-        </div>
-        
-        <div v-else class="table-container">
-          <table class="users-table">
-            <thead>
-              <tr>
-                <th>Usuario</th>
-                <th>Correo electrónico</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="user in filteredUsers" :key="user.id" class="user-row">
-                <td class="user-name-cell">
-                  <div class="user-info">
-                    <div class="avatar-small">
-                      <span class="initials-small">{{ getUserInitials(user.name) }}</span>
-                    </div>
-                    <span>{{ user.name }}</span>
+
+      <div v-else class="table-container">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Correo electrónico</th>
+              <th>Rol</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="user in filteredUsers" :key="user.id" class="user-row">
+              <td class="user-name-cell">
+                <div class="user-info">
+                  <div class="avatar-small">
+                    <span class="initials-small">{{ getUserInitials(user.name) }}</span>
                   </div>
-                </td>
-                <td class="user-email-cell">{{ user.email }}</td>
-                <td class="actions-cell">
-                  <button 
-                    @click="deleteUser(user.id)" 
-                    class="delete-button"
-                    title="Eliminar usuario"
-                  >
-                    <svg class="delete-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                    <span>Eliminar</span>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                  <span>{{ user.name }}</span>
+                </div>
+              </td>
+              <td class="user-email-cell">{{ user.email }}</td>
+              <td>
+                <select v-model="user.role" @change="updateUserRole(user)" class="role-select">
+                  <option value="user">Usuario</option>
+                  <option value="chef">Chef</option>
+                  <option value="admin">Admin</option>
+
+                </select>
+              </td>
+              <td class="actions-cell">
+                <button 
+                  @click="deleteUser(user.id)" 
+                  class="delete-button"
+                  title="Eliminar usuario"
+                >
+                  <svg class="delete-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                    </path>
+                  </svg>
+                  <span>Eliminar</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-  
-      <!-- Modal de confirmación -->
-      <div v-if="showConfirmModal" class="modal-overlay">
-        <div class="modal-container">
-          <h3 class="modal-title">Confirmar eliminación</h3>
-          <p class="modal-text">¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer.</p>
-          <div class="modal-buttons">
-            <button 
-              @click="cancelDelete" 
-              class="cancel-button"
-            >
-              Cancelar
-            </button>
-            <button 
-              @click="confirmDelete" 
-              class="confirm-button"
-            >
-              Eliminar
-            </button>
-          </div>
+    </div>
+
+    <!-- Modal de confirmación -->
+    <div v-if="showConfirmModal" class="modal-overlay">
+      <div class="modal-container">
+        <h3 class="modal-title">Confirmar eliminación</h3>
+        <p class="modal-text">¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer.</p>
+        <div class="modal-buttons">
+          <button @click="cancelDelete" class="cancel-button">Cancelar</button>
+          <button @click="confirmDelete" class="confirm-button">Eliminar</button>
         </div>
       </div>
     </div>
-  </template>
-  
-  <script>
-  import communicationManager from '@/services/communicationManager';
-  import BotonesCrud from '@/components/BotonesCrud.vue';
-  export default {
-    name: 'UsersList',
-    components: {
+  </div>
+</template>
+
+<script>
+import communicationManager from '@/services/communicationManager';
+import BotonesCrud from '@/components/BotonesCrud.vue';
+
+export default {
+  name: 'UsersList',
+  components: {
     BotonesCrud
   },
-    data() {
-      return {
-        users: [],
-        loading: true,
-        error: null,
-        searchTerm: '',
-        showConfirmModal: false,
-        userToDelete: null
-      };
-    },
-    computed: {
-      filteredUsers() {
-        if (!this.searchTerm) {
-          return this.users;
+  data() {
+    return {
+      users: [],
+      loading: true,
+      error: null,
+      searchTerm: '',
+      showConfirmModal: false,
+      userToDelete: null
+    };
+  },
+  computed: {
+    filteredUsers() {
+      if (!this.searchTerm) return this.users;
+      const searchLower = this.searchTerm.toLowerCase();
+      return this.users.filter(user =>
+        user.name.toLowerCase().includes(searchLower) ||
+        user.email.toLowerCase().includes(searchLower)
+      );
+    }
+  },
+  mounted() {
+    this.fetchUsers();
+  },
+  methods: {
+    async fetchUsers() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          this.error = 'No se encontró el token de autenticación. Por favor, inicia sesión.';
+          this.loading = false;
+          return;
         }
-        
-        const searchLower = this.searchTerm.toLowerCase();
-        return this.users.filter(user => 
-          user.name.toLowerCase().includes(searchLower) || 
-          user.email.toLowerCase().includes(searchLower)
-        );
+        this.users = await communicationManager.fetchAllUsers();
+      } catch (err) {
+        console.error('Error fetching users:', err);
+        if (err.response && err.response.status === 401) {
+          this.error = 'Tu sesión ha expirado o no tienes autorización. Por favor, vuelve a iniciar sesión.';
+        } else {
+          this.error = 'Ocurrió un error al cargar los usuarios. Por favor, inténtalo de nuevo.';
+        }
+      } finally {
+        this.loading = false;
       }
     },
-    mounted() {
-      this.fetchUsers();
+    getUserInitials(name) {
+      if (!name) return '?';
+      return name
+        .split(' ')
+        .map(word => word[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2);
     },
-    methods: {
-      async fetchUsers() {
-        this.loading = true;
-        this.error = null;
-        
-        try {
-          // Verificar si hay token de autenticación
-          const token = localStorage.getItem('token');
-          
-          if (!token) {
-            this.error = 'No se encontró el token de autenticación. Por favor, inicia sesión.';
-            this.loading = false;
-            return;
-          }
-          
-          // Usar communicationManager para obtener los usuarios
-          this.users = await communicationManager.fetchAllUsers();
-        } catch (err) {
-          console.error('Error fetching users:', err);
-          
-          if (err.response && err.response.status === 401) {
-            this.error = 'Tu sesión ha expirado o no tienes autorización. Por favor, vuelve a iniciar sesión.';
-          } else {
-            this.error = 'Ocurrió un error al cargar los usuarios. Por favor, inténtalo de nuevo.';
-          }
-        } finally {
-          this.loading = false;
+    deleteUser(userId) {
+      this.userToDelete = userId;
+      this.showConfirmModal = true;
+    },
+    cancelDelete() {
+      this.showConfirmModal = false;
+      this.userToDelete = null;
+    },
+    async confirmDelete() {
+      if (!this.userToDelete) return;
+      try {
+        await communicationManager.deleteUser(this.userToDelete);
+        console.log(`Usuario con ID ${this.userToDelete} eliminado correctamente`);
+        this.users = this.users.filter(user => user.id !== this.userToDelete);
+      } catch (error) {
+        console.error('Error al eliminar el usuario:', error);
+        if (error.response && error.response.status === 403) {
+          console.error('No tienes permisos para eliminar este usuario');
         }
-      },
-      getUserInitials(name) {
-        if (!name) return '?';
-        
-        return name
-          .split(' ')
-          .map(word => word[0])
-          .join('')
-          .toUpperCase()
-          .substring(0, 2);
-      },
-      deleteUser(userId) {
-        this.userToDelete = userId;
-        this.showConfirmModal = true;
-      },
-      cancelDelete() {
+      } finally {
         this.showConfirmModal = false;
         this.userToDelete = null;
-      },
-      async confirmDelete() {
-        if (!this.userToDelete) return;
-        
-        try {
-          // Usar la función del communicationManager para eliminar el usuario de la BD
-          await communicationManager.deleteUser(this.userToDelete);
-          
-          // Mensaje de éxito en consola
-          console.log(`Usuario con ID ${this.userToDelete} eliminado correctamente`);
-          
-          // Eliminar el usuario de la lista local después de eliminarlo de la BD
-          this.users = this.users.filter(user => user.id !== this.userToDelete);
-          
-        } catch (error) {
-          console.error('Error al eliminar el usuario:', error);
-          
-          if (error.response && error.response.status === 403) {
-            console.error('No tienes permisos para eliminar este usuario');
-          }
-        } finally {
-          this.showConfirmModal = false;
-          this.userToDelete = null;
-        }
+      }
+    },
+    async updateUserRole(user) {
+      try {
+        await communicationManager.updateUserRole(user.id, user.role);
+        console.log(`Rol actualizado a "${user.role}" para el usuario ${user.name}`);
+      } catch (error) {
+        console.error('Error al actualizar el rol:', error);
+        alert('Ocurrió un error al actualizar el rol. Intenta nuevamente.');
       }
     }
-  };
-  </script>
+  }
+};
+</script>
+
   
   <style scoped>
   .users-container {

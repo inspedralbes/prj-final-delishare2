@@ -147,3 +147,4 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });Route::get('/mis-lives', [LiveController::class, 'misLivesProgramados'])->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->post('/send-verification', [UserController::class, 'sendVerificationEmail']);
+Route::middleware('auth:sanctum')->put('/usuarios/{id}/rol', [AuthController::class, 'cambiarRol']);

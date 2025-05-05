@@ -175,5 +175,37 @@ public function cambiarContra(Request $request)
 
     return response()->json(['message' => 'Contraseña cambiada exitosamente']);
     }
+    public function cambiarRol(Request $request, $id)
+{
+    // Validar que el nuevo rol sea válido
+    $validator = Validator::make($request->all(), [
+        'role' => 'required|in:user,chef,admin',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+
+    // Buscar el usuario
+    $user = User::find($id);
+    if (!$user) {
+        return response()->json(['message' => 'Usuario no encontrado'], 404);
+    }
+
+    // Cambiar el rol
+    $user->role = $request->role;
+    $user->save();
+
+    return response()->json([
+        'message' => 'Rol actualizado correctamente',
+        'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role
+        ]
+    ]);
+}
+
 
 }

@@ -155,6 +155,15 @@ const communicationManager = {
         throw error;
       });
   },
+  updateUserRole(userId, role) {
+    return apiClient.put(`/usuarios/${userId}/rol`, { role })
+      .then(response => response.data)
+      .catch(error => {
+        console.error(`Error al actualizar el rol del usuario ${userId}:`, error.response?.data || error.message);
+        throw error;
+      });
+  },
+  
   fetchAllUsers() {
     return apiClient.get('/users')
       .then(response => response.data)
