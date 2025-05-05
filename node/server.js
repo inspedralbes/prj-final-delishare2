@@ -19,17 +19,26 @@ const io = new Server(http, {
 
 // Mapa para almacenar las salas de transmisión en vivo
 const liveRooms = new Map();
+// Mapa para almacenar conexiones de usuarios (para notificaciones)
+const userConnections = new Map();
+const pendingNotifications = new Map();
 
-/// Maneja nuevas conexiones de socket
+// Maneja nuevas conexiones de socket
 io.on('connection', (socket) => {
   console.log('🔌 Nuevo usuario conectado:', socket.id);
 
   // Extrae parámetros de conexión del handshake
-  const { liveId, username, isChef } = socket.handshake.query;
+  const { liveId, username, isChef, userId } = socket.handshake.query;
   if (liveId && username) {
     socket.liveId = liveId;
     socket.username = username;
     socket.isChef = isChef === 'true';
+  }
+  
+  // Registrar conexión de usuario para notificaciones
+  if (userId) {
+    userConnections.set(userId, socket.id);
+    console.log(`👤 Usuario ${userId} conectado (socket ${socket.id})`);
   }
 
   /// Maneja la solicitud de unirse a una sala de transmisión
@@ -75,7 +84,7 @@ io.on('connection', (socket) => {
       // Agrega usuario a la lista correspondiente
       if (room.isLiveActive) {
         room.activeUsers.set(socket.id, username);
-        
+
         if (!socket.isChef && room.chefSocketId && room.hasVideo) {
           io.to(room.chefSocketId).emit('newViewer', socket.id);
         }
@@ -103,7 +112,7 @@ io.on('connection', (socket) => {
         const userList = Array.from(room.activeUsers.entries()).map(([socketId, name]) => {
           return { socketId, username: name };
         });
-        
+
         io.to(liveId).emit('userJoined', {
           username,
           socketId: socket.id,
@@ -111,10 +120,10 @@ io.on('connection', (socket) => {
         });
       }
 
-      callback && callback({ 
+      callback && callback({
         success: true,
         isLiveActive: room.isLiveActive,
-        hasVideo: room.hasVideo 
+        hasVideo: room.hasVideo
       });
 
     } catch (error) {
@@ -127,10 +136,10 @@ io.on('connection', (socket) => {
   socket.on('requestVideoStream', ({ liveId }) => {
     try {
       console.log(`Usuario ${socket.id} solicita stream de video para sala ${liveId}`);
-      
+
       const room = liveRooms.get(liveId);
       if (!room) throw new Error('Sala no encontrada');
-  
+
       if (room.chefSocketId && room.hasVideo) {
         console.log(`Notificando al chef ${room.chefSocketId} sobre nuevo espectador ${socket.id}`);
         io.to(room.chefSocketId).emit('newViewer', socket.id);
@@ -193,7 +202,7 @@ io.on('connection', (socket) => {
       };
 
       io.to(liveId).emit('liveStarted', startData);
-      
+
       callback && callback({ success: true });
 
     } catch (error) {
@@ -232,29 +241,29 @@ io.on('connection', (socket) => {
   /// Maneja ofertas WebRTC para conexión P2P
   socket.on('offer', ({ liveId, target, offer }) => {
     console.log(`Oferta recibida de ${socket.id} para ${target} - Tipo: ${offer.type}`);
-    io.to(target).emit('offer', { 
-      from: socket.id, 
+    io.to(target).emit('offer', {
+      from: socket.id,
       offer,
-      liveId 
+      liveId
     });
   });
 
   /// Maneja respuestas WebRTC para conexión P2P
   socket.on('answer', ({ liveId, target, answer }) => {
     console.log(`Respuesta recibida de ${socket.id} para ${target} - Tipo: ${answer.type}`);
-    io.to(target).emit('answer', { 
-      from: socket.id, 
+    io.to(target).emit('answer', {
+      from: socket.id,
       answer,
-      liveId 
+      liveId
     });
   });
 
   /// Maneja candidatos ICE para conexión WebRTC
   socket.on('iceCandidate', ({ liveId, target, candidate }) => {
-    io.to(target).emit('iceCandidate', { 
-      from: socket.id, 
+    io.to(target).emit('iceCandidate', {
+      from: socket.id,
       candidate,
-      liveId 
+      liveId
     });
   });
 
@@ -268,50 +277,156 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ==============================================
+  // SECCIÓN DE NOTIFICACIONES
+  // ==============================================
+
+  /**
+   * Maneja la creación de nuevas notificaciones
+   */
+  socket.on('createNotification', async (notificationData) => {
+    try {
+      const { recipientId, message, recipeId, type, triggeredBy } = notificationData;
+      
+      console.log(`📢 Nueva notificación para usuario ${recipientId}: ${message}`);
+      
+      // Buscar socket del destinatario
+      const recipientSocketId = userConnections.get(recipientId);
+      
+      const notification = {
+        id: Date.now(), // Temporal, luego se reemplaza con ID real de BD
+        message,
+        recipe_id: recipeId,
+        type,
+        read: false,
+        created_at: new Date().toISOString(),
+        triggered_by: triggeredBy
+      };
+
+      if (recipientSocketId) {
+        // Usuario conectado - enviar inmediatamente
+        io.to(recipientSocketId).emit('newNotification', notification);
+        console.log(`📩 Notificación enviada en tiempo real a ${recipientId}`);
+      } else {
+        // Usuario desconectado - guardar en pendientes
+        if (!pendingNotifications.has(recipientId)) {
+          pendingNotifications.set(recipientId, []);
+        }
+        pendingNotifications.get(recipientId).push(notification);
+        console.log(`⏳ Notificación guardada para ${recipientId} (usuario desconectado)`);
+      }
+    } catch (error) {
+      console.error('❌ Error al crear notificación:', error);
+      socket.emit('notificationError', { error: error.message });
+    }
+  });
+
+  /**
+   * Sincronizar notificaciones con la base de datos
+   */
+  socket.on('syncNotifications', async ({ userId, notifications }) => {
+    try {
+      console.log(`🔄 Sincronizando notificaciones para usuario ${userId}`);
+      // Aquí iría la lógica para sincronizar con tu backend PHP
+      // Por ejemplo, marcar como leídas en la base de datos
+    } catch (error) {
+      console.error('❌ Error al sincronizar notificaciones:', error);
+    }
+  });
+  /**
+   * Maneja la marcación de notificaciones como leídas
+   */
+  socket.on('markNotificationAsRead', (notificationId) => {
+    try {
+      console.log(`📌 Notificación ${notificationId} marcada como leída`);
+      // Aquí actualizarías el estado en tu base de datos
+      // await markNotificationAsReadInDB(notificationId);
+      
+      socket.emit('notificationRead', { success: true, notificationId });
+    } catch (error) {
+      console.error('❌ Error al marcar notificación como leída:', error);
+      socket.emit('notificationError', { error: error.message });
+    }
+  });
+
+  /**
+   * Maneja la solicitud de notificaciones no leídas
+   */
+  socket.on('getUnreadNotifications', async (userId) => {
+    try {
+      console.log(`🔍 Solicitando notificaciones no leídas para usuario ${userId}`);
+      // Aquí obtendrías las notificaciones de tu base de datos
+      // const notifications = await getUnreadNotificationsFromDB(userId);
+      const mockNotifications = [
+        {
+          id: 1,
+          message: "Tienes un nuevo comentario en tu receta",
+          recipe_id: 123,
+          read: false,
+          created_at: new Date().toISOString()
+        }
+      ];
+      
+      socket.emit('unreadNotifications', mockNotifications);
+    } catch (error) {
+      console.error('❌ Error al obtener notificaciones:', error);
+      socket.emit('notificationError', { error: error.message });
+    }
+  });
+
   /// Maneja la desconexión de un socket
   socket.on('disconnect', () => {
     try {
+      console.log('🔌 Usuario desconectado:', socket.id);
+      
       if (!socket.liveId) return;
 
       const room = liveRooms.get(socket.liveId);
-      if (!room) return;
+      if (room) {
+        // Elimina usuario de las listas
+        room.waitingUsers.delete(socket.id);
+        const disconnectedUsername = room.activeUsers.get(socket.id);
+        room.activeUsers.delete(socket.id);
 
-      // Elimina usuario de las listas
-      room.waitingUsers.delete(socket.id);
-      const disconnectedUsername = room.activeUsers.get(socket.id);
-      room.activeUsers.delete(socket.id);
+        // Maneja desconexión del chef
+        if (room.chefSocketId === socket.id) {
+          room.chef = null;
+          room.chefSocketId = null;
+          room.hasVideo = false;
 
-      // Maneja desconexión del chef
-      if (room.chefSocketId === socket.id) {
-        room.chef = null;
-        room.chefSocketId = null;
-        room.hasVideo = false;
-        
-        io.to(socket.liveId).emit('chefDisconnected');
+          io.to(socket.liveId).emit('chefDisconnected');
+        }
+
+        // Notifica a la sala sobre la desconexión
+        if (room.isLiveActive && disconnectedUsername) {
+          io.to(socket.liveId).emit('userLeft', {
+            username: disconnectedUsername,
+            socketId: socket.id,
+            users: Array.from(room.activeUsers.values()),
+            message: `${disconnectedUsername} ha abandonado el chat`
+          });
+        } else {
+          io.to(socket.liveId).emit('waitingRoomUpdate', {
+            waitingUsers: Array.from(room.waitingUsers.values()),
+            activeUsers: Array.from(room.activeUsers.values()),
+            chefName: room.chef,
+            hasVideo: room.hasVideo
+          });
+        }
+
+        // Elimina sala si está vacía
+        if (room.waitingUsers.size === 0 && room.activeUsers.size === 0) {
+          liveRooms.delete(socket.liveId);
+        }
       }
-
-      // Notifica a la sala sobre la desconexión
-      if (room.isLiveActive && disconnectedUsername) {
-        io.to(socket.liveId).emit('userLeft', {
-          username: disconnectedUsername,
-          socketId: socket.id,
-          users: Array.from(room.activeUsers.values()),
-          message: `${disconnectedUsername} ha abandonado el chat`
-        });
-      } else {
-        io.to(socket.liveId).emit('waitingRoomUpdate', {
-          waitingUsers: Array.from(room.waitingUsers.values()),
-          activeUsers: Array.from(room.activeUsers.values()),
-          chefName: room.chef,
-          hasVideo: room.hasVideo
-        });
-      }
-
-      // Elimina sala si está vacía
-      if (room.waitingUsers.size === 0 && room.activeUsers.size === 0) {
-        liveRooms.delete(socket.liveId);
-      }
-
+      
+      // Eliminar de userConnections si existe
+      userConnections.forEach((socketId, userId) => {
+        if (socketId === socket.id) {
+          userConnections.delete(userId);
+          console.log(`👤 Usuario ${userId} desconectado (socket ${socketId})`);
+        }
+      });
     } catch (error) {
       console.error('❌ Error en disconnect:', error);
     }
@@ -321,7 +436,7 @@ io.on('connection', (socket) => {
   socket.on('leaveRoom', ({ liveId, username }) => {
     try {
       if (!liveId) return;
-      
+
       const room = liveRooms.get(liveId);
       if (!room) return;
 
@@ -357,8 +472,9 @@ io.on('connection', (socket) => {
       if (room.waitingUsers.size === 0 && room.activeUsers.size === 0) {
         liveRooms.delete(liveId);
       }
-      
+
       socket.leave(liveId);
+
     } catch (error) {
       console.error('❌ Error en leaveRoom:', error);
     }

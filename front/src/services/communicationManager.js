@@ -1,4 +1,5 @@
 import axios from 'axios';
+import io from 'socket.io-client';
 
 // Configuración base de Axios
 const apiClient = axios.create({
@@ -19,12 +20,42 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+let socket = null;
+let isSocketConnected = false;
+
+const connectSocket = (userId) => {
+  if (!socket) {
+    socket = io(process.env.VUE_APP_SOCKET_URL || 'http://localhost:4000', {
+      transports: ['websocket', 'polling'],
+      auth: {
+        token: localStorage.getItem('token')
+      }
+    });
+
+    socket.on('connect', () => {
+      isSocketConnected = true;
+      console.log('🔌 Conectado al servidor de sockets');
+      if (userId) {
+        socket.emit('authenticate', userId);
+      }
+    });
+
+    socket.on('disconnect', () => {
+      isSocketConnected = false;
+      console.log('🔌 Desconectado del servidor de sockets');
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error('Error de conexión con Socket.IO:', err);
+    });
+  }
+};
 
 
 const communicationManager = {
   downloadPDF(recipeId) {
     return apiClient.get(`/recipes/${recipeId}/download`, {
-      responseType: 'blob', 
+      responseType: 'blob',
     })
       .then(response => {
         const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
@@ -39,7 +70,7 @@ const communicationManager = {
         console.error('Error al descargar el PDF:', error);
         throw error;
       });
-  },  
+  },
 
 
   fetchCategories() {
@@ -66,7 +97,7 @@ const communicationManager = {
         console.error(`Error deleting cuisine with ID ${id}:`, error);
         throw error;
       });
-  },  
+  },
   createCuisine(cuisineData) {
     return apiClient.post('/cuisines', cuisineData)
       .then(response => response.data)
@@ -75,7 +106,7 @@ const communicationManager = {
         throw error;
       });
   }
-,  
+  ,
   deleteRecipe(id) {
     return apiClient.delete(`/recipes/${id}`)
       .then(response => response.data)
@@ -84,26 +115,26 @@ const communicationManager = {
         throw error;
       });
   }
-,  
-// Función para obtener todas las recetas
-fetchRecipes() {
-  return apiClient.get('/recipes')
-    .then(response => response.data)
-    .catch(error => {
-      console.error('Error fetching recipes:', error);
-      throw error;
-    });
-},
+  ,
+  // Función para obtener todas las recetas
+  fetchRecipes() {
+    return apiClient.get('/recipes')
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching recipes:', error);
+        throw error;
+      });
+  },
 
-// Función para eliminar una receta por su ID
-deleteRecipe(id) {
-  return apiClient.delete(`/recipes/${id}`)
-    .then(response => response.data)
-    .catch(error => {
-      console.error(`Error al eliminar la receta con ID ${id}:`, error);
-      throw error;
-    });
-},
+  // Función para eliminar una receta por su ID
+  deleteRecipe(id) {
+    return apiClient.delete(`/recipes/${id}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error(`Error al eliminar la receta con ID ${id}:`, error);
+        throw error;
+      });
+  },
   fetchRecipeDetails(recipeId) {
     // Asegúrate de que recipeId sea string si tu backend lo espera así
     return apiClient.get(`/recipes/${String(recipeId)}`)
@@ -135,7 +166,7 @@ deleteRecipe(id) {
         throw error;
       });
   },
-  
+
   createRecipe(recipeData) {
     return apiClient.post('/recipes', {
       ...recipeData,
@@ -246,6 +277,7 @@ deleteRecipe(id) {
       });
   },
 
+  // Notificaciones
   async getUserNotifications() {
     try {
       const response = await apiClient.get('/notifications');
@@ -259,6 +291,12 @@ deleteRecipe(id) {
   async markNotificationAsRead(id) {
     try {
       const response = await apiClient.put(`/notifications/${id}/read`);
+
+      // Sincronizar con el servidor de sockets si está conectado
+      if (socket && isSocketConnected) {
+        socket.emit('markNotificationAsRead', id);
+      }
+
       return response.data;
     } catch (error) {
       console.error('Error marcando notificación como leída:', error);
@@ -268,7 +306,20 @@ deleteRecipe(id) {
 
   async createNotification(data) {
     try {
+      // Primero crear en el backend PHP
       const response = await apiClient.post('/notifications', data);
+
+      // Luego enviar por sockets si está conectado
+      if (socket && isSocketConnected) {
+        socket.emit('createNotification', {
+          recipientId: data.user_id,
+          message: response.data.message,
+          recipeId: data.recipe_id,
+          type: data.type,
+          triggeredBy: data.triggered_by // Asumiendo que esto viene del store de autenticación
+        });
+      }
+
       return response.data;
     } catch (error) {
       console.error('Error creando notificación:', error);
@@ -418,14 +469,14 @@ deleteRecipe(id) {
   },
   deleteComment(recipeId, commentText) {
     return apiClient.delete(`/recipes/${recipeId}/comments`, {
-        data: { comment: commentText }
+      data: { comment: commentText }
     })
-    .then(response => response.data)
-    .catch(error => {
+      .then(response => response.data)
+      .catch(error => {
         console.error('Error eliminando comentario:', error);
         throw error;
-    });
-},
+      });
+  },
   createFolder(folderName) {
     return apiClient.post('/folders', { name: folderName })
       .then(response => response.data)
@@ -527,22 +578,22 @@ deleteRecipe(id) {
         throw error;
       });
   },
-// Añade esto en tu objeto communicationManager
-getUserLikedRecipes: async () => {
-  try {
-    const response = await apiClient.get('/user/liked-recipes');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching liked recipes:', error.response?.data?.message || error.message);
-    
-    // Manejo específico para errores de autenticación
-    if (error.response?.status === 401) {
-      throw new Error('Debes iniciar sesión para ver tus recetas likeadas');
+  // Añade esto en tu objeto communicationManager
+  getUserLikedRecipes: async () => {
+    try {
+      const response = await apiClient.get('/user/liked-recipes');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching liked recipes:', error.response?.data?.message || error.message);
+
+      // Manejo específico para errores de autenticación
+      if (error.response?.status === 401) {
+        throw new Error('Debes iniciar sesión para ver tus recetas likeadas');
+      }
+
+      throw error;
     }
-    
-    throw error;
-  }
-},
+  },
   getLikes(recipeId) {
     return apiClient.get(`/recipes/${recipeId}/likes`)
       .then(response => response.data)
@@ -607,118 +658,185 @@ getUserLikedRecipes: async () => {
   },
 
   // Obtener todos los lives disponibles
-getLives() {
-  return apiClient.get('/lives')
-    .then(response => {
-      const responseData = response.data?.data || response.data;
-      if (Array.isArray(responseData)) {
-        return {
-          data: responseData,
-          success: response.data?.success || true
-        };
-      }
-      throw new Error('Formato de datos inesperado');
-    })
-    .catch(error => {
-      console.error('Error fetching lives:', error);
-      const status = error.response?.status;
-      if (status === 404) throw new Error('Endpoint no encontrado');
-      if (status === 500) throw new Error('Error del servidor al obtener lives');
-      throw new Error(error.response?.data?.message || error.message);
-    });
-},
+  getLives() {
+    return apiClient.get('/lives')
+      .then(response => {
+        const responseData = response.data?.data || response.data;
+        if (Array.isArray(responseData)) {
+          return {
+            data: responseData,
+            success: response.data?.success || true
+          };
+        }
+        throw new Error('Formato de datos inesperado');
+      })
+      .catch(error => {
+        console.error('Error fetching lives:', error);
+        const status = error.response?.status;
+        if (status === 404) throw new Error('Endpoint no encontrado');
+        if (status === 500) throw new Error('Error del servidor al obtener lives');
+        throw new Error(error.response?.data?.message || error.message);
+      });
+  },
 
-// Crear un nuevo live (solo chefs)
-createLive(liveData) {
-  return apiClient.post('/lives', liveData)
-    .then(response => response.data)
-    .catch(error => {
-      if (error.response?.status === 403) {
-        throw new Error('Solo los chefs pueden crear lives');
-      }
-      console.error('Error creando live:', error);
-      throw error;
-    });
-},
+  // Crear un nuevo live (solo chefs)
+  createLive(liveData) {
+    return apiClient.post('/lives', liveData)
+      .then(response => response.data)
+      .catch(error => {
+        if (error.response?.status === 403) {
+          throw new Error('Solo los chefs pueden crear lives');
+        }
+        console.error('Error creando live:', error);
+        throw error;
+      });
+  },
 
-// Obtener detalles de un live específico
-getLiveDetails(liveId) {
-  return apiClient.get(`/lives/${liveId}`)
-    .then(response => response.data)
-    .catch(error => {
-      if (error.response?.status === 404) {
-        throw new Error('Live no encontrado');
-      }
-      console.error('Error obteniendo detalles del live:', error);
-      throw error;
-    });
-},
+  // Obtener detalles de un live específico
+  getLiveDetails(liveId) {
+    return apiClient.get(`/lives/${liveId}`)
+      .then(response => response.data)
+      .catch(error => {
+        if (error.response?.status === 404) {
+          throw new Error('Live no encontrado');
+        }
+        console.error('Error obteniendo detalles del live:', error);
+        throw error;
+      });
+  },
 
-// Actualizar un live (solo chef dueño)
-updateLive(liveId, updateData) {
-  return apiClient.put(`/lives/${liveId}`, updateData)
-    .then(response => response.data)
-    .catch(error => {
-      if (error.response?.status === 403) {
-        throw new Error('No tienes permiso para actualizar este live');
-      }
-      if (error.response?.status === 404) {
-        throw new Error('Live no encontrado');
-      }
-      console.error('Error actualizando live:', error);
-      throw error;
-    });
-},
+  // Actualizar un live (solo chef dueño)
+  updateLive(liveId, updateData) {
+    return apiClient.put(`/lives/${liveId}`, updateData)
+      .then(response => response.data)
+      .catch(error => {
+        if (error.response?.status === 403) {
+          throw new Error('No tienes permiso para actualizar este live');
+        }
+        if (error.response?.status === 404) {
+          throw new Error('Live no encontrado');
+        }
+        console.error('Error actualizando live:', error);
+        throw error;
+      });
+  },
 
-// Obtener los lives del chef autenticado
-async getChefLives() {
-  try {
-    const response = await apiClient.get('/mis-lives');
-    const lives = response.data?.data || [];
-    return { lives };
-  } catch (error) {
-    console.error('Error en fetch getChefLives:', error);
-    throw new Error(error.response?.data?.message || 'Error al obtener los lives del chef');
-  }
-},
-
-// Eliminar un live (solo chef dueño)
-async deleteLive(liveId) {
-  try {
-    const response = await apiClient.delete(`/lives/${liveId}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error eliminando live:', error);
-    throw new Error(error.response?.data?.message || 'Error al eliminar el live');
-  }
-},
- // Obtener información de un usuario específico
- getUserInfo: async (userId) => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) throw new Error("No token found");
-
-    const response = await axios.get(`http://127.0.0.1:8000/api/userInfo/${userId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-},
-// Obtener los lives de un chef específico por su ID
-getChefLivesByUserId: async (userId) => {
-  try {
-    const response = await apiClient.get(`/chef/${userId}/lives`);
-    return response.data?.data || response.data || [];
-  } catch (error) {
-    console.error('Error fetching chef lives:', error);
-    if (error.response?.status === 404) {
-      return []; // Retorna array vacío si no hay lives
+  // Obtener los lives del chef autenticado
+  async getChefLives() {
+    try {
+      const response = await apiClient.get('/mis-lives');
+      const lives = response.data?.data || [];
+      return { lives };
+    } catch (error) {
+      console.error('Error en fetch getChefLives:', error);
+      throw new Error(error.response?.data?.message || 'Error al obtener los lives del chef');
     }
-    throw error;
-  }
-},
-}
+  },
 
+  // Eliminar un live (solo chef dueño)
+  async deleteLive(liveId) {
+    try {
+      const response = await apiClient.delete(`/lives/${liveId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error eliminando live:', error);
+      throw new Error(error.response?.data?.message || 'Error al eliminar el live');
+    }
+  },
+  // Obtener información de un usuario específico
+  getUserInfo: async (userId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error("No token found");
+
+      const response = await axios.get(`http://127.0.0.1:8000/api/userInfo/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  // Obtener los lives de un chef específico por su ID
+  getChefLivesByUserId: async (userId) => {
+    try {
+      const response = await apiClient.get(`/chef/${userId}/lives`);
+      return response.data?.data || response.data || [];
+    } catch (error) {
+      console.error('Error fetching chef lives:', error);
+      if (error.response?.status === 404) {
+        return []; // Retorna array vacío si no hay lives
+      }
+      throw error;
+    }
+  },
+
+
+  // Notificaciones
+  async getUserNotifications() {
+    try {
+      const response = await apiClient.get('/notifications');
+      return response.data;
+    } catch (error) {
+      console.error('Error obteniendo notificaciones:', error);
+      throw error;
+    }
+  },
+
+  async markNotificationAsRead(id) {
+    try {
+      const response = await apiClient.put(`/notifications/${id}/read`);
+      
+      // Sincronizar con el servidor de sockets si está conectado
+      if (socket && isSocketConnected) {
+        socket.emit('markNotificationAsRead', id);
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error marcando notificación como leída:', error);
+      throw error;
+    }
+  },
+
+  async createNotification(data) {
+    try {
+      const response = await apiClient.post('/notifications', data);
+      
+      // Enviar por sockets si está conectado
+      if (socket && isSocketConnected) {
+        socket.emit('createNotification', {
+          recipientId: data.user_id,
+          message: response.data.message,
+          recipeId: data.recipe_id,
+          type: data.type,
+          triggeredBy: data.triggered_by
+        });
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error creando notificación:', error);
+      throw error;
+    }
+  },
+
+  // Socket.IO
+  initSocket(userId) {
+    connectSocket(userId);
+    return socket;
+  },
+
+  disconnectSocket() {
+    if (socket) {
+      socket.disconnect();
+      socket = null;
+      isSocketConnected = false;
+    }
+  },
+
+  getSocket() {
+    return socket;
+  }
+};
 export default communicationManager;
