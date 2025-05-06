@@ -89,6 +89,14 @@
       </div>
     </div>
   </div>
+  <!-- Modal de éxito -->
+<div v-if="showSuccessModal" class="modal-overlay">
+  <div class="modal-container success">
+    <h3 class="modal-title">¡Éxito!</h3>
+    <p class="modal-text">{{ successMessage }}</p>
+  </div>
+</div>
+
 </template>
 
 <script>
@@ -107,7 +115,10 @@ export default {
       error: null,
       searchTerm: '',
       showConfirmModal: false,
-      userToDelete: null
+      userToDelete: null,
+       successMessage: '',
+       showSuccessModal: false,
+
     };
   },
   computed: {
@@ -164,30 +175,38 @@ export default {
       this.userToDelete = null;
     },
     async confirmDelete() {
-      if (!this.userToDelete) return;
-      try {
-        await communicationManager.deleteUser(this.userToDelete);
-        console.log(`Usuario con ID ${this.userToDelete} eliminado correctamente`);
-        this.users = this.users.filter(user => user.id !== this.userToDelete);
-      } catch (error) {
-        console.error('Error al eliminar el usuario:', error);
-        if (error.response && error.response.status === 403) {
-          console.error('No tienes permisos para eliminar este usuario');
-        }
-      } finally {
-        this.showConfirmModal = false;
-        this.userToDelete = null;
-      }
-    },
-    async updateUserRole(user) {
-      try {
-        await communicationManager.updateUserRole(user.id, user.role);
-        console.log(`Rol actualizado a "${user.role}" para el usuario ${user.name}`);
-      } catch (error) {
-        console.error('Error al actualizar el rol:', error);
-        alert('Ocurrió un error al actualizar el rol. Intenta nuevamente.');
-      }
+  if (!this.userToDelete) return;
+  try {
+    await communicationManager.deleteUser(this.userToDelete);
+    this.users = this.users.filter(user => user.id !== this.userToDelete);
+    this.showSuccess('Usuario eliminado correctamente');
+  } catch (error) {
+    console.error('Error al eliminar el usuario:', error);
+    if (error.response && error.response.status === 403) {
+      console.error('No tienes permisos para eliminar este usuario');
     }
+  } finally {
+    this.showConfirmModal = false;
+    this.userToDelete = null;
+  }
+},
+async updateUserRole(user) {
+  try {
+    await communicationManager.updateUserRole(user.id, user.role);
+    this.showSuccess(`Rol actualizado a "${user.role}" para el usuario ${user.name}`);
+  } catch (error) {
+    console.error('Error al actualizar el rol:', error);
+    alert('Ocurrió un error al actualizar el rol. Intenta nuevamente.');
+  }
+},
+showSuccess(message) {
+  this.successMessage = message;
+  this.showSuccessModal = true;
+  setTimeout(() => {
+    this.showSuccessModal = false;
+    this.successMessage = '';
+  }, 1000); // Oculta después de 3 segundos
+}
   }
 };
 </script>
@@ -242,6 +261,42 @@ export default {
   .error-text {
     font-weight: 500;
   }
+  .modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-container {
+  background-color: white;
+  padding: 20px 30px;
+  border-radius: 10px;
+  text-align: center;
+  max-width: 400px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.modal-container.success {
+  border-left: 5px solid #4caf50;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.modal-text {
+  font-size: 1rem;
+  color: #333;
+}
+
   
   .retry-button {
     background-color: #dc2626;
