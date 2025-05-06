@@ -52,7 +52,6 @@
           <button @click="setActiveTab('image')">Canviar imatge de perfil</button>
           <button @click="setActiveTab('name')">Canviar nom d'usuari i email</button>
           <button @click="setActiveTab('password')">Canviar contrasenya</button>
-          <button @click="setActiveTab('liked')">Veure receptes que m'agraden</button>
           <div v-if="isAdmin" class="admin-button-container">
             <button @click="goToAdmin" class="admin-button">Administración</button>
           </div>
@@ -235,6 +234,14 @@
               stroke="#000000" stroke-width="2" stroke-linejoin="round" />
           </svg>
         </button>
+
+       <!-- En la sección de toggle buttons, reemplaza el botón duplicado de saved por el de liked -->
+<button @click="toggleSection('liked')" :class="{ active: showLikedSection }">
+  <svg width="25" height="25" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" 
+          stroke="#000000" stroke-width="2" stroke-linejoin="round"/>
+  </svg>
+</button>
       </div>
 
       <!-- Sección de guardadas -->
@@ -347,8 +354,27 @@
           <button @click="cancelEdit" class="back-main-btn">🔙 Tornar</button>
         </div>
       </div>
-
-
+<!-- Sección de recetas que me gustan -->
+<div v-if="showLikedSection" class="user-recipes liked-section">
+  <h3 class="section-title">🍽️ Receptes que m'agraden</h3>
+  <div v-if="likedRecipes.length === 0" class="no-liked-recipes">
+    <p>No has donat like a cap recepta encara.</p>
+    <button @click="goToExplore" class="explore-btn">Explorar receptes</button>
+  </div>
+  <div v-else class="recipe-cards">
+    <div v-for="recipe in likedRecipes" :key="recipe.id" class="liked-recipe-card">
+      <RecipeCard 
+        :recipe-id="recipe.id" 
+        :title="recipe.title" 
+        :description="recipe.description"
+        :image="recipe.image" 
+      />
+    </div>
+  </div>
+  <div class="button-container">
+    <button @click="cancelEdit" class="cancel-btn">🔙 Tornar</button>
+  </div>
+</div>
       <!-- Lives programados -->
       <div v-if="showLivesSection && !showLiveForm" class="user-recipes">
         <h3 class="section-title">📅 Mis lives programados</h3>
@@ -435,6 +461,10 @@ export default {
     });
     const scheduledLives = ref([]);
     const showLivesSection = ref(false);
+    const showLikedSection = ref(false);
+    const goToExplore = () => {
+  router.push('/explorar');
+};
     const newLive = ref({
       recipe_id: '',
       dia: '',
@@ -579,22 +609,27 @@ export default {
       selectedFolder.value = null;
       selectedFolderRecipes.value = [];
     };
-
-    // Profile methods
     const toggleSection = (section) => {
-      showRecipes.value = section === 'recipes';
-      showLivesSection.value = section === 'lives';
-      showSavedSection.value = section === 'saved';
+  // Resetear todas las secciones
+  showRecipes.value = false;
+  showLivesSection.value = false;
+  showSavedSection.value = false;
+  showLikedSection.value = false;
 
-      if (section === 'lives') {
-        loadScheduledLives();
-      }
-      if (section === 'saved') {
-        fetchSavedRecipes();
-        fetchUserFolders();
-      }
-    };
+  // Activar solo la sección seleccionada
+  if (section === 'recipes') showRecipes.value = true;
+  else if (section === 'lives') showLivesSection.value = true;
+  else if (section === 'saved') showSavedSection.value = true;
+  else if (section === 'liked') showLikedSection.value = true;
 
+  // Cargar datos si es necesario
+  if (section === 'lives') loadScheduledLives();
+  if (section === 'saved') {
+    fetchSavedRecipes();
+    fetchUserFolders();
+  }
+  if (section === 'liked') loadLikedRecipes();
+};
     const handleLiveButtonClick = () => {
       showLivesSection.value = false;
       showRecipes.value = false;
@@ -857,8 +892,8 @@ export default {
       showRecipes.value = true;
       showLivesSection.value = false;
       showSavedSection.value = false;
+      showLikedSection.value = false;
     };
-
     const confirmLogout = () => {
       showLogoutConfirmation.value = true;
     };
@@ -917,7 +952,7 @@ export default {
       deleteFolder,
       removeRecipeFromFolder,
       goBackFromFolder,
-
+      showLikedSection,
       // Profile
       authStore,
       toggleSection,
@@ -979,6 +1014,7 @@ export default {
       showLivesSection,
       showScheduledLives,
       hideLivesSection,
+      goToExplore ,
       goToVerification
     };
   }
@@ -1014,6 +1050,7 @@ export default {
     top: -50px;
     opacity: 0;
   }
+
   to {
     top: 20px;
     opacity: 1;
@@ -1181,7 +1218,8 @@ export default {
   font-size: 18px;
 }
 
-.confirm-btn, .cancel-btn {
+.confirm-btn,
+.cancel-btn {
   padding: 10px 20px;
   margin: 0 10px;
   border: none;
@@ -1352,8 +1390,41 @@ export default {
   gap: 25px;
   margin-bottom: 40px;
 }
+.liked-section {
+  padding: 20px;
+}
 
-.no-liked-recipes, .no-lives {
+.no-liked-recipes {
+  text-align: center;
+  margin: 30px 0;
+  color: #666;
+}
+
+.no-liked-recipes p {
+  margin-bottom: 15px;
+}
+
+.liked-recipe-card {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.explore-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.explore-btn:hover {
+  background-color: #45a049;
+}
+.no-liked-recipes,
+.no-lives {
   text-align: center;
   padding: 40px 0;
   color: #666;
@@ -1399,7 +1470,8 @@ export default {
   margin-top: 15px;
 }
 
-.edit-btn, .delete-btn {
+.edit-btn,
+.delete-btn {
   padding: 8px 15px;
   border: none;
   border-radius: 6px;
@@ -1558,6 +1630,7 @@ export default {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1569,16 +1642,17 @@ export default {
   .profile-header {
     padding-top: 40px;
   }
-  
+
   .profile-picture {
     width: 120px;
     height: 120px;
   }
-  
-  .recipe-cards, .live-cards {
+
+  .recipe-cards,
+  .live-cards {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }
-  
+
   .settings-form {
     padding: 20px;
   }
@@ -1588,20 +1662,21 @@ export default {
   .profile-header h2 {
     font-size: 1.5rem;
   }
-  
+
   .recipe-cards {
     grid-template-columns: 1fr;
   }
-  
+
   .form-actions {
     flex-direction: column;
   }
-  
-  .submit-btn, .cancel-btn {
+
+  .submit-btn,
+  .cancel-btn {
     width: 100%;
     margin: 5px 0;
   }
-  
+
   .toggle-buttons {
     flex-direction: column;
     gap: 10px;
@@ -1676,7 +1751,9 @@ export default {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .recipe-item {
@@ -1738,7 +1815,8 @@ export default {
   transition: all 0.3s ease;
 }
 
-.no-recipes-container, .no-folders-container {
+.no-recipes-container,
+.no-folders-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1749,7 +1827,8 @@ export default {
   text-align: center;
 }
 
-.no-recipes, .no-folders {
+.no-recipes,
+.no-folders {
   font-size: 18px;
   color: #555;
   margin-bottom: 15px;
@@ -1998,17 +2077,17 @@ export default {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 15px;
   }
-  
+
   .folders-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 15px;
   }
-  
+
   .tabs button {
     padding: 10px 12px;
     font-size: 14px;
   }
-  
+
   .section-title {
     font-size: 1.5rem;
   }
@@ -2018,12 +2097,12 @@ export default {
   .recipe-cards {
     grid-template-columns: 1fr;
   }
-  
+
   .folders-grid {
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 10px;
   }
-  
+
   .create-folder-input {
     padding: 15px;
   }

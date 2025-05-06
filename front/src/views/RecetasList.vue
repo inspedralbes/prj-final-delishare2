@@ -19,9 +19,7 @@
     
     <div v-else class="recetas-grid">
       <div v-for="receta in recetas" :key="receta.id" class="receta-card">
-        <div class="receta-image">
-          <img :src="receta.image_url || 'https://via.placeholder.com/300x200?text=No+Image'" :alt="receta.title">
-        </div>
+       
         <div class="receta-content">
           <h2 class="receta-title">{{ receta.title }}</h2>
           <div class="receta-meta">
@@ -348,33 +346,7 @@ export default {
   opacity: 1;
 }
 
-/* Imagen de receta con efecto */
-.receta-image {
-  overflow: hidden;
-  position: relative;
-}
 
-.receta-image::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(to bottom, transparent 70%, rgba(0, 0, 0, 0.2));
-  z-index: 1;
-}
-
-.receta-image img {
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
-  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.receta-card:hover .receta-image img {
-  transform: scale(1.05);
-}
 
 /* Contenido de la tarjeta */
 .receta-content {
