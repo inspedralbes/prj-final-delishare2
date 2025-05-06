@@ -49,6 +49,14 @@
       </div>
     </div>
   </div>
+  <!-- Modal de éxito -->
+<div v-if="showSuccessModal" class="modal-overlay">
+  <div class="modal-content success">
+    <h3>¡Éxito!</h3>
+    <p>{{ successMessage }}</p>
+  </div>
+</div>
+
 </template>
 
 <script>
@@ -67,7 +75,10 @@ export default {
       loading: true,
       error: null,
       showModal: false,
-      recetaToDelete: null
+      recetaToDelete: null,
+      successMessage: null,
+      showSuccessModal: false,
+
     }
   },
   mounted() {
@@ -96,15 +107,21 @@ export default {
       this.recetaToDelete = null;
     },
     async confirmDelete() {
-      try {
-        await communicationManager.deleteRecipe(this.recetaToDelete.id);
-        this.recetas = this.recetas.filter(receta => receta.id !== this.recetaToDelete.id);
-        this.showModal = false;
-        this.recetaToDelete = null;
-      } catch (error) {
-        alert('Ocurrió un error al eliminar la receta.');
-      }
-    },
+  try {
+    await communicationManager.deleteRecipe(this.recetaToDelete.id);
+    this.recetas = this.recetas.filter(receta => receta.id !== this.recetaToDelete.id);
+    this.showModal = false;
+    this.successMessage = `La receta "${this.recetaToDelete.title}" fue eliminada exitosamente.`;
+    this.showSuccessModal = true;
+    this.recetaToDelete = null;
+    setTimeout(() => {
+      this.showSuccessModal = false;
+      this.successMessage = null;
+    }, 1000); // se cierra solo después de 3 segundos
+  } catch (error) {
+    alert('Ocurrió un error al eliminar la receta.');
+  }
+},
     truncateDescription(desc) {
       if (!desc) return '';
       return desc.length > 150 ? desc.substring(0, 150) + '...' : desc;
@@ -154,6 +171,13 @@ export default {
   font-weight: 700;
   position: relative;
   padding-bottom: 1rem;
+}
+.modal-content.success {
+  border-top-color: #2ecc71;
+}
+
+.modal-content.success h3 {
+  color: #27ae60;
 }
 
 .title::after {
