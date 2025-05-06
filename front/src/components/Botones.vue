@@ -46,14 +46,31 @@
 
     <!-- Subbotones para Ingredientes -->
     <div v-if="activeButton === 'ingredientes'" class="subbutton-group">
-      <button 
-        v-for="ingredient in ingredients" 
-        :key="ingredient"
-        class="button-secondary"
-        @click="filtrarPorIngrediente(ingredient)"
-      >
-        {{ ingredient }}
-      </button>
+      <div class="ingredient-selection">
+        <!-- Mostrar ingredientes seleccionados -->
+        <div v-if="selectedIngredients.length" class="selected-ingredients">
+          <span class="selected-label">Seleccionados:</span>
+          <span v-for="ingredient in selectedIngredients" :key="ingredient" class="ingredient-tag">
+            {{ ingredient }}
+            <button @click="removeIngredient(ingredient)" class="remove-btn">×</button>
+          </span>
+          <button @click="applyIngredientFilter" class="apply-btn">Aplicar Filtro</button>
+          <button @click="clearIngredients" class="clear-btn">Limpiar</button>
+        </div>
+        
+        <!-- Lista de ingredientes disponibles -->
+        <div class="ingredient-list">
+          <button 
+            v-for="ingredient in ingredients" 
+            :key="ingredient"
+            class="button-secondary"
+            :class="{ 'selected': isIngredientSelected(ingredient) }"
+            @click="toggleIngredient(ingredient)"
+          >
+            {{ ingredient }}
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Recetas filtradas -->
@@ -80,12 +97,13 @@ export default {
   components: { RecipeCard },
   setup(_, { emit }) {
     // Variables reactivas para almacenar los datos
-    const categorias = ref([]);      // Categorías
-    const cuisines = ref([]);        // Cocinas (países)
-    const times = ref([]);           // Tiempos
-    const ingredients = ref([]);     // Ingredientes
-    const recetas = ref([]);         // Recetas filtradas
-    const activeButton = ref('');    // Botón principal activo
+    const categorias = ref([]);
+    const cuisines = ref([]);
+    const times = ref([]);
+    const ingredients = ref([]);
+    const recetas = ref([]);
+    const activeButton = ref('');
+    const selectedIngredients = ref([]); // Almacena los ingredientes seleccionados
 
     // Cargar datos al montar el componente
     onMounted(() => {
@@ -127,7 +145,6 @@ export default {
     const obtenerIngredients = async () => {
       try {
         const response = await communicationManager.fetchIngredients();
-        // Asumimos que la respuesta tiene la estructura { ingredients: [...] }
         ingredients.value = response.ingredients;
       } catch (error) {
         console.error('Error al obtener ingredientes:', error);
@@ -167,20 +184,51 @@ export default {
       }
     };
 
-    // Función para filtrar por ingrediente (envía un array con un solo ingrediente)
-    const filtrarPorIngrediente = async (ingredient) => {
-      try {
-        const response = await communicationManager.fetchRecipesByIngredients([ingredient]);
-        recetas.value = response.recipes;
-        emit('filtradoPorIngrediente', true);
-      } catch (error) {
-        console.error('Error al filtrar recetas por ingrediente:', error);
-      }
-    };
-
     // Alterna la visualización de los subbotones según el botón principal
     const toggleSubButtons = (buttonName) => {
       activeButton.value = activeButton.value === buttonName ? '' : buttonName;
+    };
+
+    // Añade o quita un ingrediente de la selección
+    const toggleIngredient = (ingredient) => {
+      const index = selectedIngredients.value.indexOf(ingredient);
+      if (index === -1) {
+        selectedIngredients.value.push(ingredient);
+      } else {
+        selectedIngredients.value.splice(index, 1);
+      }
+    };
+
+    // Elimina un ingrediente de la selección
+    const removeIngredient = (ingredient) => {
+      selectedIngredients.value = selectedIngredients.value.filter(i => i !== ingredient);
+    };
+
+    // Verifica si un ingrediente está seleccionado
+    const isIngredientSelected = (ingredient) => {
+      return selectedIngredients.value.includes(ingredient);
+    };
+
+    // Limpia todos los ingredientes seleccionados
+    const clearIngredients = () => {
+      selectedIngredients.value = [];
+      recetas.value = [];
+    };
+
+    // Aplica el filtro con los ingredientes seleccionados
+    const applyIngredientFilter = async () => {
+      if (selectedIngredients.value.length === 0) {
+        recetas.value = [];
+        return;
+      }
+
+      try {
+        const response = await communicationManager.fetchRecipesByIngredients(selectedIngredients.value);
+        recetas.value = response.recipes;
+        emit('filtradoPorIngrediente', true);
+      } catch (error) {
+        console.error('Error al filtrar recetas por ingredientes:', error);
+      }
     };
 
     return {
@@ -190,6 +238,7 @@ export default {
       ingredients,
       recetas,
       activeButton,
+      selectedIngredients,
       obtenerCategorias,
       obtenerCuisines,
       obtenerTimes,
@@ -197,53 +246,62 @@ export default {
       filtrarPorCategoria,
       filtrarPorCuisine,
       filtrarPorTiempo,
-      filtrarPorIngrediente,
       toggleSubButtons,
+      toggleIngredient,
+      removeIngredient,
+      isIngredientSelected,
+      clearIngredients,
+      applyIngredientFilter,
     };
   },
 };
 </script>
 
-
 <style scoped>
 /* Contenedor para los botones principales alineados en fila */
 .button-group {
   display: flex;
-  gap: 10px; /* Espacio entre botones */
+  gap: 10px;
   justify-content: center;
-  margin-bottom: 20px; /* Separación debajo de los botones */
+  margin-bottom: 20px;
 }
 
 /* Botones principales (azul más oscuro, más pequeños, en fila) */
 .button-main {
-  font-size: 0.85rem;  /* Más pequeños */
-  padding: 8px 12px;   /* Menos espacio */
-  background-color: #0c0636; /* Azul más oscuro */
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  background-color: #0c0636;
   border: none;
   color: white;
   cursor: pointer;
-  border-radius: 5px;  /* Menos redondeado */
-  display: inline-block; /* Alineados en fila */
+  border-radius: 5px;
+  display: inline-block;
 }
 
 .button-main:hover {
-  background-color: #322b5f; /* Azul aún más oscuro */
+  background-color: #322b5f;
 }
 
 /* Botones secundarios (verde suave) */
 .button-secondary {
   font-size: 0.85rem;
   padding: 8px 12px;
-  background-color: #02067d; /* Verde suave */
+  background-color: #02067d;
   border: none;
   color: white;
   cursor: pointer;
   border-radius: 5px;
   margin: 5px 5px;
+  transition: all 0.2s;
 }
 
 .button-secondary:hover {
-  background-color: #4545a0; /* Verde más oscuro */
+  background-color: #4545a0;
+}
+
+.button-secondary.selected {
+  background-color: #4CAF50;
+  font-weight: bold;
 }
 
 /* Estilo de los subbotones, centrados */
@@ -258,5 +316,74 @@ export default {
   gap: 20px;
   justify-items: center;
   margin-top: 20px;
+}
+
+/* Estilos para la selección de ingredientes */
+.ingredient-selection {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.selected-ingredients {
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-radius: 5px;
+}
+
+.selected-label {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.ingredient-tag {
+  display: inline-block;
+  background-color: #4CAF50;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 15px;
+  margin-right: 8px;
+  margin-bottom: 5px;
+  font-size: 0.8rem;
+}
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  margin-left: 5px;
+  padding: 0;
+  font-weight: bold;
+}
+
+.apply-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  margin-left: 10px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.clear-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  margin-left: 5px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.ingredient-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-height: 300px;
+  overflow-y: auto;
 }
 </style>

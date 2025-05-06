@@ -643,7 +643,25 @@ const communicationManager = {
         throw error;
       });
   },
-
+  fetchRecipesByIngredients(ingredients) {
+    // Validación antes de enviar la solicitud
+    if (!Array.isArray(ingredients) || ingredients.length === 0) {
+      return Promise.reject(new Error('Debe proporcionar al menos un ingrediente'));
+    }
+  
+    return apiClient.post('/recipes/filter-by-ingredients', { ingredients })
+      .then(response => {
+        // Aquí podrías añadir más lógica si es necesario (como mostrar un mensaje si no se encuentran recetas)
+        return response.data;
+      })
+      .catch(error => {
+        // Manejo de errores mejorado
+        console.error('Error fetching recipes by ingredients:', error);
+        // Puedes lanzar un error más controlado o manejarlo de otra manera:
+        throw new Error('No se pudieron obtener las recetas. Por favor, intente nuevamente.');
+      });
+  }
+  ,
   fetchUserPreferences() {
     return apiClient.get('/recommendations/preferences')
       .then(response => response.data)
