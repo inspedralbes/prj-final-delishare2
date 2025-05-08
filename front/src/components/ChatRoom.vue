@@ -55,7 +55,7 @@
     <!-- Chat activo -->
     <div v-if="isLiveStarted" class="active-chat">
       <div class="video-container" v-if="showVideo || isChef">
-        <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" autoplay :muted="isMuted || isChef" playsinline
+        <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" autoplay :muted=" isChef" playsinline
           class="live-video" :class="{ 'video-active': isStreamActive, 'video-inactive': !isStreamActive }">
         </video>
         <div class="video-overlay" v-if="!isStreamActive && !isChef">
@@ -235,10 +235,10 @@ export default {
 
           // Configurar el audio para que no esté muteado (solo para el chef)
           if (isChef.value && chefPreviewVideo.value) {
-            chefPreviewVideo.value.muted = false;
+            chefPreviewVideo.value.muted = true;
             chefPreviewVideo.value.srcObject = stream;
           } else if (isChef.value && chefLiveVideo.value) {
-            chefLiveVideo.value.muted = false;
+            chefLiveVideo.value.muted = true;
             chefLiveVideo.value.srcObject = stream;
           }
 
@@ -317,22 +317,18 @@ export default {
           console.log('Recibiendo tracks:', event.streams);
           if (userVideo.value && event.streams && event.streams[0]) {
             userVideo.value.srcObject = event.streams[0];
+            userVideo.value.muted = false;
 
-            // Forzar la reproducción del audio/video
             const playPromise = userVideo.value.play();
-
-            if (playPromise !== undefined) {
-              playPromise.then(_ => {
-                console.log('Reproducción exitosa');
-                isStreamActive.value = true;
-              })
-                .catch(error => {
-                  console.error("Error al reproducir:", error);
-                  // Intentar con muted si falla
-                  userVideo.value.muted = true;
-                  userVideo.value.play().catch(e => console.error("Error en segundo intento:", e));
-                });
-            }
+if (playPromise !== undefined) {
+  playPromise
+    .then(() => {
+      console.log('Reproducción iniciada');
+    })
+    .catch(error => {
+      console.warn('Autoplay bloqueado, solicitando interacción del usuario');
+    });
+}
           }
         };
       }
