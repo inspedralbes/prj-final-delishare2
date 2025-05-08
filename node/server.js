@@ -11,10 +11,13 @@ app.use(express.static('public'));
 // Configura el servidor Socket.IO con opciones CORS
 const io = new Server(http, {
   cors: {
-    origin: "*",
+    origin: ["https://delishare.cat"],
     methods: ["GET", "POST"],
-    transports: ['websocket', 'polling']
-  }
+    credentials: true
+  },
+  path: "/socket.io",
+  transports: ['websocket', 'polling'],
+  allowEIO3: true // Compatibilidad con clientes antiguos si es necesario
 });
 
 // Mapa para almacenar las salas de transmisión en vivo

@@ -164,13 +164,14 @@ export default {
       ]
     };
 
-    /// Alterna el estado de muteo del video del espectador
     const toggleMute = () => {
-      isMuted.value = !isMuted.value;
-      if (userVideo.value) {
-        userVideo.value.muted = isMuted.value;
-      }
-    };
+  isMuted.value = !isMuted.value;
+  if (userVideo.value) {
+    userVideo.value.muted = isMuted.value;
+    console.log(`Usuario ${isMuted.value ? 'muteó' : 'desmuteó'} el audio`);
+  }
+};
+
 
     /// Alterna el estado del audio del chef
     const toggleAudio = () => {
@@ -567,14 +568,17 @@ export default {
       if (!userError.value) {
         console.log(`Inicializando chat como ${isChef.value ? 'CHEF' : 'USUARIO'} para sala ${liveId.value}`);
 
-        socket.value = io('http://localhost:4000', {
-          transports: ['websocket', 'polling'],
-          query: {
-            liveId: liveId.value,
-            username: username.value,
-            isChef: isChef.value
-          }
-        });
+  socket.value = io('https://delishare.cat', {
+  path: '/socket.io',
+  transports: ['websocket'],
+  upgrade: false,
+  query: {
+    liveId: liveId.value,
+    username: username.value,
+    isChef: isChef.value,
+    userId: authStore.user?.id || null
+  }
+});
 
         socket.value.on('connect', () => {
           console.log('Conectado al servidor:', socket.value.id);
