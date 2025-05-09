@@ -55,8 +55,8 @@
     <!-- Chat activo -->
     <div v-if="isLiveStarted" class="active-chat">
       <div class="video-container" v-if="showVideo || isChef">
-        <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" autoplay :muted=" isChef" playsinline
-          class="live-video" :class="{ 'video-active': isStreamActive, 'video-inactive': !isStreamActive }">
+        <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" autoplay :muted="isChef" playsinline class="live-video"
+          :class="{ 'video-active': isStreamActive, 'video-inactive': !isStreamActive }">
         </video>
         <div class="video-overlay" v-if="!isStreamActive && !isChef">
           <p>El chef ha apagado la cámara</p>
@@ -76,6 +76,19 @@
         </div>
         <div class="viewer-count" v-if="isChef">
           <span class="eye-icon">👁️</span> {{ activeUsers.length }} espectador(es)
+        </div>
+        <!-- Botón para salir del live (visible para todos excepto chef) -->
+        <div class="exit-buttons">
+          <button v-if="!isChef" @click="leaveLive" class="leave-button">
+            <span class="button-icon">🚪</span>
+            <span class="button-text">Salir del Live</span>
+          </button>
+
+          <!-- Botón para finalizar el live (solo visible para chef) -->
+          <button v-if="isChef" @click="endLiveForAll" class="end-button">
+            <span class="button-icon">🔴</span>
+            <span class="button-text">Finalizar Live</span>
+          </button>
         </div>
       </div>
 
@@ -115,17 +128,21 @@
       <div class="connection-loader"></div>
       <span>Conectando al chat...</span>
     </div>
+
+
   </div>
 </template>
 <script>
 import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { io } from 'socket.io-client';
 import { useAuthStore } from '@/stores/authStore';
 import communicationManager from '@/services/communicationManager';
 
 export default {
   setup() {
+    const router = useRouter();
     const route = useRoute();
     const authStore = useAuthStore();
     const liveId = ref(route.params.liveId);
@@ -165,12 +182,12 @@ export default {
     };
 
     const toggleMute = () => {
-  isMuted.value = !isMuted.value;
-  if (userVideo.value) {
-    userVideo.value.muted = isMuted.value;
-    console.log(`Usuario ${isMuted.value ? 'muteó' : 'desmuteó'} el audio`);
-  }
-};
+      isMuted.value = !isMuted.value;
+      if (userVideo.value) {
+        userVideo.value.muted = isMuted.value;
+        console.log(`Usuario ${isMuted.value ? 'muteó' : 'desmuteó'} el audio`);
+      }
+    };
 
 
     /// Alterna el estado del audio del chef
@@ -190,7 +207,60 @@ export default {
         }
       }
     };
+    /// Función para salir del live (usuarios normales y admin)
+    const leaveLive = () => {
+      if (!socket.value) return;
 
+      // Emitir evento para notificar la salida
+      socket.value.emit('leaveRoom', {
+        liveId: liveId.value,
+        username: username.value
+      });
+
+      // Limpiar recursos
+      if (userVideo.value && userVideo.value.srcObject) {
+        userVideo.value.srcObject.getTracks().forEach(track => track.stop());
+        userVideo.value.srcObject = null;
+      }
+
+      // Cerrar conexiones peer
+      closeAllPeerConnections();
+
+      // Desconectar del socket
+      socket.value.disconnect();
+      isConnected.value = false;
+      isLiveStarted.value = false;
+
+      // Redirigir a /live
+      router.push('/live');
+    };
+
+    /// Función para finalizar el live (solo chef)
+    const endLiveForAll = () => {
+      if (!isChef.value || !socket.value) return;
+
+      // Emitir evento para finalizar el live para todos
+      socket.value.emit('chefEndLive', { liveId: liveId.value }, (response) => {
+        if (response?.success) {
+          console.log('Live finalizado correctamente');
+
+          // Limpiar recursos locales
+          if (localStream.value) {
+            localStream.value.getTracks().forEach(track => track.stop());
+            localStream.value = null;
+          }
+
+          closeAllPeerConnections();
+          isLiveStarted.value = false;
+          isCameraOn.value = false;
+          isAudioOn.value = false;
+
+          // Desconectar del socket
+          socket.value.disconnect();
+          isConnected.value = false;
+        }
+      });
+    };
     /// Alterna el estado de la cámara del chef
     const toggleCamera = async () => {
       try {
@@ -320,15 +390,15 @@ export default {
             userVideo.value.muted = false;
 
             const playPromise = userVideo.value.play();
-if (playPromise !== undefined) {
-  playPromise
-    .then(() => {
-      console.log('Reproducción iniciada');
-    })
-    .catch(error => {
-      console.warn('Autoplay bloqueado, solicitando interacción del usuario');
-    });
-}
+            if (playPromise !== undefined) {
+              playPromise
+                .then(() => {
+                  console.log('Reproducción iniciada');
+                })
+                .catch(error => {
+                  console.warn('Autoplay bloqueado, solicitando interacción del usuario');
+                });
+            }
           }
         };
       }
@@ -564,17 +634,17 @@ if (playPromise !== undefined) {
       if (!userError.value) {
         console.log(`Inicializando chat como ${isChef.value ? 'CHEF' : 'USUARIO'} para sala ${liveId.value}`);
 
-  socket.value = io('https://delishare.cat', {
-  path: '/socket.io',
-  transports: ['websocket'],
-  upgrade: false,
-  query: {
-    liveId: liveId.value,
-    username: username.value,
-    isChef: isChef.value,
-    userId: authStore.user?.id || null
-  }
-});
+        socket.value = io('http://localhost:4000', {
+          path: '/socket.io',
+          transports: ['websocket'],
+          upgrade: false,
+          query: {
+            liveId: liveId.value,
+            username: username.value,
+            isChef: isChef.value,
+            userId: authStore.user?.id || null
+          }
+        });
 
         socket.value.on('connect', () => {
           console.log('Conectado al servidor:', socket.value.id);
@@ -799,7 +869,8 @@ if (playPromise !== undefined) {
       userVideo, isCameraOn, isAudioOn,
       toggleAudio, isStreamActive, isMuted,
       toggleMute, showVideo, toggleCamera,
-      requestChefVideo
+      requestChefVideo, leaveLive,
+      endLiveForAll
     };
   }
 };
@@ -818,6 +889,49 @@ if (playPromise !== undefined) {
   --border-radius: 12px;
   --chat-header-height: 60px;
   --chat-input-height: 80px;
+}
+
+/* Estilos para los nuevos botones */
+.exit-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.leave-button,
+.end-button {
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.leave-button {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+.leave-button:hover {
+  background-color: #ff5252;
+}
+
+.end-button {
+  background-color: #ff0000;
+  color: white;
+}
+
+.end-button:hover {
+  background-color: #cc0000;
+}
+
+.button-icon {
+  font-size: 1.2em;
 }
 
 /* Estilos base */
@@ -918,14 +1032,32 @@ body {
 
 /* Animaciones */
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
 }
 
 @keyframes pulse {
-  0% { transform: scale(0.8); opacity: 0.2; }
-  50% { transform: scale(1.1); opacity: 0.3; }
-  100% { transform: scale(0.8); opacity: 0.2; }
+  0% {
+    transform: scale(0.8);
+    opacity: 0.2;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 0.3;
+  }
+
+  100% {
+    transform: scale(0.8);
+    opacity: 0.2;
+  }
 }
 
 .dot-flashing {
@@ -966,9 +1098,20 @@ body {
 }
 
 @keyframes dot-flashing {
-  0% { opacity: 0.2; transform: scale(0.8); }
-  50% { opacity: 0.5; transform: scale(1); }
-  100% { opacity: 1; transform: scale(1.2); }
+  0% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 /* Panel del chef */
@@ -1257,7 +1400,8 @@ body {
   padding: 1rem;
   background: #f9f9f9;
   scroll-behavior: smooth;
-  min-height: 0; /* Fix for flexbox scrolling in some browsers */
+  min-height: 0;
+  /* Fix for flexbox scrolling in some browsers */
 }
 
 .message {
@@ -1271,8 +1415,15 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .my-message {
@@ -1351,7 +1502,8 @@ body {
   margin-right: 0.5rem;
   font-size: 1rem;
   transition: var(--transition);
-  min-width: 0; /* Fix for flexbox overflow */
+  min-width: 0;
+  /* Fix for flexbox overflow */
 }
 
 .chat-input input:focus {
@@ -1412,7 +1564,9 @@ body {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive Design */
@@ -1434,8 +1588,8 @@ body {
   .message {
     max-width: 90%;
     padding: 0.6rem 0.8rem;
-  font-size: 0.95rem;
-  color: #000;
+    font-size: 0.95rem;
+    color: #000;
   }
 
   .control-buttons {

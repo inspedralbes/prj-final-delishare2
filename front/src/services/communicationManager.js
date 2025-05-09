@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 
 // Configuración base de Axios
 const apiClient = axios.create({
-  baseURL: 'https://delishare.cat/api',
+  baseURL: 'http://127.0.0.1:8000/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -25,7 +25,7 @@ let isSocketConnected = false;
 
 const connectSocket = (userId) => {
   if (!socket) {
-    socket = io(process.env.VUE_APP_SOCKET_URL || 'https://delishare.cat/socket.io/', {
+    socket = io(process.env.VUE_APP_SOCKET_URL || 'http://127.0.0.1:8000/socket.io/', {
       transports: ['websocket', 'polling'],
       auth: {
         token: localStorage.getItem('token')
@@ -240,7 +240,7 @@ const communicationManager = {
       const token = localStorage.getItem('token');
       if (!token) throw new Error("No token found");
 
-      const response = await axios.get('https://delishare.cat/api/user', {
+      const response = await axios.get('http://127.0.0.1:8000/api/user', {
         headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;
@@ -784,7 +784,7 @@ const communicationManager = {
       const token = localStorage.getItem('token');
       if (!token) throw new Error("No token found");
 
-      const response = await axios.get(`https://delishare.cat/api/userInfo/${userId}`, {
+      const response = await axios.get(`http://127.0.0.1:8000/api/userInfo/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;

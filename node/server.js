@@ -11,7 +11,7 @@ app.use(express.static('public'));
 // Configura el servidor Socket.IO con opciones CORS
 const io = new Server(http, {
   cors: {
-    origin: ["https://delishare.cat"],
+    origin: ["http://127.0.0.1:8000"],
     methods: ["GET", "POST"],
     credentials: true
   },
@@ -134,6 +134,49 @@ io.on('connection', (socket) => {
       callback && callback({ success: false, error: error.message });
     }
   });
+
+  
+/// Maneja el evento de live terminado en los clientes
+socket.on('liveEnded', (data) => {
+  // Este evento se manejará en el cliente para mostrar el mensaje y redirigir
+  console.log('Live terminado:', data.message);
+});
+
+
+/// Maneja la finalización del live por parte del chef
+socket.on('chefEndLive', ({ liveId }, callback) => {
+  try {
+    const room = liveRooms.get(liveId);
+    if (!room) throw new Error('Sala no encontrada');
+
+    if (room.chefSocketId !== socket.id) {
+      throw new Error('No autorizado para finalizar el live');
+    }
+
+    // Notificar a todos que el live ha terminado
+    io.to(liveId).emit('liveEnded', {
+      message: 'El chef ha finalizado la transmisión en vivo',
+      endedBy: room.chef
+    });
+
+    // Limpiar la sala
+    room.waitingUsers.clear();
+    room.activeUsers.clear();
+    room.isLiveActive = false;
+    room.hasVideo = false;
+    room.chef = null;
+    room.chefSocketId = null;
+
+    // Eliminar la sala del mapa
+    liveRooms.delete(liveId);
+
+    callback({ success: true });
+
+  } catch (error) {
+    console.error('❌ Error al finalizar live:', error);
+    callback({ success: false, message: error.message });
+  }
+});
 
   /// Maneja solicitudes de transmisión de video
   socket.on('requestVideoStream', ({ liveId }) => {
