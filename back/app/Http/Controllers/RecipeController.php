@@ -676,5 +676,19 @@ public function downloadFullRecipe($id)
     // Forzar la descarga con el nombre del archivo
     return $pdf->download('receta-' . Str::slug($recipe->title) . '.pdf');
 }
-
+public function getRecipeSteps($id)
+{
+    $recipe = Recipe::findOrFail($id);
+    
+    // Asegurarse de que steps es un array
+    $steps = is_array($recipe->steps) ? $recipe->steps : json_decode($recipe->steps, true);
+    
+    return response()->json([
+        'success' => true,
+        'recipe_id' => $id,
+        'recipe_title' => $recipe->title,
+        'steps' => $steps,
+        'steps_count' => count($steps)
+    ]);
+}
 }
