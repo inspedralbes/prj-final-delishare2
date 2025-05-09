@@ -142,7 +142,6 @@ socket.on('liveEnded', (data) => {
   console.log('Live terminado:', data.message);
 });
 
-
 /// Maneja la finalización del live por parte del chef
 socket.on('chefEndLive', ({ liveId }, callback) => {
   try {
@@ -155,8 +154,9 @@ socket.on('chefEndLive', ({ liveId }, callback) => {
 
     // Notificar a todos que el live ha terminado
     io.to(liveId).emit('liveEnded', {
-      message: 'El chef ha finalizado la transmisión en vivo',
-      endedBy: room.chef
+      message: 'El chef ha finalizado la transmisión en vivo. Serás redirigido...',
+      endedBy: room.chef,
+      redirectTo: '/live'
     });
 
     // Limpiar la sala

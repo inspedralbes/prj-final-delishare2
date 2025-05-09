@@ -1,7 +1,7 @@
 <template>
   <div class="live-chat-container">
     <!-- Página de espera para usuarios normales -->
-    <div v-if="!isLiveStarted && !isChef" class="waiting-room">
+    <div v-if="!isLiveStarted && !isChef && !liveEnded" class="waiting-room">
       <div class="waiting-content">
         <div class="waiting-animation">
           <div class="cooking-icon">👨‍🍳</div>
@@ -53,7 +53,7 @@
     </div>
 
     <!-- Chat activo -->
-    <div v-if="isLiveStarted" class="active-chat">
+    <div v-if="isLiveStarted && !showEndMessage" class="active-chat">
       <div class="video-container" v-if="showVideo || isChef">
         <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" autoplay :muted="isChef" playsinline class="live-video"
           :class="{ 'video-active': isStreamActive, 'video-inactive': !isStreamActive }">
@@ -78,20 +78,20 @@
           <span class="eye-icon">👁️</span> {{ activeUsers.length }} espectador(es)
         </div>
         <!-- Botón para salir del live (visible para todos excepto chef) -->
-        <div class="exit-buttons">
-          <button v-if="!isChef" @click="leaveLive" class="leave-button">
-            <span class="button-icon">🚪</span>
-            <span class="button-text">Salir del Live</span>
-          </button>
 
-          <!-- Botón para finalizar el live (solo visible para chef) -->
-          <button v-if="isChef" @click="endLiveForAll" class="end-button">
-            <span class="button-icon">🔴</span>
-            <span class="button-text">Finalizar Live</span>
-          </button>
-        </div>
       </div>
+      <div class="exit-buttons">
+        <button v-if="!isChef" @click="leaveLive" class="leave-button">
+          <span class="button-icon">🚪</span>
+          <span class="button-text">Salir del Live</span>
+        </button>
 
+        <!-- Botón para finalizar el live (solo visible para chef) -->
+        <button v-if="isChef" @click="endLiveForAll" class="end-button">
+          <span class="button-icon">🔴</span>
+          <span class="button-text">Finalizar Live</span>
+        </button>
+      </div>
       <div class="chat-header">
         <h3>💬 Chat en vivo</h3>
         <div class="active-users">
@@ -101,6 +101,8 @@
               <span v-if="activeUsers.length === 0">No hay otros usuarios conectados</span>
         </div>
       </div>
+
+
 
       <div class="chat-messages" ref="messagesContainer">
         <div v-for="(msg, index) in messages" :key="index" :class="['message', msg.username === username ? 'my-message' : 'other-message',
@@ -123,15 +125,25 @@
         </button>
       </div>
     </div>
+    <div v-if="showEndMessage" class="end-live-message">
+      <div class="end-message-content">
+        <h2>🎉 El live ha finalizado</h2>
+        <p>Gracias por participar. Puedes regresar a la página principal del evento.</p>
+        <button @click="redirectToLivePage()" class="return-button">
+          Volver a la página del live
+        </button>
+      </div>
 
-    <div v-if="!isConnected" class="connection-status">
+
+    </div>
+    <div v-if="!isConnected && !showEndMessage" class="connection-status">
       <div class="connection-loader"></div>
       <span>Conectando al chat...</span>
     </div>
-
-
   </div>
 </template>
+
+
 <script>
 import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
@@ -152,6 +164,7 @@ export default {
     const waitingUsers = ref([]);
     const messages = ref([]);
     const newMessage = ref('');
+    const liveEnded = ref(false);
     const isConnected = ref(false);
     const isLiveStarted = ref(false);
     const isChef = ref(false);
@@ -170,6 +183,7 @@ export default {
     const videoInitialized = ref(false);
     const isMuted = ref(false);
     const isAudioOn = ref(false);
+    const showEndMessage = ref(false);
 
     const configuration = {
       iceServers: [
@@ -190,6 +204,10 @@ export default {
     };
 
 
+    const redirectToLivePage = () => {
+      router.push(`/live`);
+    };
+
     /// Alterna el estado del audio del chef
     const toggleAudio = () => {
       if (localStream.value) {
@@ -207,8 +225,11 @@ export default {
         }
       }
     };
-    /// Función para salir del live (usuarios normales y admin)
     const leaveLive = () => {
+      if (!confirm('¿Estás seguro de que quieres salir del live?')) {
+        return;
+      }
+
       if (!socket.value) return;
 
       // Emitir evento para notificar la salida
@@ -234,17 +255,19 @@ export default {
       // Redirigir a /live
       router.push('/live');
     };
-
-    /// Función para finalizar el live (solo chef)
     const endLiveForAll = () => {
       if (!isChef.value || !socket.value) return;
 
-      // Emitir evento para finalizar el live para todos
+      const confirmEnd = confirm('¿Estás seguro de que deseas finalizar la transmisión para todos?');
+      if (!confirmEnd) return;
+
+      console.log('Chef finalizando el live para todos...');
+
       socket.value.emit('chefEndLive', { liveId: liveId.value }, (response) => {
         if (response?.success) {
           console.log('Live finalizado correctamente');
 
-          // Limpiar recursos locales
+          // Limpiar recursos
           if (localStream.value) {
             localStream.value.getTracks().forEach(track => track.stop());
             localStream.value = null;
@@ -254,13 +277,26 @@ export default {
           isLiveStarted.value = false;
           isCameraOn.value = false;
           isAudioOn.value = false;
+          isStreamActive.value = false;
 
-          // Desconectar del socket
-          socket.value.disconnect();
-          isConnected.value = false;
+          // Mostrar mensaje final
+          showEndMessage.value = true;
+
+          // Desconectar del socket después de un tiempo
+          setTimeout(() => {
+            socket.value.disconnect();
+            isConnected.value = false;
+            router.push('/live'); // <-- esto
+
+          }, 1000);
+
+        } else {
+          console.error('Error al finalizar live:', response?.message);
+          alert('No se pudo finalizar el live. Inténtalo de nuevo.');
         }
       });
     };
+
     /// Alterna el estado de la cámara del chef
     const toggleCamera = async () => {
       try {
@@ -671,7 +707,51 @@ export default {
               }
             }
           });
+          socket.value.on('liveEnded', () => {
+            isLiveStarted.value = false;
+            showEndMessage.value = true;
+            liveEnded.value = true;
+          });
+
+          // Modifica el handler para liveEnded
+          socket.value.on('liveEnded', (data) => {
+            console.log('Live finalizado por el chef:', data);
+
+            // Mostrar mensaje en el chat
+            messages.value.push({
+              username: 'Sistema',
+              message: data.message || 'El chef ha finalizado la transmisión en vivo.',
+
+              timestamp: new Date(),
+              isSystem: true
+            });
+
+            // Mostrar el div de live finalizado
+            showEndMessage.value = true;
+
+            // Detener streams y conexiones
+            if (userVideo.value && userVideo.value.srcObject) {
+              userVideo.value.srcObject.getTracks().forEach(track => track.stop());
+              userVideo.value.srcObject = null;
+            }
+
+            if (localStream.value) {
+              localStream.value.getTracks().forEach(track => track.stop());
+              localStream.value = null;
+            }
+
+            closeAllPeerConnections();
+
+            // Desconectar el socket pero no redirigir inmediatamente
+            setTimeout(() => {
+              if (socket.value) socket.value.disconnect();
+              isConnected.value = false;
+              isLiveStarted.value = false;
+            }, 1000);
+          });
+
         });
+
 
         socket.value.on('liveStarted', (data) => {
           console.log('Live iniciado:', data);
@@ -837,7 +917,11 @@ export default {
     // Hook de ciclo de vida: se ejecuta cuando el componente se monta
     onMounted(() => {
       initializeChat();
+
     });
+
+
+
 
     // Hook de ciclo de vida: se ejecuta cuando el componente se desmonta
     onUnmounted(() => {
@@ -869,8 +953,8 @@ export default {
       userVideo, isCameraOn, isAudioOn,
       toggleAudio, isStreamActive, isMuted,
       toggleMute, showVideo, toggleCamera,
-      requestChefVideo, leaveLive,
-      endLiveForAll
+      requestChefVideo, leaveLive, redirectToLivePage, showEndMessage,
+      liveEnded, endLiveForAll
     };
   }
 };
@@ -910,6 +994,31 @@ export default {
   align-items: center;
   gap: 8px;
   transition: all 0.3s ease;
+}
+
+/* En el estilo del componente */
+.live-ended-message {
+  background-color: #ffebee;
+  border-left: 4px solid #f44336;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.redirect-button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.redirect-button:hover {
+  background-color: #d32f2f;
 }
 
 .leave-button {
@@ -1510,6 +1619,34 @@ body {
   outline: none;
   border-color: var(--secondary-color);
   box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.2);
+}
+
+.end-live-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background-color: #f9f9f9;
+  border-top: 2px solid #ddd;
+  text-align: center;
+}
+
+.end-message-content {
+  max-width: 600px;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.return-button {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
 .send-button {
