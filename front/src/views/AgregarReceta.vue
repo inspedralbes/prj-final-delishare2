@@ -48,7 +48,7 @@
 
             <div class="form-group">
               <label for="description">Descripció:</label>
-              <textarea id="description" v-model="recipe.description" readonly class="full-width-input"></textarea>
+              <textarea id="description" v-model="recipe.description"  class="full-width-input"></textarea>
             </div>
 
             <div class="form-group">
