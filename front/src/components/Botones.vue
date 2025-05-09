@@ -6,6 +6,7 @@
       <button @click="toggleSubButtons('cuisine')" class="button-main">Cuina</button>
       <button @click="toggleSubButtons('tiempo')" class="button-main">Temps</button>
       <button @click="toggleSubButtons('ingredientes')" class="button-main">Ingredientes</button>
+      <button @click="toggleSubButtons('dificultad')" class="button-main">Dificultad</button>
     </div>
 
     <!-- Subbotones para Categorías -->
@@ -73,6 +74,28 @@
       </div>
     </div>
 
+    <!-- Subbotones para Dificultad -->
+    <div v-if="activeButton === 'dificultad'" class="subbutton-group">
+      <button 
+        class="button-secondary"
+        @click="filtrarPorDificultad('facil')"
+      >
+        Fácil (1-5 pasos)
+      </button>
+      <button 
+        class="button-secondary"
+        @click="filtrarPorDificultad('regular')"
+      >
+        Regular (6-10 pasos)
+      </button>
+      <button 
+        class="button-secondary"
+        @click="filtrarPorDificultad('dificil')"
+      >
+        Difícil (10+ pasos)
+      </button>
+    </div>
+
     <!-- Recetas filtradas -->
     <div v-if="recetas.length" class="recipe-list">
       <RecipeCard
@@ -95,7 +118,13 @@ import RecipeCard from './RecipeCard.vue';
 export default {
   name: 'Botones',
   components: { RecipeCard },
-  setup(_, { emit }) {
+  props: {
+    allRecipes: {
+      type: Array,
+      default: () => []
+    }
+  },
+  setup(props, { emit }) {
     // Variables reactivas para almacenar los datos
     const categorias = ref([]);
     const cuisines = ref([]);
@@ -103,7 +132,8 @@ export default {
     const ingredients = ref([]);
     const recetas = ref([]);
     const activeButton = ref('');
-    const selectedIngredients = ref([]); // Almacena los ingredientes seleccionados
+    const selectedIngredients = ref([]);
+    const isLoading = ref(false);
 
     // Cargar datos al montar el componente
     onMounted(() => {
@@ -184,6 +214,53 @@ export default {
       }
     };
 
+    // Función para filtrar por dificultad (basado en número de pasos)
+    const filtrarPorDificultad = async (nivel) => {
+      isLoading.value = true;
+      try {
+        // Usamos las recetas proporcionadas como prop o fetchRecipes si no hay
+        const todasLasRecetas = props.allRecipes.length > 0 
+          ? props.allRecipes 
+          : await communicationManager.fetchRecipes();
+        
+        // Array para almacenar las recetas filtradas
+        const recetasFiltradas = [];
+        
+        // Para cada receta, obtenemos sus pasos y evaluamos su dificultad
+        for (const receta of todasLasRecetas) {
+          try {
+            const stepsResponse = await communicationManager.getRecipeSteps(receta.id);
+            const numSteps = stepsResponse.steps.length;
+            
+            // Clasificamos según el número de pasos
+            let dificultad;
+            if (numSteps <= 5) {
+              dificultad = 'facil';
+            } else if (numSteps <= 10) {
+              dificultad = 'regular';
+            } else {
+              dificultad = 'dificil';
+            }
+            
+            // Si coincide con el nivel solicitado, la agregamos
+            if (dificultad === nivel) {
+              recetasFiltradas.push(receta);
+            }
+          } catch (error) {
+            console.error(`Error al obtener pasos para la receta ${receta.id}:`, error);
+          }
+        }
+        
+        // Actualizamos el listado de recetas filtradas
+        recetas.value = recetasFiltradas;
+        emit('filtradoPorDificultad', recetasFiltradas);
+      } catch (error) {
+        console.error('Error al filtrar recetas por dificultad:', error);
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
     // Alterna la visualización de los subbotones según el botón principal
     const toggleSubButtons = (buttonName) => {
       activeButton.value = activeButton.value === buttonName ? '' : buttonName;
@@ -203,7 +280,7 @@ export default {
     const removeIngredient = (ingredient) => {
       selectedIngredients.value = selectedIngredients.value.filter(i => i !== ingredient);
     };
-
+    
     // Verifica si un ingrediente está seleccionado
     const isIngredientSelected = (ingredient) => {
       return selectedIngredients.value.includes(ingredient);
@@ -214,7 +291,7 @@ export default {
       selectedIngredients.value = [];
       recetas.value = [];
     };
-
+    
     // Aplica el filtro con los ingredientes seleccionados
     const applyIngredientFilter = async () => {
       if (selectedIngredients.value.length === 0) {
@@ -239,6 +316,7 @@ export default {
       recetas,
       activeButton,
       selectedIngredients,
+      isLoading,
       obtenerCategorias,
       obtenerCuisines,
       obtenerTimes,
@@ -246,6 +324,7 @@ export default {
       filtrarPorCategoria,
       filtrarPorCuisine,
       filtrarPorTiempo,
+      filtrarPorDificultad,
       toggleSubButtons,
       toggleIngredient,
       removeIngredient,

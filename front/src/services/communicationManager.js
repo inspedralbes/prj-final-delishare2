@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 
 // Configuración base de Axios
 const apiClient = axios.create({
-  baseURL: 'https://delishare.cat/api',
+  baseURL: 'http://127.0.0.1:8000/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -106,6 +106,15 @@ const communicationManager = {
         throw error;
       });
   },
+  // En tu archivo communicationManager.js
+getRecipeSteps(recipeId) {
+  return apiClient.get(`/recipes/${recipeId}/steps`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error fetching recipe steps:', error);
+      throw error;
+    });
+},
   sendVerificationRequest(message) {
     return apiClient.post('/send-verification', { message })
       .then(response => response.data)
