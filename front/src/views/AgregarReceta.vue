@@ -42,9 +42,10 @@
               <input type="number" id="servings" v-model="recipe.servings" required class="full-width-input" min="1" />
             </div>
             <div class="form-group">
-  <label for="promptExplanation">Explicació de la recepta (què vols cuinar?):</label>
-  <textarea id="promptExplanation" v-model="recipe.explanation" required placeholder="Ex: Vull fer un plat vegà ràpid per sopar..." class="full-width-input"></textarea>
-</div>
+              <label for="promptExplanation">Explicació de la recepta (què vols cuinar?):</label>
+              <textarea id="promptExplanation" v-model="recipe.explanation" required
+                placeholder="Ex: Vull fer un plat vegà ràpid per sopar..." class="full-width-input"></textarea>
+            </div>
 
             <button type="button" @click="autofillRecipe" class="auto-fill-button">
               Omplir automàticament
@@ -52,9 +53,23 @@
 
             <div class="form-group">
               <label for="description">Descripció:</label>
-              <textarea id="description" v-model="recipe.description"  class="full-width-input"></textarea>
+              <textarea id="description" v-model="recipe.description" class="full-width-input"></textarea>
             </div>
-
+            <div class="form-group">
+              <label>Passos:</label>
+              <draggable v-model="recipe.steps" handle=".drag-handle" group="steps" item-key="index">
+                <template #item="{ element, index }">
+                  <div class="step-row">
+                    <span class="drag-handle">☰</span>
+                    <label>Pas {{ index + 1 }}:</label>
+                    <textarea v-model="recipe.steps[index]" placeholder="Descriu el pas"
+                      class="step-textarea"></textarea>
+                    <button type="button" @click="removeStep(index)" class="remove-button">×</button>
+                  </div>
+                </template>
+              </draggable>
+              <button type="button" @click="addStep" class="add-button">+ Afegir pas</button>
+            </div>
             <div class="form-group">
               <label>Ingredients:</label>
               <div v-for="(ingredient, index) in recipe.ingredients" :key="index" class="ingredient-row">
@@ -79,45 +94,33 @@
               </div>
               <button type="button" @click="addIngredient" class="add-button">+ Afegir ingredient</button>
             </div>
-            <div class="form-group">
-  <label>Passos:</label>
-  <draggable v-model="recipe.steps" handle=".drag-handle" group="steps" item-key="index">
-    <template #item="{ element, index }">
-      <div class="step-row">
-        <span class="drag-handle">☰</span>
-        <label>Pas {{ index + 1 }}:</label>
-        <textarea v-model="recipe.steps[index]" placeholder="Descriu el pas" class="step-textarea"></textarea>
-        <button type="button" @click="removeStep(index)" class="remove-button">×</button>
-      </div>
-    </template>
-  </draggable>
-  <button type="button" @click="addStep" class="add-button">+ Afegir pas</button>
-</div>
+
 
             <div class="form-group">
-    <label>Informació Nutricional (per ració):</label>
-    <div v-if="isUpdatingNutrition" class="nutrition-loading">
-      <p>Calculant valors nutricionals...</p>
-    </div>
-    <div class="nutrition-grid">
-      <div class="nutrition-item">
-        <label for="calories">Calories:</label>
-        <input type="number" id="calories" v-model="recipe.calories" min="0" />
-      </div>
-      <div class="nutrition-item">
-        <label for="protein">Proteïnes (g):</label>
-        <input type="number" id="protein" v-model="recipe.protein" min="0" />
-      </div>
-      <div class="nutrition-item">
-        <label for="fats">Greixos (g):</label>
-        <input type="number" id="fats" v-model="recipe.fats" min="0" />
-      </div>
-      <div class="nutrition-item">
-        <label for="carbs">Carbohidrats (g):</label>
-        <input type="number" id="carbs" v-model="recipe.carbs" min="0" />
-      </div>
-    </div>
+  <label>Informació Nutricional (per ració):</label>
+  <div v-if="isUpdatingNutrition" class="nutrition-loading">
+    <p>🔄 Calculant valors nutricionals...</p>
   </div>
+  <div v-else class="nutrition-grid">
+
+                <div class="nutrition-item">
+                  <label for="calories">Calories:</label>
+                  <input type="number" id="calories" v-model="recipe.calories" min="0" />
+                </div>
+                <div class="nutrition-item">
+                  <label for="protein">Proteïnes (g):</label>
+                  <input type="number" id="protein" v-model="recipe.protein" min="0" />
+                </div>
+                <div class="nutrition-item">
+                  <label for="fats">Greixos (g):</label>
+                  <input type="number" id="fats" v-model="recipe.fats" min="0" />
+                </div>
+                <div class="nutrition-item">
+                  <label for="carbs">Carbohidrats (g):</label>
+                  <input type="number" id="carbs" v-model="recipe.carbs" min="0" />
+                </div>
+              </div>
+            </div>
 
             <div class="form-group form-row">
               <div class="third-width">
@@ -266,7 +269,7 @@ export default {
       // Evitar llamadas duplicadas con los mismos ingredientes
       const currentIngredients = JSON.stringify(recipe.value.ingredients);
       if (lastNutritionUpdate.value === currentIngredients) return;
-      
+
       lastNutritionUpdate.value = currentIngredients;
       isUpdatingNutrition.value = true;
 
@@ -298,9 +301,10 @@ export default {
           response_format: { type: "json_object" },
           temperature: 0.2,
         });
+        await new Promise(resolve => setTimeout(resolve, 3000));
 
         const nutritionData = JSON.parse(response.choices[0].message.content);
-        
+
         if (nutritionData.calories !== undefined) {
           recipe.value.calories = Math.round(nutritionData.calories);
           recipe.value.protein = Math.round(nutritionData.protein * 10) / 10;
@@ -383,8 +387,8 @@ FORMAT REQUERIT (en català, només JSON):
     ...
 ],
 "steps": [
-    "Pas 1: Descripció detallada",
-    "Pas 2: Descripció detallada",
+    "Descripció detallada de pas 1",
+    "Descripció detallada de pas 2",
     ...
 ],
 "nutrition": {
@@ -535,55 +539,55 @@ NORMES ESTRICTES:
       }
     };
     const submitRecipe = async () => {
-  if (!authStore.isAuthenticated || !user.value) {
-    console.error("Usuario no autenticado");
-    return;
-  }
+      if (!authStore.isAuthenticated || !user.value) {
+        console.error("Usuario no autenticado");
+        return;
+      }
 
-  // Validar que se haya subido una imagen o un vídeo
-  if (!recipe.value.image && !recipe.value.video) {
-    message.value = "Has de pujar una imatge o un vídeo per a la recepta!";
-    messageClass.value = "error";
-    return;
-  }
+      // Validar que se haya subido una imagen o un vídeo
+      if (!recipe.value.image && !recipe.value.video) {
+        message.value = "Has de pujar una imatge o un vídeo per a la recepta!";
+        messageClass.value = "error";
+        return;
+      }
 
-  try {
-    // Preparar los datos para enviar en el formato correcto
-    const recipeData = {
-      ...recipe.value,
-      user_id: user.value.id,
-      ingredients: recipe.value.ingredients.map(ing => ({
-        ...ing,
-        quantity: ing.quantity || "",
-        unit: ing.unit || ""
-      })),
-      nutrition: {  // Crear objeto nutrition con los valores
-        calories: recipe.value.calories || 0,
-        protein: recipe.value.protein || 0,
-        fats: recipe.value.fats || 0,
-        carbs: recipe.value.carbs || 0
+      try {
+        // Preparar los datos para enviar en el formato correcto
+        const recipeData = {
+          ...recipe.value,
+          user_id: user.value.id,
+          ingredients: recipe.value.ingredients.map(ing => ({
+            ...ing,
+            quantity: ing.quantity || "",
+            unit: ing.unit || ""
+          })),
+          nutrition: {  // Crear objeto nutrition con los valores
+            calories: recipe.value.calories || 0,
+            protein: recipe.value.protein || 0,
+            fats: recipe.value.fats || 0,
+            carbs: recipe.value.carbs || 0
+          }
+        };
+
+        // Eliminar los campos individuales para evitar confusión
+        delete recipeData.calories;
+        delete recipeData.protein;
+        delete recipeData.fats;
+        delete recipeData.carbs;
+
+        await communicationManager.createRecipe(recipeData);
+
+        message.value = "¡Receta creada con éxito!";
+        messageClass.value = "success";
+        console.log("Receta creada correctamente");
+
+        router.push({ name: "LandingPage" });
+      } catch (error) {
+        console.error("Error al crear la receta:", error);
+        message.value = "¡Error al crear la receta!";
+        messageClass.value = "error";
       }
     };
-
-    // Eliminar los campos individuales para evitar confusión
-    delete recipeData.calories;
-    delete recipeData.protein;
-    delete recipeData.fats;
-    delete recipeData.carbs;
-
-    await communicationManager.createRecipe(recipeData);
-
-    message.value = "¡Receta creada con éxito!";
-    messageClass.value = "success";
-    console.log("Receta creada correctamente");
-
-    router.push({ name: "LandingPage" });
-  } catch (error) {
-    console.error("Error al crear la receta:", error);
-    message.value = "¡Error al crear la receta!";
-    messageClass.value = "error";
-  }
-};
 
     return {
       authStore,
@@ -828,6 +832,15 @@ NORMES ESTRICTES:
 .success {
   color: #10b981;
 }
+.nutrition-loading {
+  background-color: #f9f9f9;
+  border: 1px dashed #999;
+  padding: 1em;
+  margin-bottom: 1em;
+  font-style: italic;
+  text-align: center;
+  color: #333;
+}
 
 .error {
   color: #322b5f;
@@ -853,6 +866,7 @@ NORMES ESTRICTES:
   font-weight: 500;
   color: #333;
 }
+
 .drag-handle {
   cursor: grab;
   margin-right: 8px;
