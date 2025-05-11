@@ -75,15 +75,20 @@
               </div>
               <button type="button" @click="addIngredient" class="add-button">+ Afegir ingredient</button>
             </div>
-
             <div class="form-group">
-              <label>Passos:</label>
-              <div v-for="(step, index) in recipe.steps" :key="index" class="step-row">
-                <textarea v-model="recipe.steps[index]" placeholder="Descriu el pas" class="step-textarea"></textarea>
-                <button type="button" @click="removeStep(index)" class="remove-button">×</button>
-              </div>
-              <button type="button" @click="addStep" class="add-button">+ Afegir pas</button>
-            </div>
+  <label>Passos:</label>
+  <draggable v-model="recipe.steps" handle=".drag-handle" group="steps" item-key="index">
+    <template #item="{ element, index }">
+      <div class="step-row">
+        <span class="drag-handle">☰</span>
+        <label>Pas {{ index + 1 }}:</label>
+        <textarea v-model="recipe.steps[index]" placeholder="Descriu el pas" class="step-textarea"></textarea>
+        <button type="button" @click="removeStep(index)" class="remove-button">×</button>
+      </div>
+    </template>
+  </draggable>
+  <button type="button" @click="addStep" class="add-button">+ Afegir pas</button>
+</div>
 
             <div class="form-group">
     <label>Informació Nutricional (per ració):</label>
@@ -175,6 +180,7 @@ import Groq from "groq-sdk";
 import { useAuthStore } from '@/stores/authStore';
 import { validateFoodImage, validateFoodVideo } from '@/services/geminiService';
 import { debounce } from 'lodash-es';
+import draggable from 'vuedraggable';
 
 const groq = new Groq({
   apiKey: import.meta.env.VITE_GROQ_API_KEY,
@@ -185,6 +191,9 @@ const cloudName = "dt5vjbgab";
 const uploadPreset = "ejemplo1";
 
 export default {
+  components: {
+    draggable
+  },
   setup() {
     const router = useRouter();
     const authStore = useAuthStore();
@@ -837,6 +846,10 @@ NORMES ESTRICTES:
   margin-bottom: 0.5rem;
   font-weight: 500;
   color: #333;
+}
+.drag-handle {
+  cursor: grab;
+  margin-right: 8px;
 }
 
 .upload-area {
