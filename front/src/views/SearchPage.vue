@@ -11,11 +11,12 @@
       </div>
 
       <Botones 
+        :allRecipes="recipes"
         @filtradoPorCategoria="mostrarRecetasGenerales = false"
         @filtradoPorCuisine="mostrarRecetasGenerales = false"
-        @filtradoPorTiempo="filtrarPorTiempo"
+        @filtradoPorTiempo="handleFiltradoPorTiempo"
         @filtradoPorIngrediente="handleFiltradoPorIngrediente"
-
+        @filtradoPorDificultad="handleFiltradoPorDificultad"
       />
 
       <div v-if="mostrarRecetasGenerales">
@@ -113,8 +114,13 @@ export default {
       this.recipes = filteredRecipes;
       this.mostrarRecetasGenerales = false;
     },
-    // Nuevo manejador para el filtrado por ingrediente
+    // Manejador para el filtrado por ingrediente
     handleFiltradoPorIngrediente(filteredRecipes) {
+      this.recipes = filteredRecipes;
+      this.mostrarRecetasGenerales = false;
+    },
+    // Nuevo manejador para el filtrado por dificultad
+    handleFiltradoPorDificultad(filteredRecipes) {
       this.recipes = filteredRecipes;
       this.mostrarRecetasGenerales = false;
     },
@@ -144,7 +150,6 @@ export default {
   }
 };
 </script>
-
 
 <style scoped>
 

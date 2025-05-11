@@ -106,6 +106,15 @@ const communicationManager = {
         throw error;
       });
   },
+  // En tu archivo communicationManager.js
+getRecipeSteps(recipeId) {
+  return apiClient.get(`/recipes/${recipeId}/steps`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error fetching recipe steps:', error);
+      throw error;
+    });
+},
   sendVerificationRequest(message) {
     return apiClient.post('/send-verification', { message })
       .then(response => response.data)

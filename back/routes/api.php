@@ -148,3 +148,4 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 Route::middleware('auth:sanctum')->post('/send-verification', [UserController::class, 'sendVerificationEmail']);
 Route::middleware('auth:sanctum')->put('/usuarios/{id}/rol', [AuthController::class, 'cambiarRol']);
+Route::get('/recipes/{id}/steps', [RecipeController::class, 'getRecipeSteps']);
