@@ -1,24 +1,44 @@
 <template>
-  <article class="recipe-card" @click="handleClick">
-    <img :src="image" :alt="title" class="recipe-image" />
-    <div class="recipe-content">
-      <h2>{{ title }}</h2>
-      <p class="description">{{ truncatedDescription }}</p>
+  <article 
+    class="relative flex flex-col w-full h-48 border border-gray-300 rounded-lg overflow-hidden text-center transition-transform duration-300 ease-in-out cursor-pointer bg-white hover:scale-105 hover:shadow-lg"
+    @click="handleClick"
+  >
+    <img :src="image" :alt="title" class="w-full h-1/2 object-cover" />
+    <div class="p-3 flex-grow flex flex-col justify-between">
+      <h2 class="text-sm font-bold text-gray-800 truncate">{{ title }}</h2>
+      <p class="text-xs text-gray-600 line-clamp-2">{{ truncatedDescription }}</p>
     </div>
     
     <!-- Modal fuera del flujo normal con portal -->
     <teleport to="body">
-      <transition name="modal-fade">
+      <transition 
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="transform scale-95 opacity-0"
+        enter-to-class="transform scale-100 opacity-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="transform scale-100 opacity-100"
+        leave-to-class="transform scale-95 opacity-0"
+      >
         <div 
           v-if="showAuthModal && !authStore.isAuthenticated" 
-          class="auth-modal-overlay" 
+          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
           @click.self="closeModal"
         >
-          <div class="auth-modal">
-            <p>Debes iniciar sesión para ver esta receta</p>
-            <div class="auth-modal-buttons">
-              <button class="cancel-btn" @click="closeModal">Cancelar</button>
-              <button class="confirm-btn" @click="goToLogin">Aceptar</button>
+          <div class="bg-white p-6 rounded-lg shadow-xl w-11/12 max-w-sm text-center">
+            <p class="text-gray-700 mb-6">Debes iniciar sesión para ver esta receta</p>
+            <div class="flex justify-center space-x-4">
+              <button 
+                class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                @click="closeModal"
+              >
+                Cancelar
+              </button>
+              <button 
+                class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                @click="goToLogin"
+              >
+                Aceptar
+              </button>
             </div>
           </div>
         </div>
@@ -121,148 +141,4 @@ export default {
     };
   }
 };
-
 </script>
-
-<style scoped>
-.recipe-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  width: 150px;
-  height: 150px;
-  border: 1px solid #343330;
-  border-radius: 8px;
-  overflow: hidden;
-  text-align: center;
-  margin: 5px;
-  transition: transform 0.3s ease-in-out;
-  cursor: pointer;
-  background: white;
-}
-
-.recipe-card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.recipe-image {
-  width: 100%;
-  height: 55%;
-  object-fit: cover;
-}
-
-.recipe-content {
-  padding: 8px;
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.recipe-content h2 {
-  font-size: 14px;
-  color: #343330;
-  font-weight: bold;
-  margin: 0 0 5px 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.recipe-content .description {
-  font-size: 10px;
-  color: #666;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin: 0;
-}
-</style>
-
-<style>
-/* Estilos globales para el modal */
-.auth-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.auth-modal {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 300px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.auth-modal p {
-  margin-bottom: 20px;
-  color: #333;
-}
-
-.auth-modal-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-
-.confirm-btn, .cancel-btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.confirm-btn {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.confirm-btn:hover {
-  background-color: #45a049;
-}
-
-.cancel-btn {
-  background-color: #f44336;
-  color: white;
-}
-
-.cancel-btn:hover {
-  background-color: #d32f2f;
-}
-
-/* Animaciones del modal */
-.modal-fade-enter-active,
-.modal-fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.modal-fade-enter-from,
-.modal-fade-leave-to {
-  opacity: 0;
-}
-
-.modal-fade-enter-active .auth-modal,
-.modal-fade-leave-active .auth-modal {
-  transition: transform 0.3s ease;
-}
-
-.modal-fade-enter-from .auth-modal,
-.modal-fade-leave-to .auth-modal {
-  transform: translateY(-20px);
-}
-</style>

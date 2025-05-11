@@ -1,10 +1,29 @@
-@import './base.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+/* En tu main.css */
+@layer base {
+  body {
+    @apply bg-light text-dark font-sans text-base; /* Cambiado de text-sm a text-base */
+  }
+}
+
+
+
+@layer components {
+  /* Ajustar tamaños de texto en componentes */
+.btn {
+  @apply px-4 py-2 rounded-lg font-semibold transition-all duration-300 text-base; /* Tamaño base aumentado */
+}
+  
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-opacity-90;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-dark hover:bg-opacity-90;
+  }
 }
 
 a,
@@ -12,24 +31,27 @@ a,
   text-decoration: none;
   color: hsla(160, 100%, 37%, 1);
   transition: 0.4s;
-  padding: 3px;
+  padding: 2px;
+}
+
+/* Media queries para pantallas más grandes (enfoque mobile-first) */
+@media (min-width: 768px) {
+  body {
+    @apply text-base;
+  }
+  
+  .btn {
+    @apply px-4 py-2 text-base;
+  }
+  
+  a,
+  .green {
+    padding: 3px;
+  }
 }
 
 @media (hover: hover) {
   a:hover {
     background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}
-
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
   }
 }
