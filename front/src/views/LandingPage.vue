@@ -122,6 +122,7 @@ export default {
   created() {
     this.startCarousel();
     this.fetchAllRecipes();
+    this.fetchRecommendedRecipes(); 
   },
   methods: {
     startCarousel() {
