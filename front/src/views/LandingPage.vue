@@ -1,107 +1,97 @@
 <template>
-  <div class="min-h-screen bg-light">
-    <header class="container-custom py-6">
-      <img src="@/assets/images/delishare.png" alt="Logotip de DeliShare" class="h-16 mx-auto" />
+  <div class="min-h-screen bg-light flex flex-col">
+    <!-- Header -->
+    <header class="bg-white shadow sticky top-0 z-10 scroll-mt-16">
+      <div class="flex items-center justify-between px-6 py-5 md:px-4 md:py-3">
+        <img src="@/assets/images/delishare.png" alt="DeliShare" class="h-12 md:h-10" />
+        <router-link to="/notifications" class="text-dark hover:text-primary">
+          <svg class="h-8 w-8 md:h-7 md:w-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+        </router-link>
+      </div>
     </header>
 
-    <div v-if="popupMessage" class="fixed top-4 right-4 bg-primary text-white px-6 py-3 rounded-lg shadow-lg z-50">
-      {{ popupMessage }}
+    <!-- Hero -->
+    <section class="relative">
+      <img :src="carouselImages[currentImage]" alt="Carrusel" class="w-full h-64 md:h-56 lg:h-72 xl:h-80 object-cover rounded-b-xl transition-all duration-300" />
+      <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-b-xl"></div>
+      <div class="absolute bottom-6 left-0 w-full px-6 text-white">
+        <h1 class="text-3xl md:text-2xl lg:text-3xl font-bold leading-tight">Descubre nuevas recetas</h1>
+        <p class="text-xl md:text-base leading-snug">Comparte y explora recetas deliciosas con la comunidad</p>
+      </div>
+      <!-- Carousel indicators -->
+      <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-3">
+        <button v-for="(_, idx) in carouselImages" :key="idx" @click="currentImage = idx"
+          :class="['w-4 h-4 md:w-3 md:h-3 rounded-full', currentImage === idx ? 'bg-white' : 'bg-white/40']"></button>
+      </div>
+    </section>
+
+    <!-- Tabs -->
+    <div class="flex justify-center gap-4 mt-8 mb-6 px-6 md:gap-2 md:mt-4 md:mb-2 md:px-2">
+      <button
+        v-for="tab in tabs"
+        :key="tab.id"
+        @click="activeTab = tab.id"
+        :class="[
+          'flex-1 py-4 text-lg rounded-full font-semibold transition-all duration-200',
+          'md:py-2 md:text-sm',
+          activeTab === tab.id ? 'bg-primary text-white shadow' : 'bg-gray-100 text-gray-700'
+        ]"
+      >
+        {{ tab.label }}
+      </button>
     </div>
 
-    <!-- Carrusel d'imatges -->
-    <div class="relative h-64 md:h-96 overflow-hidden">
-      <img :src="carouselImages[currentImage]" alt="Imatge del carrusel" 
-           class="w-full h-full object-cover transition-opacity duration-500" />
-    </div>
-
-    <div class="container-custom py-8">
-      <div class="flex justify-center space-x-4 mb-8">
-        <button 
-          @click="showPopularRecipes"
-          :class="[
-            'btn',
-            activeTab === 'popular' ? 'btn-primary' : 'bg-gray-200 hover:bg-gray-300'
-          ]"
-        >
-          Més populars
-        </button>
-        <button 
-          @click="showRecentRecipes"
-          :class="[
-            'btn',
-            activeTab === 'recent' ? 'btn-primary' : 'bg-gray-200 hover:bg-gray-300'
-          ]"
-        >
-          Més recents
-        </button>
-        <button 
-          @click="showRecommendedRecipes"
-          :class="[
-            'btn',
-            activeTab === 'recommended' ? 'btn-primary' : 'bg-gray-200 hover:bg-gray-300'
-          ]"
-        >
-          Per a tu
-        </button>
+    <!-- Recipes -->
+    <main class="flex-1 px-6 pb-10 md:px-4 md:pb-6">
+      <div v-if="activeTab === 'popular'">
+        <h2 class="text-2xl md:text-xl font-bold mb-6 md:mb-2 text-dark">Más populares</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-6">
+          <RecipeCard
+            v-for="(recipe, i) in displayedPopularRecipes"
+            :key="i"
+            :recipe-id="recipe.id"
+            :title="recipe.title"
+            :description="recipe.description || 'Sin descripción disponible'"
+            :image="recipe.image"
+            class="text-lg p-6 rounded-2xl shadow-lg md:text-base md:p-4 md:rounded-xl md:shadow-md"
+          />
+        </div>
       </div>
-
-      <div v-if="activeTab === 'popular'" class="space-y-8">
-        <section>
-          <h2 class="text-2xl font-bold mb-6 text-dark">Més populars</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <RecipeCard 
-              v-for="(recipe, index) in displayedPopularRecipes" 
-              :key="index" 
-              :recipe-id="recipe.id"
-              :title="recipe.title" 
-              :description="recipe.description || 'Sense descripció disponible'"
-              :image="recipe.image" 
-            />
-          </div>
-        </section>
+      <div v-else-if="activeTab === 'recent'">
+        <h2 class="text-2xl md:text-xl font-bold mb-6 md:mb-2 text-dark">Más recientes</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-6">
+          <RecipeCard
+            v-for="(recipe, i) in displayedRecentRecipes"
+            :key="i"
+            :recipe-id="recipe.id"
+            :title="recipe.title"
+            :description="recipe.description || 'Sin descripción disponible'"
+            :image="recipe.image"
+            class="text-lg p-6 rounded-2xl shadow-lg md:text-base md:p-4 md:rounded-xl md:shadow-md"
+          />
+        </div>
       </div>
-
-      <div v-else-if="activeTab === 'recent'" class="space-y-8">
-        <section>
-          <h2 class="text-2xl font-bold mb-6 text-dark">Més recents</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <RecipeCard 
-              v-for="(recipe, index) in displayedRecentRecipes" 
-              :key="index" 
-              :recipe-id="recipe.id"
-              :title="recipe.title" 
-              :description="recipe.description || 'Sense descripció disponible'"
-              :image="recipe.image" 
-            />
-          </div>
-        </section>
+      <div v-else>
+        <h2 class="text-2xl md:text-xl font-bold mb-6 md:mb-2 text-dark">Recomendadas para ti</h2>
+        <div v-if="recommendedRecipes.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-6">
+          <RecipeCard
+            v-for="(recipe, i) in recommendedRecipes"
+            :key="i"
+            :recipe-id="recipe.id"
+            :title="recipe.title"
+            :description="recipe.description || 'Sin descripción disponible'"
+            :image="recipe.image"
+            class="text-lg p-6 rounded-2xl shadow-lg md:text-base md:p-4 md:rounded-xl md:shadow-md"
+          />
+        </div>
+        <div v-else class="bg-white rounded-2xl shadow-lg p-8 text-center mt-8 md:rounded-xl md:shadow-md md:p-6 md:mt-4">
+          <p class="text-gray-600 mb-4 text-xl md:text-base">No tienes recomendaciones personalizadas aún.</p>
+          <router-link to="/formulario" class="btn btn-primary w-full text-xl py-4 md:text-base md:py-2">Configura tus preferencias</router-link>
+        </div>
       </div>
-
-      <div v-else class="space-y-8">
-        <section>
-          <h2 class="text-2xl font-bold mb-6 text-dark">Recomanades per a tu</h2>
-          <div v-if="recommendedRecipes.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <RecipeCard 
-              v-for="(recipe, index) in recommendedRecipes" 
-              :key="'rec-'+index" 
-              :recipe-id="recipe.id"
-              :title="recipe.title" 
-              :description="recipe.description || 'Sense descripció disponible'"
-              :image="recipe.image" 
-            />
-          </div>
-          <div v-else class="bg-white rounded-lg shadow-md p-8 text-center max-w-2xl mx-auto">
-            <p class="text-gray-600 mb-4">No tens recomanacions personalitzades encara.</p>
-            <router-link 
-              to="/formulario" 
-              class="btn btn-primary inline-block"
-            >
-              Configura les teves preferències
-            </router-link>
-          </div>
-        </section>
-      </div>
-    </div>
+    </main>
   </div>
 </template>
 
@@ -123,6 +113,11 @@ export default {
       displayedPopularRecipes: [],
       displayedRecentRecipes: [],
       activeTab: 'popular',
+      tabs: [
+        { id: 'popular', label: 'Més populars' },
+        { id: 'recent', label: 'Més recents' },
+        { id: 'recommended', label: 'Per a tu' }
+      ],
       carouselImages: [
         new URL('@/assets/images/carrusel/image1.jpg', import.meta.url).href,
         new URL('@/assets/images/carrusel/image2.jpg', import.meta.url).href,
@@ -142,7 +137,7 @@ export default {
     startCarousel() {
       setInterval(() => {
         this.currentImage = (this.currentImage + 1) % this.carouselImages.length;
-      }, 3000);
+      }, 5000);
     },
     async fetchAllRecipes() {
       try {
@@ -157,6 +152,9 @@ export default {
       } catch (error) {
         console.error('Error fetching recipes:', error);
         this.popupMessage = 'Error al cargar las recetas';
+        setTimeout(() => {
+          this.popupMessage = '';
+        }, 3000);
       }
     },
     async fetchRecommendedRecipes() {
@@ -166,6 +164,9 @@ export default {
       } catch (error) {
         console.error('Error fetching recommended recipes:', error);
         this.popupMessage = 'Error al cargar recomendaciones';
+        setTimeout(() => {
+          this.popupMessage = '';
+        }, 3000);
         this.recommendedRecipes = [];
       }
     },
@@ -184,3 +185,19 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+</style>
