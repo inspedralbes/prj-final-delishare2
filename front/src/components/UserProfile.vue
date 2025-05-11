@@ -1,123 +1,191 @@
 <template>
-  <div class="user-profile">
-    <button class="back-button" @click="goBack">← </button>
-    <h2>Perfil d'Usuari</h2>
-    <p><strong>Nom:</strong> {{ user.name }}</p>
-    <p><strong>Correu electrònic:</strong> {{ user.email }}</p>
-
-    <!-- Botones para las secciones -->
-    <div class="profile-buttons">
-      <button class="btn" @click="showSection('recipes')" :class="{ active: activeSection === 'recipes' }">
-        <svg width="20" height="20" viewBox="0 0 24 24"
-          style="vertical-align: middle; margin-right: 6px; background: transparent; fill: none;"
-          xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M14 5.6C14 5.03995 14 4.75992 14.109 4.54601C14.2049 4.35785 14.3578 4.20487 14.546 4.10899C14.7599 4 15.0399 4 15.6 4H18.4C18.9601 4 19.2401 4 19.454 4.10899C19.6422 4.20487 19.7951 4.35785 19.891 4.54601C20 4.75992 20 5.03995 20 5.6V8.4C20 8.96005 20 9.24008 19.891 9.45399C19.7951 9.64215 19.6422 9.79513 19.454 9.89101C19.2401 10 18.9601 10 18.4 10H15.6C15.0399 10 14.7599 10 14.546 9.89101C14.3578 9.79513 14.2049 9.64215 14.109 9.45399C14 9.24008 14 8.96005 14 8.4V5.6Z"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-          <path
-            d="M4 5.6C4 5.03995 4 4.75992 4.10899 4.54601C4.20487 4.35785 4.35785 4.20487 4.54601 4.10899C4.75992 4 5.03995 4 5.6 4H8.4C8.96005 4 9.24008 4 9.45399 4.10899C9.64215 4.20487 9.79513 4.35785 9.89101 4.54601C10 4.75992 10 5.03995 10 5.6V8.4C10 8.96005 10 9.24008 9.89101 9.45399C9.79513 9.64215 9.64215 9.79513 9.45399 9.89101C9.24008 10 8.96005 10 8.4 10H5.6C5.03995 10 4.75992 10 4.54601 9.89101C4.35785 9.79513 4.20487 9.64215 4.10899 9.45399C4 9.24008 4 8.96005 4 8.4V5.6Z"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-          <path
-            d="M4 15.6C4 15.0399 4 14.7599 4.10899 14.546C4.20487 14.3578 4.35785 14.2049 4.54601 14.109C4.75992 14 5.03995 14 5.6 14H8.4C8.96005 14 9.24008 14 9.45399 14.109C9.64215 14.2049 9.79513 14.3578 9.89101 14.546C10 14.7599 10 15.0399 10 15.6V18.4C10 18.9601 10 19.2401 9.89101 19.454C9.79513 19.6422 9.64215 19.7951 9.45399 19.891C9.24008 20 8.96005 20 8.4 20H5.6C5.03995 20 4.75992 20 4.54601 19.891C4.35785 19.7951 4.20487 19.6422 4.10899 19.454C4 19.2401 4 18.9601 4 18.4V15.6Z"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-          <path
-            d="M14 15.6C14 15.0399 14 14.7599 14.109 14.546C14.2049 14.2049 14.3578 14.2049 14.546 14.1089C14.7599 14 15.0399 14 15.6 14H18.4C18.9601 14 19.2401 14 19.454 14.1089C19.6422 14.2049 19.7951 14.3578 19.891 14.546C20 14.7599 20 15.0399 20 15.6V18.4C20 18.9601 20 19.2401 19.891 19.4539C19.7951 19.6422 19.6422 19.7951 19.454 19.891C19.2401 20 18.9601 20 18.4 20H15.6C15.0399 20 14.7599 20 14.546 19.891C14.3578 19.7951 14.2049 19.6422 14.109 19.4539C14 19.2401 14 18.9601 14 18.4V15.6Z"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-        Receptes
-      </button>
-
-      <button class="btn" @click="showSection('folders')" :class="{ active: activeSection === 'folders' }">
-        <svg width="20" height="20" viewBox="0 0 24 24"
-          style="vertical-align: middle; margin-right: 6px; background: transparent; fill: none;"
-          xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M3 8.2C3 7.07989 3 6.51984 3.21799 6.09202C3.40973 5.71569 3.71569 5.40973 4.09202 5.21799C4.51984 5 5.0799 5 6.2 5H9.67452C10.1637 5 10.4083 5 10.6385 5.05526C10.8425 5.10425 11.0376 5.18506 11.2166 5.29472C11.4184 5.4184 11.5914 5.59135 11.9373 5.93726L12.0627 6.06274C12.4086 6.40865 12.5816 6.5816 12.7834 6.70528C12.9624 6.81494 13.1575 6.89575 13.3615 6.94474C13.5917 7 13.8363 7 14.3255 7H17.8C18.9201 7 19.4802 7 19.908 7.21799C20.2843 7.40973 20.5903 7.71569 20.782 8.09202C21 8.51984 21 9.0799 21 10.2V15.8C21 16.9201 21 17.4802 20.782 17.908C20.5903 18.2843 20.2843 18.5903 19.908 18.782C19.4802 19 18.9201 19 17.8 19H6.2C5.07989 19 4.51984 19 4.09202 18.782C3.71569 18.5903 3.40973 18.2843 3.21799 17.908C3 17.4802 3 16.9201 3 15.8V8.2Z"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-        Carpetes
-      </button>
-
-      <!-- Botón de Lives -->
-      <button class="btn live-btn" @click="showSection('lives')" :class="{ active: activeSection === 'lives' }">
-        <svg width="20" height="20" viewBox="0 0 24 24"
-          style="vertical-align: middle; margin-right: 6px; background: transparent; fill: none;"
-          xmlns="http://www.w3.org/2000/svg">
-          <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-          <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-          <g id="SVGRepo_iconCarrier">
-            <path
-              d="M22 12C22 14.7578 20.8836 17.2549 19.0782 19.064M2 12C2 9.235 3.12222 6.73208 4.93603 4.92188M19.1414 5.00003C19.987 5.86254 20.6775 6.87757 21.1679 8.00003M5 19.1415C4.08988 18.2493 3.34958 17.1845 2.83209 16"
-              stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-            <path
-              d="M16.2849 8.04397C17.3458 9.05877 18 10.4488 18 11.9822C18 13.5338 17.3302 14.9386 16.2469 15.9564M7.8 16C6.68918 14.9789 6 13.556 6 11.9822C6 10.4266 6.67333 9.01843 7.76162 8"
-              stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-            <path
-              d="M13.6563 10.4511C14.5521 11.1088 15 11.4376 15 12C15 12.5624 14.5521 12.8912 13.6563 13.5489C13.4091 13.7304 13.1638 13.9014 12.9384 14.0438C12.7407 14.1688 12.5168 14.298 12.2849 14.4249C11.3913 14.914 10.9444 15.1586 10.5437 14.8878C10.1429 14.617 10.1065 14.0502 10.0337 12.9166C10.0131 12.596 10 12.2817 10 12C10 11.7183 10.0131 11.404 10.0337 11.0834C10.1065 9.94977 10.1429 9.38296 10.5437 9.1122C10.9444 8.84144 11.3913 9.08599 12.2849 9.57509C12.5168 9.70198 12.7407 9.83123 12.9384 9.95619C13.1638 10.0986 13.4091 10.2696 13.6563 10.4511Z"
-              stroke="currentColor" stroke-width="1.5"></path>
-          </g>
-        </svg>
-        Lives
-      </button>
-    </div>
-
-    <!-- Mostrar receptes publicades -->
-    <div v-if="activeSection === 'recipes'">
-      <p><strong>Receptes publicades:</strong></p>
-      <div class="recipes">
-        <RecipeCard v-for="recipe in user.recipes" :key="recipe.id" :recipeId="recipe.id" :title="recipe.title"
-          :description="recipe.description" :image="recipe.image" />
+  <div class="min-h-screen bg-lime-50">
+    <!-- Header with back button -->
+    <div class="bg-white shadow sticky top-0 z-10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center h-16">
+          <button @click="goBack" class="text-lime-700 hover:text-lime-500 transition-colors">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h1 class="ml-4 text-2xl font-bold text-lime-700">Perfil d'Usuari</h1>
+        </div>
       </div>
-      <p v-if="!user.recipes || user.recipes.length === 0">Aquest usuari no té receptes publicades.</p>
     </div>
 
-       <!-- Mostrar carpetes de l'usuari i les seves receptes -->
-       <div v-else-if="activeSection === 'folders'">
-      <div v-if="user.folders && user.folders.length > 0">
-        <p><strong>Carpetes:</strong></p>
-        <div v-for="folder in user.folders" :key="folder.id" class="folder-container">
-          <div class="folder-header">
-            <h3>{{ folder.name }} ({{ folder.recipes.length }} receta{{ folder.recipes.length !== 1 ? 's' : '' }})</h3>
+    <!-- Main content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- User info card -->
+      <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <div class="flex items-center space-x-4">
+          <div v-if="user.img" class="h-20 w-20 rounded-full overflow-hidden">
+            <img :src="user.img" :alt="user.name" class="h-full w-full object-cover" />
           </div>
-          
-          <div class="recipes" v-if="folder.recipes && folder.recipes.length > 0">
+          <div v-else class="h-20 w-20 rounded-full bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 flex items-center justify-center text-lime-900 text-2xl font-bold">
+            {{ user.name.charAt(0).toUpperCase() }}
+          </div>
+          <div>
+            <h2 class="text-xl font-semibold text-lime-700">{{ user.name }}</h2>
+            <p class="text-gray-600">{{ user.bio }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation tabs -->
+      <div class="flex space-x-4 mb-8">
+        <button 
+          v-for="section in sections" 
+          :key="section.id"
+          @click="showSection(section.id)"
+          :class="[
+            'flex-1 py-2 px-4 text-sm rounded-full font-semibold transition-all duration-300',
+            activeSection === section.id 
+              ? 'bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 shadow-lg hover:shadow-xl hover:brightness-110' 
+              : 'bg-gradient-to-r from-green-100 via-lime-50 to-lime-100 text-lime-700 hover:from-green-200 hover:via-lime-100 hover:to-lime-200 hover:shadow-md'
+          ]"
+        >
+          <component :is="section.icon" class="w-5 h-5 mr-2" />
+          {{ section.label }}
+        </button>
+      </div>
+
+      <!-- Content sections -->
+      <div class="space-y-8">
+        <!-- Recipes section -->
+        <div v-if="activeSection === 'recipes'" class="space-y-6">
+          <h3 class="text-xl font-semibold text-lime-700">Receptes publicades</h3>
+          <div v-if="user.recipes && user.recipes.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             <RecipeCard 
-              v-for="recipe in folder.recipes" 
+              v-for="recipe in user.recipes" 
               :key="recipe.id" 
               :recipeId="recipe.id" 
               :title="recipe.title"
               :description="recipe.description" 
-              :image="recipe.image" 
+              :image="recipe.image"
+              class="transform transition-all duration-200 hover:scale-105 hover:shadow-lg bg-white rounded-xl shadow-md p-4"
             />
           </div>
-          <p v-else class="no-recipes">Aquesta carpeta no té receptes.</p>
+          <p v-else class="text-gray-600 text-center py-8 bg-white rounded-xl shadow-md">
+            Aquest usuari no té receptes publicades.
+          </p>
+        </div>
+
+        <!-- Folders section -->
+        <div v-else-if="activeSection === 'folders'" class="space-y-6">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-semibold text-lime-700">Carpetes</h3>
+            <span class="text-sm text-gray-500">{{ user.folders?.length || 0 }} carpeta{{ user.folders?.length !== 1 ? 's' : '' }}</span>
+          </div>
+          <div v-if="user.folders && user.folders.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div v-for="folder in user.folders" :key="folder.id" 
+              class="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-3">
+                  <div class="p-2 bg-lime-100 rounded-lg">
+                    <svg class="w-6 h-6 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                    </svg>
+                  </div>
+                  <h4 class="text-lg font-medium text-lime-700">
+                    {{ folder.name }}
+                  </h4>
+                </div>
+                <span class="px-3 py-1 text-sm bg-lime-100 text-lime-700 rounded-full">
+                  {{ folder.recipes.length }} receta{{ folder.recipes.length !== 1 ? 's' : '' }}
+                </span>
+              </div>
+              
+              <div v-if="folder.recipes && folder.recipes.length > 0" 
+                class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                <div v-for="recipe in folder.recipes.slice(0, 4)" :key="recipe.id" 
+                  class="group relative overflow-hidden rounded-lg bg-gray-50 hover:bg-lime-50 transition-colors duration-200">
+                  <div class="aspect-w-16 aspect-h-9">
+                    <img :src="recipe.image" :alt="recipe.title" 
+                      class="w-full h-24 object-cover rounded-lg group-hover:opacity-90 transition-opacity duration-200" />
+                  </div>
+                  <div class="p-2">
+                    <h5 class="text-sm font-medium text-gray-900 truncate">{{ recipe.title }}</h5>
+                    <p class="text-xs text-gray-500 truncate">{{ recipe.description }}</p>
+                  </div>
+                </div>
+                <div v-if="folder.recipes.length > 4" 
+                  class="flex items-center justify-center bg-lime-50 rounded-lg p-4 text-lime-700 font-medium">
+                  +{{ folder.recipes.length - 4 }} més
+                </div>
+              </div>
+              
+              <p v-else class="text-gray-500 text-center py-4 bg-gray-50 rounded-lg mt-4">
+                Aquesta carpeta no té receptes.
+              </p>
+            </div>
+          </div>
+          <p v-else class="text-gray-600 text-center py-8 bg-white rounded-xl shadow-md">
+            Aquest usuari no té carpetes.
+          </p>
+        </div>
+
+        <!-- Lives section -->
+        <div v-else-if="activeSection === 'lives'" class="space-y-6">
+          <h3 class="text-xl font-semibold text-lime-700">Lives programados</h3>
+          <div v-if="loading" class="flex justify-center items-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-lime-500"></div>
+          </div>
+          <div v-else-if="!isChef" class="text-gray-600 text-center py-8 bg-white rounded-xl shadow-md">
+            Este usuario no es chef y por lo tanto no tiene lives programados.
+          </div>
+          <div v-else-if="scheduledLives.length === 0" class="text-gray-600 text-center py-8 bg-white rounded-xl shadow-md">
+            Este chef no tiene lives programados actualmente.
+          </div>
+          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div v-for="live in scheduledLives" :key="live.id" 
+              @click="goToLive(live.id)"
+              class="bg-white rounded-xl shadow-md p-6 transform transition-all duration-200 hover:scale-105 hover:shadow-lg cursor-pointer">
+              <div class="space-y-4">
+                <h4 class="text-lg font-medium text-lime-700">{{ live.recipe.title }}</h4>
+                <div class="flex items-center space-x-4 text-sm text-gray-600">
+                  <span class="flex items-center">
+                    <svg class="w-5 h-5 mr-1 text-lime-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    {{ formatDate(live.dia) }}
+                  </span>
+                  <span class="flex items-center">
+                    <svg class="w-5 h-5 mr-1 text-lime-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {{ live.hora }}
+                  </span>
+                </div>
+                <p class="text-gray-600">{{ live.recipe.description }}</p>
+                <div class="flex items-center justify-end">
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-lime-100 text-lime-700">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Veure Live
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <p v-if="!user.folders || user.folders.length === 0">Aquest usuari no té carpetes.</p>
-    </div>
-    <!-- Mostrar Lives programados -->
-    <div v-else-if="activeSection === 'lives'">
-      <p><strong>Lives programados:</strong></p>
-      <div v-if="loading" class="loading">Cargando...</div>
-      <div v-else-if="!isChef" class="no-lives">
-        <p>Este usuario no es chef y por lo tanto no tiene lives programados.</p>
-      </div>
-      <div v-else-if="scheduledLives.length === 0" class="no-lives">
-        <p>Este chef no tiene lives programados actualmente.</p>
-      </div>
-      <div v-else class="live-cards">
-        <div v-for="live in scheduledLives" :key="live.id" class="live-card">
-          <div class="live-info">
-            <h4>{{ live.recipe.title }}</h4>
-            <p>📅 {{ formatDate(live.dia) }} 🕒 {{ live.hora }}</p>
-            <p class="live-description">{{ live.recipe.description }}</p>
+
+      <!-- Error message -->
+      <div v-if="error" class="mt-6 bg-white border-l-4 border-lime-500 p-4 rounded-r-xl shadow-md">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-lime-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm text-lime-700">{{ error }}</p>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Error -->
-    <p v-if="error" class="error">{{ error }}</p>
   </div>
 </template>
 
@@ -139,38 +207,52 @@ export default {
   setup(props) {
     const user = ref({
       name: '',
-      email: '',
+      bio: '',
       recipes: [],
       folders: [],
       recipes_in_folders: {},
       role: '',
+      img: '',
     });
     const error = ref(null);
     const activeSection = ref('recipes');
     const scheduledLives = ref([]);
     const loading = ref(false);
 
-    // Comprobación mejorada del rol de chef
+    const sections = [
+      {
+        id: 'recipes',
+        label: 'Receptes',
+        icon: 'RecipeIcon'
+      },
+      {
+        id: 'folders',
+        label: 'Carpetes',
+        icon: 'FolderIcon'
+      },
+      {
+        id: 'lives',
+        label: 'Lives',
+        icon: 'LiveIcon'
+      }
+    ];
+
     const isChef = computed(() => {
-      // Verificamos tanto el role del usuario como si es el propio perfil
       return user.value.role?.toLowerCase() === 'chef';
     });
 
     const fetchUserData = async () => {
       try {
         const response = await communicationManager.getUserInfo(props.userId);
-        console.log('Datos del usuario recibidos:', response);
-        
         user.value = {
           name: response.user.name,
-          email: response.user.email,
-          role: response.user.role, // Aseguramos que role se asigne correctamente
+          bio: response.user.bio,
+          role: response.user.role,
+          img: response.user.img,
           recipes: response.recipes || [],
           folders: response.folders || [],
           recipes_in_folders: response.recipes_in_folders || {},
         };
-        
-        console.log('Datos del usuario después de procesar:', user.value);
       } catch (err) {
         error.value = 'Hubo un error al cargar los datos del usuario.';
         console.error('Error al cargar datos del usuario:', err);
@@ -179,7 +261,6 @@ export default {
 
     const fetchChefLives = async () => {
       if (!isChef.value) {
-        console.log('Usuario no es chef, no se cargarán lives');
         scheduledLives.value = [];
         return;
       }
@@ -187,9 +268,6 @@ export default {
       loading.value = true;
       try {
         const response = await communicationManager.getChefLives(props.userId);
-        console.log('Respuesta de lives:', response);
-        
-        // Manejo robusto de la respuesta
         scheduledLives.value = Array.isArray(response?.lives) ? response.lives : 
                               Array.isArray(response) ? response : [];
       } catch (err) {
@@ -219,7 +297,6 @@ export default {
     };
 
     onMounted(() => {
-      console.log('Componente montado, cargando datos...');
       fetchUserData();
     });
 
@@ -229,6 +306,7 @@ export default {
       activeSection,
       scheduledLives,
       loading,
+      sections,
       formatDate,
       isChef,
       showSection
@@ -238,101 +316,44 @@ export default {
   methods: {
     goBack() {
       this.$router.go(-1);
+    },
+    goToLive(liveId) {
+      this.$router.push(`/chat/${liveId}`);
     }
   },
 };
 </script>
 
 <style scoped>
-.user-profile {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
+/* Custom animations */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.back-button {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  margin-bottom: 1rem;
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 
-.profile-buttons {
-  display: flex;
-  gap: 10px;
-  margin: 20px 0;
+/* Custom transitions */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
 }
 
-.btn {
-  padding: 10px 15px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background-color: #f8f8f8;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
+/* Hover effects */
+.hover\:shadow-lg:hover {
+  --tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--tw-shadow);
 }
 
-.btn:hover {
-  background-color: #e8e8e8;
+.hover\:scale-105:hover {
+  transform: scale(1.05);
 }
 
-.btn.active {
-  background-color: #e0e0e0;
-  border-color: #ccc;
-}
-
-.live-btn {
-  background-color: #ff4757;
-  color: white;
-}
-
-.live-btn:hover {
-  background-color: #ff6b81;
-}
-
-.recipes {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.live-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.live-card {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1rem;
-  background-color: #f9f9f9;
-}
-
-.live-info h4 {
-  margin: 0 0 0.5rem 0;
-  color: #333;
-}
-
-.live-description {
-  margin: 0.5rem 0 0 0;
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.loading, .no-lives {
-  text-align: center;
-  padding: 1rem;
-  color: #666;
-}
-
-.error {
-  color: red;
-  text-align: center;
-  margin-top: 20px;
+.hover\:brightness-110:hover {
+  filter: brightness(1.1);
 }
 </style>

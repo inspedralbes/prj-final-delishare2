@@ -1,12 +1,12 @@
 <template>
   <article 
-    class="relative flex flex-col w-full h-48 border border-gray-300 rounded-lg overflow-hidden text-center transition-transform duration-300 ease-in-out cursor-pointer bg-white hover:scale-105 hover:shadow-lg"
+    class="relative flex flex-col w-full border-2 border-lime-300 rounded-2xl overflow-hidden text-center transition-transform duration-300 ease-in-out cursor-pointer bg-white hover:scale-105 hover:shadow-xl hover:border-lime-400"
     @click="handleClick"
   >
-    <img :src="image" :alt="title" class="w-full h-1/2 object-cover" />
-    <div class="p-3 flex-grow flex flex-col justify-between">
-      <h2 class="text-sm font-bold text-gray-800 truncate">{{ title }}</h2>
-      <p class="text-xs text-gray-600 line-clamp-2">{{ truncatedDescription }}</p>
+    <img :src="image" :alt="title" class="h-52 w-full object-cover rounded-2xl mb-3 md:h-32" />
+    <div class="p-4 flex-grow flex flex-col justify-between">
+      <h2 class="text-sm md:text-lg font-bold text-lime-700 md:truncate mb-1">{{ title }}</h2>
+      <p class="text-base text-gray-700 line-clamp-2">{{ truncatedDescription }}</p>
     </div>
     
     <!-- Modal fuera del flujo normal con portal -->
