@@ -15,7 +15,7 @@ import UsersList from '@/views/UsersList.vue';
 import CuisinesView from '@/views/CuisinesView.vue'; 
 import CategoriesView from '@/views/CategoriesView.vue';
 import CommentsView from '../views/CommentsView.vue';
-import Verification from '@/components/Verification.vue'
+import Verification from '@/components/verification.vue'
 import Live from '@/views/Live.vue';
 import ChatRoom from '@/components/ChatRoom.vue';
 

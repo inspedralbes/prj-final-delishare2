@@ -58,7 +58,7 @@
         </div>
         <div v-else class="no-recommendations">
           <p>No tens recomanacions personalitzades encara.</p>
-          <router-link to="/preferences" class="preferences-link">
+          <router-link to="/formulario" class="preferences-link">
             Configura les teves preferències
           </router-link>
         </div>

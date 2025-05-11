@@ -73,9 +73,9 @@
             <div class="form-group">
               <label>Ingredients:</label>
               <div v-for="(ingredient, index) in recipe.ingredients" :key="index" class="ingredient-row">
-                <div class="quantity-input">
-                  <input type="text" v-model="ingredient.quantity" placeholder="Quantitat" />
-                  <select v-model="ingredient.unit">
+                <div class="quantity-input" style="display: flex; gap: 10px;">
+  <input type="text" v-model="ingredient.quantity" placeholder="Quantitat" style="width: 80px;" />
+  <select v-model="ingredient.unit" style="width: 120px;">
                     <option value="">Sense unitat</option>
                     <option value="g">g</option>
                     <option value="kg">kg</option>
@@ -383,7 +383,7 @@ FORMAT REQUERIT (en català, només JSON):
 "title": "Títol de la recepta",
 "description": "Descripció breu",
 "ingredients": [
-    {"quantity": "quantitat exacta", "unit": "unitat", "name": "Nom ingredient"},
+  {"quantity": "quantitat exacta", "unit": "unitat (obligatori)", "name": "Nom ingredient"},
     ...
 ],
 "steps": [
@@ -647,9 +647,10 @@ NORMES ESTRICTES:
 
 .quantity-input {
   display: flex;
-  gap: 5px;
-  width: 180px;
+  gap: 10px;
+  align-items: center;
 }
+
 
 /* Estilo mejorado para mensajes de error */
 .message-container.error {
