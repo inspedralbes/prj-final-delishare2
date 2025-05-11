@@ -19,9 +19,8 @@
         class="w-full h-64 md:h-56 lg:h-72 xl:h-80 object-cover rounded-b-xl transition-all duration-300" />
       <div class="absolute inset-0 bg-gradient-to-t from-lime-500/70 to-transparent rounded-b-xl"></div>
       <div class="absolute bottom-6 left-0 w-full px-6 text-white">
-        <h1 class="text-3xl md:text-2xl lg:text-3xl font-bold leading-tight drop-shadow">Descubre nuevas recetas</h1>
-        <p class="text-xl md:text-base leading-snug drop-shadow">Comparte y explora recetas deliciosas con la comunidad
-        </p>
+        <h1 class="text-3xl md:text-2xl lg:text-3xl font-bold leading-tight drop-shadow">Descobreix noves receptes</h1>
+        <p class="text-xl md:text-base leading-snug drop-shadow">Comparteix i explora receptes delicioses amb la comunitat</p>
       </div>
       <!-- Carousel indicators -->
       <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-3">
@@ -33,75 +32,52 @@
     <!-- Tabs -->
     <div class="flex justify-center gap-4 mt-8 mb-6 px-6 md:gap-2 md:mt-4 md:mb-2 md:px-2">
       <button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id" :class="[
-        'flex-1 py-2 px-2 text-sm rounded-full font-semibold transition-all duration-200',
+        'flex-1 py-2 px-2 text-sm rounded-full font-semibold transition-all duration-300',
         'md:py-4 md:px-4 md:text-base',
-        activeTab === tab.id ? 'bg-lime-400 text-lime-900 shadow' : 'bg-lime-100 text-lime-700 hover:bg-lime-200'
+        activeTab === tab.id ? 'bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 shadow-lg hover:shadow-xl hover:brightness-110' : 'bg-gradient-to-r from-green-100 via-lime-50 to-lime-100 text-lime-700 hover:from-green-200 hover:via-lime-100 hover:to-lime-200 hover:shadow-md'
       ]">
         {{ tab.label }}
       </button>
     </div>
 
-    <!-- Buttons for grid/list view toggle (visible only on larger screens) -->
-    <div class="flex justify-center gap-4 mt-4 mb-6 px-6 md:gap-2 md:px-2">
-      <button @click="viewType = 'list'"
-        :class="['text-sm font-semibold px-6 py-2 rounded-lg', viewType === 'list' ? 'bg-lime-400 text-white' : 'bg-lime-100 text-lime-700 hover:bg-lime-200']">
-        Ver como Lista
-      </button>
-      <button @click="viewType = 'grid'"
-        :class="['text-sm font-semibold px-6 py-2 rounded-lg', viewType === 'grid' ? 'bg-lime-400 text-white' : 'bg-lime-100 text-lime-700 hover:bg-lime-200']">
-        Ver como Grid
-      </button>
-    </div>
-
     <!-- Recipes -->
-    <main class="flex-1 px-6 pb-10 md:px-4 md:pb-6">
+    <main class="flex-1 px-6 pb-32 md:px-4 md:pb-24">
       <div v-if="activeTab === 'popular'">
-        <h2 class="text-2xl md:text-xl font-bold mb-6 md:mb-2 text-lime-700">Más populares</h2>
-        <div
-        :class="viewType === 'grid'
-  ? 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
-  : 'grid grid-cols-1 gap-6'"
->
-          <RecipeCard v-for="(recipe, i) in displayedPopularRecipes" :key="i" :recipe-id="recipe.id"
-            :title="recipe.title" :description="recipe.description || 'Sin descripción disponible'"
-            :image="recipe.image" :class="['text-lg p-6 rounded-2xl shadow-lg md:text-base md:p-4 md:rounded-xl md:shadow-md',
+        <h2 class="text-2xl md:text-xl font-bold mb-6 md:mb-2 text-lime-700">Més populars</h2>
+        <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+          <RecipeCard v-for="(recipe, i) in displayedPopularRecipes.slice(0, 20)" :key="i" :recipe-id="recipe.id"
+            :title="recipe.title" :description="recipe.description || 'Sense descripció disponible'"
+            :image="recipe.image" :class="['text-base p-4 rounded-xl shadow-md md:text-sm md:p-3 md:rounded-lg h-[280px]',
               i === displayedPopularRecipes.length - 1 ? 'mb-8' : ''
-            ]" imageClass="h-40 md:h-28 w-full object-cover rounded-xl mb-3" />
+            ]" imageClass="h-52 w-full object-cover rounded-lg mb-2" />
         </div>
       </div>
 
-      <!-- Similar structure for 'recent' and 'recommended' tabs -->
       <div v-else-if="activeTab === 'recent'">
-        <h2 class="text-2xl md:text-xl font-bold mb-6 md:mb-2 text-lime-700">Más recientes</h2>
-        <div
-        :class="viewType === 'grid'
-  ? 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
-  : 'grid grid-cols-1 gap-6'"
->
-         <RecipeCard v-for="(recipe, i) in displayedRecentRecipes" :key="i" :recipe-id="recipe.id"
-            :title="recipe.title" :description="recipe.description || 'Sin descripción disponible'"
-            :image="recipe.image" :class="['text-lg p-6 rounded-2xl shadow-lg md:text-base md:p-4 md:rounded-xl md:shadow-md',
+        <h2 class="text-2xl md:text-xl font-bold mb-6 md:mb-2 text-lime-700">Més recents</h2>
+        <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+         <RecipeCard v-for="(recipe, i) in displayedRecentRecipes.slice(0, 20)" :key="i" :recipe-id="recipe.id"
+            :title="recipe.title" :description="recipe.description || 'Sense descripció disponible'"
+            :image="recipe.image" :class="['text-base p-4 rounded-xl shadow-md md:text-sm md:p-3 md:rounded-lg h-[280px]',
               i === displayedRecentRecipes.length - 1 ? 'mb-8' : ''
-            ]" imageClass="h-40 md:h-28 w-full object-cover rounded-xl mb-3" />
+            ]" imageClass="h-52 w-full object-cover rounded-lg mb-2" />
         </div>
       </div>
 
       <div v-else>
-        <h2 class="text-2xl md:text-xl font-bold mb-6 md:mb-2 text-lime-700">Recomendadas para ti</h2>
-        <div v-if="recommendedRecipes.length" :class="viewType === 'grid'
-          ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
-          : 'flex flex-col space-y-6'">
-          <RecipeCard v-for="(recipe, i) in recommendedRecipes" :key="i" :recipe-id="recipe.id" :title="recipe.title"
-            :description="recipe.description || 'Sin descripción disponible'" :image="recipe.image" :class="['text-lg p-6 rounded-2xl shadow-lg md:text-base md:p-4 md:rounded-xl md:shadow-md',
+        <h2 class="text-2xl md:text-xl font-bold mb-6 md:mb-2 text-lime-700">Recomanades per a tu</h2>
+        <div v-if="recommendedRecipes.length" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+          <RecipeCard v-for="(recipe, i) in recommendedRecipes.slice(0, 20)" :key="i" :recipe-id="recipe.id" :title="recipe.title"
+            :description="recipe.description || 'Sense descripció disponible'" :image="recipe.image" :class="['text-base p-4 rounded-xl shadow-md md:text-sm md:p-3 md:rounded-lg h-[280px]',
               i === recommendedRecipes.length - 1 ? 'mb-8' : ''
-            ]" imageClass="h-40 md:h-28 w-full object-cover rounded-xl mb-3" />
+            ]" imageClass="h-52 w-full object-cover rounded-lg mb-2" />
         </div>
         <div v-else
           class="bg-white rounded-2xl shadow-lg p-8 text-center mt-8 md:rounded-xl md:shadow-md md:p-6 md:mt-4">
-          <p class="text-gray-600 mb-4 text-xl md:text-base">No tienes recomendaciones personalizadas aún.</p>
+          <p class="text-gray-600 mb-4 text-xl md:text-base">No tens recomanacions personalitzades encara.</p>
           <router-link to="/formulario"
-            class="btn btn-primary w-full text-xl py-4 md:text-base md:py-2 bg-lime-400 text-lime-900 hover:bg-lime-500">Configura
-            tus preferencias</router-link>
+            class="btn btn-primary w-full text-sm md:text-xl py-2 md:py-4 bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 hover:from-green-600 hover:via-lime-500 hover:to-lime-400 hover:shadow-xl hover:brightness-110 transition-all duration-300 shadow-lg">Configura
+            les teves preferències</router-link>
         </div>
       </div>
     </main>

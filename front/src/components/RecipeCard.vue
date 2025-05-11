@@ -5,7 +5,7 @@
   >
     <img :src="image" :alt="title" class="h-52 w-full object-cover rounded-2xl mb-3 md:h-32" />
     <div class="p-4 flex-grow flex flex-col justify-between">
-      <h2 class="text-lg font-bold text-lime-700 truncate mb-1">{{ title }}</h2>
+      <h2 class="text-sm md:text-lg font-bold text-lime-700 md:truncate mb-1">{{ title }}</h2>
       <p class="text-base text-gray-700 line-clamp-2">{{ truncatedDescription }}</p>
     </div>
     
