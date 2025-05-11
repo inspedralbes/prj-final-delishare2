@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen bg-light flex flex-col">
+  <div class="min-h-screen bg-lime-50 flex flex-col">
     <!-- Header -->
     <header class="bg-white shadow sticky top-0 z-10 scroll-mt-16">
       <div class="flex items-center justify-between px-6 py-5 md:px-4 md:py-3">
         <img src="@/assets/images/delishare.png" alt="DeliShare" class="h-12 md:h-10" />
-        <router-link to="/notifications" class="text-dark hover:text-primary">
+        <router-link to="/notifications" class="text-lime-700 hover:text-lime-500">
           <svg class="h-8 w-8 md:h-7 md:w-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
@@ -15,15 +15,15 @@
     <!-- Hero -->
     <section class="relative">
       <img :src="carouselImages[currentImage]" alt="Carrusel" class="w-full h-64 md:h-56 lg:h-72 xl:h-80 object-cover rounded-b-xl transition-all duration-300" />
-      <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-b-xl"></div>
+      <div class="absolute inset-0 bg-gradient-to-t from-lime-500/70 to-transparent rounded-b-xl"></div>
       <div class="absolute bottom-6 left-0 w-full px-6 text-white">
-        <h1 class="text-3xl md:text-2xl lg:text-3xl font-bold leading-tight">Descubre nuevas recetas</h1>
-        <p class="text-xl md:text-base leading-snug">Comparte y explora recetas deliciosas con la comunidad</p>
+        <h1 class="text-3xl md:text-2xl lg:text-3xl font-bold leading-tight drop-shadow">Descubre nuevas recetas</h1>
+        <p class="text-xl md:text-base leading-snug drop-shadow">Comparte y explora recetas deliciosas con la comunidad</p>
       </div>
       <!-- Carousel indicators -->
       <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-3">
         <button v-for="(_, idx) in carouselImages" :key="idx" @click="currentImage = idx"
-          :class="['w-4 h-4 md:w-3 md:h-3 rounded-full', currentImage === idx ? 'bg-white' : 'bg-white/40']"></button>
+          :class="['w-4 h-4 md:w-3 md:h-3 rounded-full', currentImage === idx ? 'bg-lime-400' : 'bg-white/40']"></button>
       </div>
     </section>
 
@@ -34,9 +34,9 @@
         :key="tab.id"
         @click="activeTab = tab.id"
         :class="[
-          'flex-1 py-4 text-lg rounded-full font-semibold transition-all duration-200',
-          'md:py-2 md:text-sm',
-          activeTab === tab.id ? 'bg-primary text-white shadow' : 'bg-gray-100 text-gray-700'
+          'flex-1 py-2 px-2 text-sm rounded-full font-semibold transition-all duration-200',
+          'md:py-4 md:px-4 md:text-base',
+          activeTab === tab.id ? 'bg-lime-400 text-lime-900 shadow' : 'bg-lime-100 text-lime-700 hover:bg-lime-200'
         ]"
       >
         {{ tab.label }}
@@ -46,7 +46,7 @@
     <!-- Recipes -->
     <main class="flex-1 px-6 pb-10 md:px-4 md:pb-6">
       <div v-if="activeTab === 'popular'">
-        <h2 class="text-2xl md:text-xl font-bold mb-6 md:mb-2 text-dark">Más populares</h2>
+        <h2 class="text-2xl md:text-xl font-bold mb-6 md:mb-2 text-lime-700">Más populares</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-6">
           <RecipeCard
             v-for="(recipe, i) in displayedPopularRecipes"
@@ -55,12 +55,15 @@
             :title="recipe.title"
             :description="recipe.description || 'Sin descripción disponible'"
             :image="recipe.image"
-            class="text-lg p-6 rounded-2xl shadow-lg md:text-base md:p-4 md:rounded-xl md:shadow-md"
+            :class="[ 'text-lg p-6 rounded-2xl shadow-lg md:text-base md:p-4 md:rounded-xl md:shadow-md',
+              i === displayedPopularRecipes.length - 1 ? 'mb-8' : ''
+            ]"
+            imageClass="h-40 md:h-28 w-full object-cover rounded-xl mb-3"
           />
         </div>
       </div>
       <div v-else-if="activeTab === 'recent'">
-        <h2 class="text-2xl md:text-xl font-bold mb-6 md:mb-2 text-dark">Más recientes</h2>
+        <h2 class="text-2xl md:text-xl font-bold mb-6 md:mb-2 text-lime-700">Más recientes</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-6">
           <RecipeCard
             v-for="(recipe, i) in displayedRecentRecipes"
@@ -69,12 +72,15 @@
             :title="recipe.title"
             :description="recipe.description || 'Sin descripción disponible'"
             :image="recipe.image"
-            class="text-lg p-6 rounded-2xl shadow-lg md:text-base md:p-4 md:rounded-xl md:shadow-md"
+            :class="[ 'text-lg p-6 rounded-2xl shadow-lg md:text-base md:p-4 md:rounded-xl md:shadow-md',
+              i === displayedRecentRecipes.length - 1 ? 'mb-8' : ''
+            ]"
+            imageClass="h-40 md:h-28 w-full object-cover rounded-xl mb-3"
           />
         </div>
       </div>
       <div v-else>
-        <h2 class="text-2xl md:text-xl font-bold mb-6 md:mb-2 text-dark">Recomendadas para ti</h2>
+        <h2 class="text-2xl md:text-xl font-bold mb-6 md:mb-2 text-lime-700">Recomendadas para ti</h2>
         <div v-if="recommendedRecipes.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-6">
           <RecipeCard
             v-for="(recipe, i) in recommendedRecipes"
@@ -83,17 +89,21 @@
             :title="recipe.title"
             :description="recipe.description || 'Sin descripción disponible'"
             :image="recipe.image"
-            class="text-lg p-6 rounded-2xl shadow-lg md:text-base md:p-4 md:rounded-xl md:shadow-md"
+            :class="[ 'text-lg p-6 rounded-2xl shadow-lg md:text-base md:p-4 md:rounded-xl md:shadow-md',
+              i === recommendedRecipes.length - 1 ? 'mb-8' : ''
+            ]"
+            imageClass="h-40 md:h-28 w-full object-cover rounded-xl mb-3"
           />
         </div>
         <div v-else class="bg-white rounded-2xl shadow-lg p-8 text-center mt-8 md:rounded-xl md:shadow-md md:p-6 md:mt-4">
           <p class="text-gray-600 mb-4 text-xl md:text-base">No tienes recomendaciones personalizadas aún.</p>
-          <router-link to="/formulario" class="btn btn-primary w-full text-xl py-4 md:text-base md:py-2">Configura tus preferencias</router-link>
+          <router-link to="/formulario" class="btn btn-primary w-full text-xl py-4 md:text-base md:py-2 bg-lime-400 text-lime-900 hover:bg-lime-500">Configura tus preferencias</router-link>
         </div>
       </div>
     </main>
   </div>
 </template>
+
 
 <script>
 import communicationManager from '@/services/communicationManager';
