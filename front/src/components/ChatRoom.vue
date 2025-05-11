@@ -1,7 +1,7 @@
 <template>
   <div class="live-chat-container">
     <!-- Página de espera para usuarios normales -->
-    <div v-if="!isLiveStarted && !isChef && !liveEnded" class="waiting-room">
+    <div v-if="!isLiveStarted && !isChef" class="waiting-room">
       <div class="waiting-content">
         <div class="waiting-animation">
           <div class="cooking-icon">👨‍🍳</div>
@@ -53,10 +53,10 @@
     </div>
 
     <!-- Chat activo -->
-    <div v-if="isLiveStarted && !showEndMessage" class="active-chat">
+    <div v-if="isLiveStarted" class="active-chat">
       <div class="video-container" v-if="showVideo || isChef">
-        <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" autoplay :muted="isChef" playsinline class="live-video"
-          :class="{ 'video-active': isStreamActive, 'video-inactive': !isStreamActive }">
+        <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" autoplay :muted=" isChef" playsinline
+          class="live-video" :class="{ 'video-active': isStreamActive, 'video-inactive': !isStreamActive }">
         </video>
         <div class="video-overlay" v-if="!isStreamActive && !isChef">
           <p>El chef ha apagado la cámara</p>
@@ -77,21 +77,8 @@
         <div class="viewer-count" v-if="isChef">
           <span class="eye-icon">👁️</span> {{ activeUsers.length }} espectador(es)
         </div>
-        <!-- Botón para salir del live (visible para todos excepto chef) -->
-
       </div>
-      <div class="exit-buttons">
-        <button v-if="!isChef" @click="leaveLive" class="leave-button">
-          <span class="button-icon">🚪</span>
-          <span class="button-text">Salir del Live</span>
-        </button>
 
-        <!-- Botón para finalizar el live (solo visible para chef) -->
-        <button v-if="isChef" @click="endLiveForAll" class="end-button">
-          <span class="button-icon">🔴</span>
-          <span class="button-text">Finalizar Live</span>
-        </button>
-      </div>
       <div class="chat-header">
         <h3>💬 Chat en vivo</h3>
         <div class="active-users">
@@ -101,8 +88,6 @@
               <span v-if="activeUsers.length === 0">No hay otros usuarios conectados</span>
         </div>
       </div>
-
-
 
       <div class="chat-messages" ref="messagesContainer">
         <div v-for="(msg, index) in messages" :key="index" :class="['message', msg.username === username ? 'my-message' : 'other-message',
@@ -125,36 +110,22 @@
         </button>
       </div>
     </div>
-    <div v-if="showEndMessage" class="end-live-message">
-      <div class="end-message-content">
-        <h2>🎉 El live ha finalizado</h2>
-        <p>Gracias por participar. Puedes regresar a la página principal del evento.</p>
-        <button @click="redirectToLivePage()" class="return-button">
-          Volver a la página del live
-        </button>
-      </div>
 
-
-    </div>
-    <div v-if="!isConnected && !showEndMessage" class="connection-status">
+    <div v-if="!isConnected" class="connection-status">
       <div class="connection-loader"></div>
       <span>Conectando al chat...</span>
     </div>
   </div>
 </template>
-
-
 <script>
 import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { useRouter } from 'vue-router';
 import { io } from 'socket.io-client';
 import { useAuthStore } from '@/stores/authStore';
 import communicationManager from '@/services/communicationManager';
 
 export default {
   setup() {
-    const router = useRouter();
     const route = useRoute();
     const authStore = useAuthStore();
     const liveId = ref(route.params.liveId);
@@ -164,7 +135,6 @@ export default {
     const waitingUsers = ref([]);
     const messages = ref([]);
     const newMessage = ref('');
-    const liveEnded = ref(false);
     const isConnected = ref(false);
     const isLiveStarted = ref(false);
     const isChef = ref(false);
@@ -183,7 +153,6 @@ export default {
     const videoInitialized = ref(false);
     const isMuted = ref(false);
     const isAudioOn = ref(false);
-    const showEndMessage = ref(false);
 
     const configuration = {
       iceServers: [
@@ -196,17 +165,13 @@ export default {
     };
 
     const toggleMute = () => {
-      isMuted.value = !isMuted.value;
-      if (userVideo.value) {
-        userVideo.value.muted = isMuted.value;
-        console.log(`Usuario ${isMuted.value ? 'muteó' : 'desmuteó'} el audio`);
-      }
-    };
+  isMuted.value = !isMuted.value;
+  if (userVideo.value) {
+    userVideo.value.muted = isMuted.value;
+    console.log(`Usuario ${isMuted.value ? 'muteó' : 'desmuteó'} el audio`);
+  }
+};
 
-
-    const redirectToLivePage = () => {
-      router.push(`/live`);
-    };
 
     /// Alterna el estado del audio del chef
     const toggleAudio = () => {
@@ -224,77 +189,6 @@ export default {
           }
         }
       }
-    };
-    const leaveLive = () => {
-      if (!confirm('¿Estás seguro de que quieres salir del live?')) {
-        return;
-      }
-
-      if (!socket.value) return;
-
-      // Emitir evento para notificar la salida
-      socket.value.emit('leaveRoom', {
-        liveId: liveId.value,
-        username: username.value
-      });
-
-      // Limpiar recursos
-      if (userVideo.value && userVideo.value.srcObject) {
-        userVideo.value.srcObject.getTracks().forEach(track => track.stop());
-        userVideo.value.srcObject = null;
-      }
-
-      // Cerrar conexiones peer
-      closeAllPeerConnections();
-
-      // Desconectar del socket
-      socket.value.disconnect();
-      isConnected.value = false;
-      isLiveStarted.value = false;
-
-      // Redirigir a /live
-      router.push('/live');
-    };
-    const endLiveForAll = () => {
-      if (!isChef.value || !socket.value) return;
-
-      const confirmEnd = confirm('¿Estás seguro de que deseas finalizar la transmisión para todos?');
-      if (!confirmEnd) return;
-
-      console.log('Chef finalizando el live para todos...');
-
-      socket.value.emit('chefEndLive', { liveId: liveId.value }, (response) => {
-        if (response?.success) {
-          console.log('Live finalizado correctamente');
-
-          // Limpiar recursos
-          if (localStream.value) {
-            localStream.value.getTracks().forEach(track => track.stop());
-            localStream.value = null;
-          }
-
-          closeAllPeerConnections();
-          isLiveStarted.value = false;
-          isCameraOn.value = false;
-          isAudioOn.value = false;
-          isStreamActive.value = false;
-
-          // Mostrar mensaje final
-          showEndMessage.value = true;
-
-          // Desconectar del socket después de un tiempo
-          setTimeout(() => {
-            socket.value.disconnect();
-            isConnected.value = false;
-            router.push('/live'); // <-- esto
-
-          }, 1000);
-
-        } else {
-          console.error('Error al finalizar live:', response?.message);
-          alert('No se pudo finalizar el live. Inténtalo de nuevo.');
-        }
-      });
     };
 
     /// Alterna el estado de la cámara del chef
@@ -426,15 +320,15 @@ export default {
             userVideo.value.muted = false;
 
             const playPromise = userVideo.value.play();
-            if (playPromise !== undefined) {
-              playPromise
-                .then(() => {
-                  console.log('Reproducción iniciada');
-                })
-                .catch(error => {
-                  console.warn('Autoplay bloqueado, solicitando interacción del usuario');
-                });
-            }
+if (playPromise !== undefined) {
+  playPromise
+    .then(() => {
+      console.log('Reproducción iniciada');
+    })
+    .catch(error => {
+      console.warn('Autoplay bloqueado, solicitando interacción del usuario');
+    });
+}
           }
         };
       }
@@ -672,15 +566,15 @@ export default {
 
         socket.value = io('http://localhost:4000', {
           path: '/socket.io',
-          transports: ['websocket'],
-          upgrade: false,
-          query: {
-            liveId: liveId.value,
-            username: username.value,
-            isChef: isChef.value,
-            userId: authStore.user?.id || null
-          }
-        });
+  transports: ['websocket'],
+  upgrade: false,
+  query: {
+    liveId: liveId.value,
+    username: username.value,
+    isChef: isChef.value,
+    userId: authStore.user?.id || null
+  }
+});
 
         socket.value.on('connect', () => {
           console.log('Conectado al servidor:', socket.value.id);
@@ -707,51 +601,7 @@ export default {
               }
             }
           });
-          socket.value.on('liveEnded', () => {
-            isLiveStarted.value = false;
-            showEndMessage.value = true;
-            liveEnded.value = true;
-          });
-
-          // Modifica el handler para liveEnded
-          socket.value.on('liveEnded', (data) => {
-            console.log('Live finalizado por el chef:', data);
-
-            // Mostrar mensaje en el chat
-            messages.value.push({
-              username: 'Sistema',
-              message: data.message || 'El chef ha finalizado la transmisión en vivo.',
-
-              timestamp: new Date(),
-              isSystem: true
-            });
-
-            // Mostrar el div de live finalizado
-            showEndMessage.value = true;
-
-            // Detener streams y conexiones
-            if (userVideo.value && userVideo.value.srcObject) {
-              userVideo.value.srcObject.getTracks().forEach(track => track.stop());
-              userVideo.value.srcObject = null;
-            }
-
-            if (localStream.value) {
-              localStream.value.getTracks().forEach(track => track.stop());
-              localStream.value = null;
-            }
-
-            closeAllPeerConnections();
-
-            // Desconectar el socket pero no redirigir inmediatamente
-            setTimeout(() => {
-              if (socket.value) socket.value.disconnect();
-              isConnected.value = false;
-              isLiveStarted.value = false;
-            }, 1000);
-          });
-
         });
-
 
         socket.value.on('liveStarted', (data) => {
           console.log('Live iniciado:', data);
@@ -917,11 +767,7 @@ export default {
     // Hook de ciclo de vida: se ejecuta cuando el componente se monta
     onMounted(() => {
       initializeChat();
-
     });
-
-
-
 
     // Hook de ciclo de vida: se ejecuta cuando el componente se desmonta
     onUnmounted(() => {
@@ -953,8 +799,7 @@ export default {
       userVideo, isCameraOn, isAudioOn,
       toggleAudio, isStreamActive, isMuted,
       toggleMute, showVideo, toggleCamera,
-      requestChefVideo, leaveLive, redirectToLivePage, showEndMessage,
-      liveEnded, endLiveForAll
+      requestChefVideo
     };
   }
 };
@@ -973,74 +818,6 @@ export default {
   --border-radius: 12px;
   --chat-header-height: 60px;
   --chat-input-height: 80px;
-}
-
-/* Estilos para los nuevos botones */
-.exit-buttons {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-
-.leave-button,
-.end-button {
-  padding: 10px 20px;
-  border-radius: 20px;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-}
-
-/* En el estilo del componente */
-.live-ended-message {
-  background-color: #ffebee;
-  border-left: 4px solid #f44336;
-  padding: 15px;
-  margin: 10px 0;
-  border-radius: 4px;
-  text-align: center;
-  font-weight: bold;
-}
-
-.redirect-button {
-  margin-top: 10px;
-  padding: 8px 16px;
-  background-color: #f44336;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.redirect-button:hover {
-  background-color: #d32f2f;
-}
-
-.leave-button {
-  background-color: #ff6b6b;
-  color: white;
-}
-
-.leave-button:hover {
-  background-color: #ff5252;
-}
-
-.end-button {
-  background-color: #ff0000;
-  color: white;
-}
-
-.end-button:hover {
-  background-color: #cc0000;
-}
-
-.button-icon {
-  font-size: 1.2em;
 }
 
 /* Estilos base */
@@ -1141,32 +918,14 @@ body {
 
 /* Animaciones */
 @keyframes bounce {
-
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-15px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
 }
 
 @keyframes pulse {
-  0% {
-    transform: scale(0.8);
-    opacity: 0.2;
-  }
-
-  50% {
-    transform: scale(1.1);
-    opacity: 0.3;
-  }
-
-  100% {
-    transform: scale(0.8);
-    opacity: 0.2;
-  }
+  0% { transform: scale(0.8); opacity: 0.2; }
+  50% { transform: scale(1.1); opacity: 0.3; }
+  100% { transform: scale(0.8); opacity: 0.2; }
 }
 
 .dot-flashing {
@@ -1207,20 +966,9 @@ body {
 }
 
 @keyframes dot-flashing {
-  0% {
-    opacity: 0.2;
-    transform: scale(0.8);
-  }
-
-  50% {
-    opacity: 0.5;
-    transform: scale(1);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
+  0% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 0.5; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.2); }
 }
 
 /* Panel del chef */
@@ -1509,8 +1257,7 @@ body {
   padding: 1rem;
   background: #f9f9f9;
   scroll-behavior: smooth;
-  min-height: 0;
-  /* Fix for flexbox scrolling in some browsers */
+  min-height: 0; /* Fix for flexbox scrolling in some browsers */
 }
 
 .message {
@@ -1524,15 +1271,8 @@ body {
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .my-message {
@@ -1611,42 +1351,13 @@ body {
   margin-right: 0.5rem;
   font-size: 1rem;
   transition: var(--transition);
-  min-width: 0;
-  /* Fix for flexbox overflow */
+  min-width: 0; /* Fix for flexbox overflow */
 }
 
 .chat-input input:focus {
   outline: none;
   border-color: var(--secondary-color);
   box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.2);
-}
-
-.end-live-message {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2rem;
-  background-color: #f9f9f9;
-  border-top: 2px solid #ddd;
-  text-align: center;
-}
-
-.end-message-content {
-  max-width: 600px;
-  padding: 1.5rem;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.return-button {
-  margin-top: 1rem;
-  padding: 0.75rem 1.5rem;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
 }
 
 .send-button {
@@ -1701,9 +1412,7 @@ body {
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 /* Responsive Design */
@@ -1725,8 +1434,8 @@ body {
   .message {
     max-width: 90%;
     padding: 0.6rem 0.8rem;
-    font-size: 0.95rem;
-    color: #000;
+  font-size: 0.95rem;
+  color: #000;
   }
 
   .control-buttons {

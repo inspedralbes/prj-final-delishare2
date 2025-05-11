@@ -37,7 +37,7 @@ io.on('connection', (socket) => {
     socket.username = username;
     socket.isChef = isChef === 'true';
   }
-  
+ 
   // Registrar conexión de usuario para notificaciones
   if (userId) {
     userConnections.set(userId, socket.id);
@@ -134,49 +134,6 @@ io.on('connection', (socket) => {
       callback && callback({ success: false, error: error.message });
     }
   });
-
-  
-/// Maneja el evento de live terminado en los clientes
-socket.on('liveEnded', (data) => {
-  // Este evento se manejará en el cliente para mostrar el mensaje y redirigir
-  console.log('Live terminado:', data.message);
-});
-
-/// Maneja la finalización del live por parte del chef
-socket.on('chefEndLive', ({ liveId }, callback) => {
-  try {
-    const room = liveRooms.get(liveId);
-    if (!room) throw new Error('Sala no encontrada');
-
-    if (room.chefSocketId !== socket.id) {
-      throw new Error('No autorizado para finalizar el live');
-    }
-
-    // Notificar a todos que el live ha terminado
-    io.to(liveId).emit('liveEnded', {
-      message: 'El chef ha finalizado la transmisión en vivo. Serás redirigido...',
-      endedBy: room.chef,
-      redirectTo: '/live'
-    });
-
-    // Limpiar la sala
-    room.waitingUsers.clear();
-    room.activeUsers.clear();
-    room.isLiveActive = false;
-    room.hasVideo = false;
-    room.chef = null;
-    room.chefSocketId = null;
-
-    // Eliminar la sala del mapa
-    liveRooms.delete(liveId);
-
-    callback({ success: true });
-
-  } catch (error) {
-    console.error('❌ Error al finalizar live:', error);
-    callback({ success: false, message: error.message });
-  }
-});
 
   /// Maneja solicitudes de transmisión de video
   socket.on('requestVideoStream', ({ liveId }) => {
@@ -333,12 +290,12 @@ socket.on('chefEndLive', ({ liveId }, callback) => {
   socket.on('createNotification', async (notificationData) => {
     try {
       const { recipientId, message, recipeId, type, triggeredBy } = notificationData;
-      
+     
       console.log(`📢 Nueva notificación para usuario ${recipientId}: ${message}`);
-      
+     
       // Buscar socket del destinatario
       const recipientSocketId = userConnections.get(recipientId);
-      
+     
       const notification = {
         id: Date.now(), // Temporal, luego se reemplaza con ID real de BD
         message,
@@ -387,7 +344,7 @@ socket.on('chefEndLive', ({ liveId }, callback) => {
       console.log(`📌 Notificación ${notificationId} marcada como leída`);
       // Aquí actualizarías el estado en tu base de datos
       // await markNotificationAsReadInDB(notificationId);
-      
+     
       socket.emit('notificationRead', { success: true, notificationId });
     } catch (error) {
       console.error('❌ Error al marcar notificación como leída:', error);
@@ -412,7 +369,7 @@ socket.on('chefEndLive', ({ liveId }, callback) => {
           created_at: new Date().toISOString()
         }
       ];
-      
+     
       socket.emit('unreadNotifications', mockNotifications);
     } catch (error) {
       console.error('❌ Error al obtener notificaciones:', error);
@@ -424,7 +381,7 @@ socket.on('chefEndLive', ({ liveId }, callback) => {
   socket.on('disconnect', () => {
     try {
       console.log('🔌 Usuario desconectado:', socket.id);
-      
+     
       if (!socket.liveId) return;
 
       const room = liveRooms.get(socket.liveId);
@@ -465,7 +422,7 @@ socket.on('chefEndLive', ({ liveId }, callback) => {
           liveRooms.delete(socket.liveId);
         }
       }
-      
+     
       // Eliminar de userConnections si existe
       userConnections.forEach((socketId, userId) => {
         if (socketId === socket.id) {
