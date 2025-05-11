@@ -200,10 +200,20 @@ const communicationManager = {
     return apiClient.post('/register', userData)
       .then(response => response.data)
       .catch(error => {
-        console.error('Error registering user:', error);
-        throw error;
+        if (error.response && error.response.status === 422) {
+          const validationErrors = error.response.data.errors;
+          alert(Object.values(validationErrors).flat().join('\n'));
+          // Ya está manejado, no lo volvemos a lanzar
+          return null;
+        } else {
+          // Para errores inesperados sí mostramos algo
+          alert('Error inesperado en el registro. Intenta de nuevo.');
+          console.error('Error inesperado en el registro:', error);
+          return null;
+        }
       });
   },
+  
 
   login(userData) {
     return apiClient.post('/login', userData)

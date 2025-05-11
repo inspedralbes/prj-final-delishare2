@@ -11,6 +11,36 @@ use App\Models\Recommendation;
 
 class RecommendationController extends Controller
 {
+
+    public function getUserPreferences(Request $request)
+{
+    try {
+        $user = $request->user();
+        $recommendation = Recommendation::where('user_id', $user->id)->first();
+
+        if (!$recommendation) {
+            return response()->json([
+                'success' => true,
+                'data' => null
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'cuisines' => $recommendation->cuisine_ids,
+                'categories' => $recommendation->category_ids
+            ]
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener preferencias: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
     /**
      * Obtiene todas las cocinas y categorías disponibles
      *

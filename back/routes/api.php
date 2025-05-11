@@ -16,7 +16,7 @@ use App\Http\Controllers\LiveController;
 
 Route::get('/user/{id}/recipes', [InfoUserController::class, 'showRecipes']);
 Route::middleware('auth:sanctum')->group(function () {
-
+    Route::get('/recommendations/preferences', [RecommendationController::class, 'getUserPreferences']);
     Route::post('/recommendations/preferences', [RecommendationController::class, 'storePreferences']);
     Route::get('/user/preferences', [RecommendationController::class, 'getPreferenceNames']);
     Route::get('/recipes/recommended', [RecipeController::class, 'getRecommendedRecipes'])->middleware('auth:sanctum');
