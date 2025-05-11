@@ -41,6 +41,10 @@
               <label for="servings">Racions:</label>
               <input type="number" id="servings" v-model="recipe.servings" required class="full-width-input" min="1" />
             </div>
+            <div class="form-group">
+  <label for="promptExplanation">Explicació de la recepta (què vols cuinar?):</label>
+  <textarea id="promptExplanation" v-model="recipe.explanation" required placeholder="Ex: Vull fer un plat vegà ràpid per sopar..." class="full-width-input"></textarea>
+</div>
 
             <button type="button" @click="autofillRecipe" class="auto-fill-button">
               Omplir automàticament
@@ -202,6 +206,7 @@ export default {
     const cuisines = ref([]);
     const recipe = ref({
       title: "",
+      explanation: "",
       description: "",
       ingredients: [],
       steps: [],
@@ -359,6 +364,7 @@ Genera UNA RECEPTA DE CUINA en format JSON basada en aquestes dades:
 - Cuina: ${cuisineName}
 - Racions: ${servings}
 - Títol: ${recipe.value.title || "[crea un títol atractiu]"}
+- Explicació del que vol fer l'usuari: ${recipe.value.explanation}
 
 La recepta ha de ser EXCLUSIVAMENT sobre cuina i ha d'incloure:
 1. Descripció breu (màxim 2 frases)
