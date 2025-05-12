@@ -11,7 +11,7 @@ app.use(express.static('public'));
 // Configura el servidor Socket.IO con opciones CORS
 const io = new Server(http, {
   cors: {
-    origin: ["https://delishare.cat"],
+    origin: ["http://localhost:4000"],
     methods: ["GET", "POST"],
     credentials: true
   },
