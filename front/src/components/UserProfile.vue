@@ -267,9 +267,13 @@ export default {
       
       loading.value = true;
       try {
-        const response = await communicationManager.getChefLives(props.userId);
-        scheduledLives.value = Array.isArray(response?.lives) ? response.lives : 
-                              Array.isArray(response) ? response : [];
+        const response = await communicationManager.getUserLives(props.userId);
+        if (response.success && Array.isArray(response.lives)) {
+          scheduledLives.value = response.lives;
+        } else {
+          scheduledLives.value = [];
+          console.error('Formato de respuesta inválido:', response);
+        }
       } catch (err) {
         console.error('Error al cargar los lives:', err);
         error.value = 'Error al cargar los lives programados';

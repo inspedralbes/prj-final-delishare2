@@ -143,8 +143,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/lives/{live}', [LiveController::class, 'show']);   // Ver detalles de un live específico
     Route::put('/lives/{live}', [LiveController::class, 'update']); // Actualizar un live (solo el chef dueño)
     Route::delete('/lives/{live}', [LiveController::class, 'destroy']); // Eliminar un live (solo el chef dueño)
-    Route::get('/lives/chef', [LiveController::class, 'chefLives']); // Lives del chef actual
-});Route::get('/mis-lives', [LiveController::class, 'misLivesProgramados'])->middleware('auth:sanctum');
+    Route::get('/mis-lives', [LiveController::class, 'chefLives']); // Lives del chef actual
+});
+
+// Rutas públicas de lives
+Route::get('/users/{userId}/lives', [LiveController::class, 'getUserLives']); // Lives de un usuario específico
+//Route::get('/mis-lives', [LiveController::class, 'misLivesProgramados'])->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->post('/send-verification', [UserController::class, 'sendVerificationEmail']);
 Route::middleware('auth:sanctum')->put('/usuarios/{id}/rol', [AuthController::class, 'cambiarRol']);

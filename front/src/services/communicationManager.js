@@ -714,16 +714,7 @@ getRecipeSteps(recipeId) {
   // Obtener todos los lives disponibles
   getLives() {
     return apiClient.get('/lives')
-      .then(response => {
-        const responseData = response.data?.data || response.data;
-        if (Array.isArray(responseData)) {
-          return {
-            data: responseData,
-            success: response.data?.success || true
-          };
-        }
-        throw new Error('Formato de datos inesperado');
-      })
+      .then(response => response.data)
       .catch(error => {
         console.error('Error fetching lives:', error);
         const status = error.response?.status;
@@ -779,38 +770,13 @@ getRecipeSteps(recipeId) {
   async getChefLives() {
     try {
       const response = await apiClient.get('/mis-lives');
-      const lives = response.data?.data || [];
-      return { lives };
-    } catch (error) {
-      console.error('Error en fetch getChefLives:', error);
-      throw new Error(error.response?.data?.message || 'Error al obtener los lives del chef');
-    }
-  },
-
-  // Eliminar un live (solo chef dueño)
-  async deleteLive(liveId) {
-    try {
-      const response = await apiClient.delete(`/lives/${liveId}`);
       return response.data;
     } catch (error) {
-      console.error('Error eliminando live:', error);
-      throw new Error(error.response?.data?.message || 'Error al eliminar el live');
-    }
-  },
-  // Obtener información de un usuario específico
-  getUserInfo: async (userId) => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error("No token found");
-
-      const response = await axios.get(`https://delishare.cat/api/userInfo/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      return response.data;
-    } catch (error) {
+      console.error('Error fetching chef lives:', error);
       throw error;
     }
   },
+
   // Obtener los lives de un chef específico por su ID
   getChefLivesByUserId: async (userId) => {
     try {
@@ -825,6 +791,41 @@ getRecipeSteps(recipeId) {
     }
   },
 
+  // Obtener información de un usuario específico
+  getUserInfo: async (userId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error("No token found");
+
+      const response = await axios.get(`https://delishare.cat/api/userInfo/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Obtener los lives de un usuario específico
+  async getUserLives(userId) {
+    try {
+      const response = await apiClient.get(`/users/${userId}/lives`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user getUserLives:', error);
+      throw error;
+    }
+  },
+  // Eliminar un live (solo chef dueño)
+  async deleteLive(liveId) {
+    try {
+      const response = await apiClient.delete(`/lives/${liveId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error eliminando live:', error);
+      throw new Error(error.response?.data?.message || 'Error al eliminar el live');
+    }
+  },
 
   // Notificaciones
   async getUserNotifications() {

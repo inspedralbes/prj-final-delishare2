@@ -256,4 +256,71 @@ public function misLivesProgramados()
             ], 500);
         }
     }
+
+    public function chefLives()
+    {
+        try {
+            $user = Auth::user();
+            
+            if ($user->role !== 'chef') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Solo los chefs pueden ver sus lives programados'
+                ], 403);
+            }
+
+            $lives = Live::with(['recipe'])
+                        ->where('user_id', $user->id)
+                        ->where('dia', '>=', now()->format('Y-m-d'))
+                        ->orderBy('dia')
+                        ->orderBy('hora')
+                        ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $lives
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error al obtener los lives programados del chef: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener tus lives programados',
+                'error' => env('APP_DEBUG') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
+// LiveController.php
+public function getUserLives($userId)
+{
+    try {
+        $user = User::findOrFail($userId);
+
+        // Si no es chef, no devolvemos lives
+        if ($user->role !== 'chef') {
+            return response()->json([
+                'success' => true,
+                'lives' => []
+            ]);
+        }
+
+        $lives = Live::with('recipe')
+            ->where('user_id', $user->id)
+            ->where('dia', '>=', now()->format('Y-m-d'))
+            ->orderBy('dia')
+            ->orderBy('hora')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'lives' => $lives
+        ]);
+    } catch (\Exception $e) {
+        Log::error("Error al obtener lives del usuario $userId: " . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'No se pudieron obtener los lives del usuario.'
+        ], 500);
+    }
+}
+
 }

@@ -55,8 +55,8 @@
     <!-- Chat activo -->
     <div v-if="isLiveStarted" class="active-chat">
       <div class="video-container" v-if="showVideo || isChef">
-        <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" autoplay :muted=" isChef" playsinline
-          class="live-video" :class="{ 'video-active': isStreamActive, 'video-inactive': !isStreamActive }">
+        <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" autoplay :muted="isChef" playsinline class="live-video"
+          :class="{ 'video-active': isStreamActive, 'video-inactive': !isStreamActive }">
         </video>
         <div class="video-overlay" v-if="!isStreamActive && !isChef">
           <p>El chef ha apagado la cámara</p>
@@ -165,12 +165,12 @@ export default {
     };
 
     const toggleMute = () => {
-  isMuted.value = !isMuted.value;
-  if (userVideo.value) {
-    userVideo.value.muted = isMuted.value;
-    console.log(`Usuario ${isMuted.value ? 'muteó' : 'desmuteó'} el audio`);
-  }
-};
+      isMuted.value = !isMuted.value;
+      if (userVideo.value) {
+        userVideo.value.muted = isMuted.value;
+        console.log(`Usuario ${isMuted.value ? 'muteó' : 'desmuteó'} el audio`);
+      }
+    };
 
 
     /// Alterna el estado del audio del chef
@@ -320,15 +320,15 @@ export default {
             userVideo.value.muted = false;
 
             const playPromise = userVideo.value.play();
-if (playPromise !== undefined) {
-  playPromise
-    .then(() => {
-      console.log('Reproducción iniciada');
-    })
-    .catch(error => {
-      console.warn('Autoplay bloqueado, solicitando interacción del usuario');
-    });
-}
+            if (playPromise !== undefined) {
+              playPromise
+                .then(() => {
+                  console.log('Reproducción iniciada');
+                })
+                .catch(error => {
+                  console.warn('Autoplay bloqueado, solicitando interacción del usuario');
+                });
+            }
           }
         };
       }
@@ -564,17 +564,17 @@ if (playPromise !== undefined) {
       if (!userError.value) {
         console.log(`Inicializando chat como ${isChef.value ? 'CHEF' : 'USUARIO'} para sala ${liveId.value}`);
 
-  socket.value = io('http://localhost:4000', {
-  path: '/socket.io',
-  transports: ['websocket'],
-  upgrade: false,
-  query: {
-    liveId: liveId.value,
-    username: username.value,
-    isChef: isChef.value,
-    userId: authStore.user?.id || null
-  }
-});
+        socket.value = io('https://delishare.cat', {
+          path: '/socket.io',
+          transports: ['websocket'],
+          upgrade: false,
+          query: {
+            liveId: liveId.value,
+            username: username.value,
+            isChef: isChef.value,
+            userId: authStore.user?.id || null
+          }
+        });
 
         socket.value.on('connect', () => {
           console.log('Conectado al servidor:', socket.value.id);
@@ -918,14 +918,32 @@ body {
 
 /* Animaciones */
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
 }
 
 @keyframes pulse {
-  0% { transform: scale(0.8); opacity: 0.2; }
-  50% { transform: scale(1.1); opacity: 0.3; }
-  100% { transform: scale(0.8); opacity: 0.2; }
+  0% {
+    transform: scale(0.8);
+    opacity: 0.2;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 0.3;
+  }
+
+  100% {
+    transform: scale(0.8);
+    opacity: 0.2;
+  }
 }
 
 .dot-flashing {
@@ -966,9 +984,20 @@ body {
 }
 
 @keyframes dot-flashing {
-  0% { opacity: 0.2; transform: scale(0.8); }
-  50% { opacity: 0.5; transform: scale(1); }
-  100% { opacity: 1; transform: scale(1.2); }
+  0% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 /* Panel del chef */
@@ -1257,7 +1286,8 @@ body {
   padding: 1rem;
   background: #f9f9f9;
   scroll-behavior: smooth;
-  min-height: 0; /* Fix for flexbox scrolling in some browsers */
+  min-height: 0;
+  /* Fix for flexbox scrolling in some browsers */
 }
 
 .message {
@@ -1271,8 +1301,15 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .my-message {
@@ -1351,7 +1388,8 @@ body {
   margin-right: 0.5rem;
   font-size: 1rem;
   transition: var(--transition);
-  min-width: 0; /* Fix for flexbox overflow */
+  min-width: 0;
+  /* Fix for flexbox overflow */
 }
 
 .chat-input input:focus {
@@ -1412,7 +1450,9 @@ body {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive Design */
@@ -1434,8 +1474,8 @@ body {
   .message {
     max-width: 90%;
     padding: 0.6rem 0.8rem;
-  font-size: 0.95rem;
-  color: #000;
+    font-size: 0.95rem;
+    color: #000;
   }
 
   .control-buttons {

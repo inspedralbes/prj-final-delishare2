@@ -680,7 +680,12 @@ export default {
         if (!isChef.value) return;
 
         const response = await communicationManager.getChefLives();
-        scheduledLives.value = response.lives;
+        if (response.success && Array.isArray(response.data)) {
+          scheduledLives.value = response.data;
+        } else {
+          scheduledLives.value = [];
+          console.warn('Unexpected response format from getChefLives:', response);
+        }
       } catch (error) {
         popupMessage.value = error.message || "No s'han pogut carregar els lives";
         setTimeout(() => { popupMessage.value = ''; }, 3000);
