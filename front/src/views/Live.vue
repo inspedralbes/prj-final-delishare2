@@ -1,75 +1,171 @@
 <template>
-  <div class="lives-container">
-    <div class="header">
-      <h1>🎥 Lives Programados</h1>
-      <p>Únete a nuestras transmisiones en vivo de cocina</p>
-    </div>
+  <div class="min-h-screen bg-lime-50 flex flex-col">
+    <!-- Hero Section with animated background -->
+    <section class="relative overflow-hidden">
+      <div class="bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 py-16 relative">
+        <div class="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
+        <!-- Animated circles decoration -->
+        <div class="absolute inset-0 overflow-hidden">
+          <div
+            class="absolute -left-10 -top-10 w-40 h-40 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob">
+          </div>
+          <div
+            class="absolute -right-10 -top-10 w-40 h-40 bg-lime-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000">
+          </div>
+          <div
+            class="absolute -bottom-10 left-20 w-40 h-40 bg-green-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000">
+          </div>
+        </div>
 
-    <!-- Añadido el buscador aquí -->
-    <div class="search-container">
-      <div class="search-box">
-        <input
-          type="text"
-          v-model="searchQuery"
-          @input="handleSearch"
-          placeholder="Buscar lives por título o chef..."
-          class="search-input"
-        />
-        <span class="search-icon">🔍</span>
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+          <div class="text-center">
+
+            <h1 class="text-4xl tracking-tight font-extrabold text-lime-900 sm:text-5xl md:text-6xl">
+              <span
+                class="block bg-gradient-to-r from-lime-900 via-lime-700 to-green-800 bg-clip-text text-transparent">
+                Lives en Directo
+              </span>
+              <span class="block text-2xl mt-3 text-lime-700 font-medium">
+                Aprende y cocina en tiempo real con chefs expertos
+              </span>
+            </h1>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search Section with floating elements -->
+    <div class="w-full px-6 -mt-8 relative z-20 flex justify-center">
+      <div
+        class="w-full sm:w-5/6 md:w-4/5 lg:w-3/4 xl:w-2/3 2xl:w-1/2 transform hover:scale-105 transition-transform duration-300">
+        <div class="relative">
+          <input type="text" v-model="searchQuery" @input="handleSearch" placeholder="Buscar lives por título o chef..."
+            class="w-full px-8 py-5 text-lg text-lime-900 border-2 border-lime-300 rounded-full focus:outline-none focus:ring-4 focus:ring-lime-300/50 focus:border-lime-400 bg-white/80 backdrop-blur-sm shadow-lg" />
+          <div class="absolute inset-y-0 right-0 pr-8 flex items-center pointer-events-none">
+            <svg class="w-6 h-6 text-lime-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div v-if="loading" class="loading-spinner">
-      <div class="spinner"></div>
-      <p>Cargando lives...</p>
-    </div>
 
-    <div v-else-if="error" class="error-message">
-      <p>⚠️ {{ error }}</p>
-      <button @click="fetchLives" class="retry-btn">Reintentar</button>
-    </div>
-
-    <div v-else-if="filteredLives.length === 0 && searchQuery" class="no-results">
-      <p>No se encontraron resultados para "{{ searchQuery }}"</p>
-    </div>
-
-    <div v-else-if="displayedLives.length === 0" class="no-lives">
-      <p>No hay lives programados actualmente.</p>
-    </div>
-
-    <div v-else class="lives-grid">
-      <div v-for="live in displayedLives" :key="live.id" class="live-card">
-        <div class="live-header">
-          <img :src="live.chef.img || defaultProfile" alt="Chef" class="chef-avatar">
-          <div class="chef-info">
-            <h3>{{ live.chef.name }}</h3>
-            <p class="chef-role">Chef profesional</p>
-          </div>
+    <!-- Loading State with animated chef hat -->
+    <div v-if="loading" class="max-w-7xl mx-auto px-6 py-12">
+      <div class="flex flex-col items-center justify-center">
+        <div class="relative">
+          <div class="w-16 h-16 border-4 border-lime-300 border-dashed rounded-full animate-spin"></div>
+          <span class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl">👨‍🍳</span>
         </div>
+        <p class="mt-4 text-lime-700 font-medium animate-pulse">Preparando los lives...</p>
+      </div>
+    </div>
 
-        <div class="live-content">
-          <h2>{{ live.recipe.title }}</h2>
-          <p class="recipe-description">{{ live.recipe.description }}</p>
+    <!-- Error State with shake animation -->
+    <div v-else-if="error" class="max-w-7xl mx-auto px-6 py-12">
+      <div
+        class="bg-red-50 rounded-xl p-8 text-center border border-red-200 shadow-lg hover:shadow-xl transition-all duration-300 animate-shake">
+        <div class="text-4xl mb-4">😕</div>
+        <p class="text-red-600 mb-4 font-medium">⚠️ {{ error }}</p>
+        <button @click="fetchLives"
+          class="bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 px-8 py-3 rounded-full hover:from-green-600 hover:via-lime-500 hover:to-lime-400 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-medium">
+          Volver a intentar
+        </button>
+      </div>
+    </div>
 
-          <div class="live-datetime">
-            <div class="date">
-              <span class="icon">📅</span>
-              {{ formatDate(live.dia) }}
-            </div>
-            <div class="time">
-              <span class="icon">⏰</span>
-              {{ live.hora }}
+    <!-- No Results State -->
+    <div v-else-if="filteredLives.length === 0 && searchQuery" class="max-w-7xl mx-auto px-6 py-12">
+      <div class="text-center">
+        <div class="text-6xl mb-4">🔍</div>
+        <p class="text-lime-700 text-xl">No encontramos resultados para "<span class="font-semibold">{{ searchQuery
+            }}</span>"</p>
+      </div>
+    </div>
+
+    <!-- No Lives State -->
+    <div v-else-if="displayedLives.length === 0" class="max-w-7xl mx-auto px-6 py-12">
+      <div class="text-center">
+        <div class="text-6xl mb-4">📅</div>
+        <p class="text-lime-700 text-xl">No hay lives programados actualmente</p>
+      </div>
+    </div>
+
+    <!-- Lives Grid with hover effects -->
+    <div v-else class="max-w-7xl mx-auto px-6 py-12">
+      <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+        <div v-for="live in displayedLives" :key="live.id"
+          class="group bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
+          <!-- Chef Info with hover effect -->
+          <div
+            class="p-6 bg-gradient-to-r from-lime-50 to-green-50 group-hover:from-lime-100 group-hover:to-green-100 transition-colors duration-300">
+            <div class="flex items-center space-x-4">
+              <div class="relative">
+                <img :src="live.chef.img || defaultProfile" alt="Chef"
+                  class="h-16 w-16 rounded-full object-cover border-2 border-white shadow-md group-hover:scale-110 transition-transform duration-300">
+                <div class="absolute -bottom-1 -right-1 bg-lime-400 rounded-full p-1 border-2 border-white">
+                  <svg class="w-4 h-4 text-lime-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-lime-900">{{ live.chef.name }}</h3>
+                <p class="text-sm text-lime-600 flex items-center">
+                  <span class="mr-1">⭐</span> Chef profesional
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="live-actions">
-          <button class="reminder-btn" @click="setReminder(live)">
-            ⏰ Recordarme
-          </button>
-          <button class="join-btn" @click="joinLive(live)">
-            🎥 Unirse al Live
-          </button>
+          <!-- Recipe Info with interactive elements -->
+          <div class="p-6 space-y-6">
+            <div>
+              <h2 class="text-xl font-bold text-lime-900 group-hover:text-lime-700 transition-colors duration-300">
+                {{ live.recipe.title }}
+              </h2>
+              <p class="text-lime-600 mt-2 line-clamp-2 group-hover:line-clamp-none transition-all duration-300">
+                {{ live.recipe.description }}
+              </p>
+            </div>
+
+            <!-- Date and Time with animated icons -->
+            <div class="flex space-x-6">
+              <div
+                class="flex items-center text-lime-700 bg-lime-50 px-4 py-2 rounded-full group-hover:bg-lime-100 transition-colors duration-300">
+                <svg class="w-5 h-5 mr-2 text-lime-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                {{ formatDate(live.dia) }}
+              </div>
+              <div
+                class="flex items-center text-lime-700 bg-lime-50 px-4 py-2 rounded-full group-hover:bg-lime-100 transition-colors duration-300">
+                <svg class="w-5 h-5 mr-2 text-lime-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {{ live.hora }}
+              </div>
+            </div>
+
+            <!-- Actions with dynamic effects -->
+            <div class="flex space-x-4">
+              <button @click="setReminder(live)"
+                class="flex-1 bg-gradient-to-r from-yellow-400 to-yellow-300 text-yellow-900 px-4 py-3 rounded-xl transition-all duration-300 hover:shadow-lg hover:brightness-110 hover:scale-105 flex items-center justify-center font-medium">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Recordarme
+              </button>
+              <button @click="joinLive(live)"
+                class="flex-1 bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 px-4 py-3 rounded-xl transition-all duration-300 hover:shadow-lg hover:brightness-110 hover:scale-105 flex items-center justify-center font-medium">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                ¡Unirme!
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -96,7 +192,7 @@ export default {
       if (!searchQuery.value.trim()) {
         return lives.value;
       }
-      
+
       const query = searchQuery.value.toLowerCase();
       return lives.value.filter(live => {
         return (
@@ -160,7 +256,7 @@ export default {
     const joinLive = (live) => {
       router.push({
         name: 'ChatRoom', // Usa el nombre de la ruta
-        params: { 
+        params: {
           liveId: live.id // Asegúrate que live.id existe
         }
       });
@@ -209,229 +305,54 @@ export default {
 };
 </script>
 
-<style scoped>
-.lives-container {
-  max-width: 1200px;
-  margin:  auto;
-  padding: 2rem;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.header h1 {
-  font-size: 2.5rem;
-  color: #2c3e50;
-}
-
-.header p {
-  font-size: 1.2rem;
-  color: #7f8c8d;
-}
-
-/* Estilos para el buscador */
-.search-container {
-  margin-bottom: 2rem;
-}
-
-.search-box {
-  position: relative;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.search-input {
-  width: 100%;
-  padding: 12px 20px;
-  padding-left: 45px;
-  border: 2px solid #e0e0e0;
-  border-radius: 30px;
-  font-size: 16px;
-  outline: none;
-  transition: all 0.3s;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.search-input:focus {
-  border-color: #e74c3c;
-}
-
-.search-icon {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1.2rem;
-  color: #7f8c8d;
-}
-
-.no-results {
-  text-align: center;
-  padding: 2rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  color: #e74c3c;
-}
-
-.loading-spinner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 200px;
-}
-
-.spinner {
-  border: 5px solid #f3f3f3;
-  border-top: 5px solid #3498db;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
+<style>
+@keyframes blob {
   0% {
-    transform: rotate(0deg);
+    transform: translate(0px, 0px) scale(1);
+  }
+
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
   }
 
   100% {
-    transform: rotate(360deg);
+    transform: translate(0px, 0px) scale(1);
   }
 }
 
-.error-message {
-  text-align: center;
-  padding: 2rem;
-  background-color: #ffecec;
-  border-radius: 8px;
-  color: #e74c3c;
+.animate-blob {
+  animation: blob 7s infinite;
 }
 
-.retry-btn {
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.animation-delay-2000 {
+  animation-delay: 2s;
 }
 
-.no-lives {
-  text-align: center;
-  padding: 2rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
+.animation-delay-4000 {
+  animation-delay: 4s;
 }
 
-.lives-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 2rem;
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(5px);
+  }
+
+  75% {
+    transform: translateX(-5px);
+  }
 }
 
-.live-card {
-  background-color: white;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-}
-
-.live-card:hover {
-  transform: translateY(-5px);
-}
-
-.live-header {
-  display: flex;
-  align-items: center;
-  padding: 1.5rem;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #eee;
-}
-
-.chef-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-right: 1rem;
-}
-
-.chef-info h3 {
-  margin: 0;
-  font-size: 1.2rem;
-}
-
-.chef-role {
-  margin: 0;
-  color: #7f8c8d;
-  font-size: 0.9rem;
-}
-
-.live-content {
-  padding: 1.5rem;
-}
-
-.live-content h2 {
-  margin-top: 0;
-  color: #2c3e50;
-}
-
-.recipe-description {
-  color: #7f8c8d;
-  margin-bottom: 1.5rem;
-}
-
-.live-datetime {
-  display: flex;
-  gap: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.live-datetime .date,
-.live-datetime .time {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.live-actions {
-  display: flex;
-  padding: 0 1.5rem 1.5rem;
-  gap: 1rem;
-}
-
-.reminder-btn,
-.join-btn {
-  flex: 1;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 6px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.reminder-btn {
-  background-color: #f1c40f;
-  color: #34495e;
-}
-
-.join-btn {
-  background-color: #e74c3c;
-  color: white;
-}
-
-.reminder-btn:hover {
-  background-color: #f39c12;
-}
-
-.join-btn:hover {
-  background-color: #c0392b;
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
 }
 </style>
