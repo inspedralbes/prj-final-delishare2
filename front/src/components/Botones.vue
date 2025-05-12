@@ -14,8 +14,9 @@
       <button 
         v-for="dato in categorias" 
         :key="dato.id" 
-        class="button-secondary"
-        @click="filtrarPorCategoria(dato.id)"
+        class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
+        :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedCategories.includes(dato.id) }"
+        @click="toggleCategory(dato.id)"
       >
         {{ dato.name }}
       </button>
@@ -38,10 +39,11 @@
       <button 
         v-for="time in times" 
         :key="time"
-        class="button-secondary"
-        @click="filtrarPorTiempo(time)"
+        class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
+        :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedTimes.includes(time) }"
+        @click="toggleTime(time)"
       >
-        {{ time }} minutos
+        {{ time }} minuts
       </button>
     </div>
 
@@ -50,7 +52,7 @@
       <div class="ingredient-selection">
         <!-- Mostrar ingredientes seleccionados -->
         <div v-if="selectedIngredients.length" class="selected-ingredients">
-          <span class="selected-label">Seleccionados:</span>
+          <span class="selected-label">Seleccionats:</span>
           <span v-for="ingredient in selectedIngredients" :key="ingredient" class="ingredient-tag">
             {{ ingredient }}
             <button @click="removeIngredient(ingredient)" class="remove-btn">×</button>
@@ -77,22 +79,25 @@
     <!-- Subbotones para Dificultad -->
     <div v-if="activeButton === 'dificultad'" class="subbutton-group">
       <button 
-        class="button-secondary"
-        @click="filtrarPorDificultad('facil')"
+        class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
+        :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedDifficulties.includes('facil') }"
+        @click="toggleDifficulty('facil')"
       >
-        Fácil (1-5 pasos)
+        Fàcil (1-5 passos)
       </button>
       <button 
-        class="button-secondary"
-        @click="filtrarPorDificultad('regular')"
+        class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
+        :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedDifficulties.includes('regular') }"
+        @click="toggleDifficulty('regular')"
       >
-        Regular (6-10 pasos)
+        Regular (6-10 passos)
       </button>
       <button 
-        class="button-secondary"
-        @click="filtrarPorDificultad('dificil')"
+        class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
+        :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedDifficulties.includes('dificil') }"
+        @click="toggleDifficulty('dificil')"
       >
-        Difícil (10+ pasos)
+        Difícil (10+ passos)
       </button>
     </div>
 
@@ -107,6 +112,24 @@
         :image="receta.image"
       />
     </div>
+
+    <h3 class="font-bold text-[#166534] mb-3">Filtres seleccionats:</h3>
+    <button 
+      @click="applyAllFilters" 
+      class="px-4 py-2 text-sm bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full hover:from-[#16a34a] hover:to-[#bef264] transition-all duration-200 shadow-sm font-medium"
+      :disabled="!hasSelectedFilters"
+      :class="{ 'opacity-50 cursor-not-allowed': !hasSelectedFilters }"
+    >
+      Aplicar filtres
+    </button>
+    <button 
+      @click="clearAllFilters" 
+      class="px-4 py-2 text-sm bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-sm font-medium"
+      :disabled="!hasSelectedFilters"
+      :class="{ 'opacity-50 cursor-not-allowed': !hasSelectedFilters }"
+    >
+      Netejar filtres
+    </button>
   </div>
 </template>
 
@@ -134,6 +157,10 @@ export default {
     const activeButton = ref('');
     const selectedIngredients = ref([]);
     const isLoading = ref(false);
+    const selectedCategories = ref([]);
+    const selectedCuisines = ref([]);
+    const selectedTimes = ref([]);
+    const selectedDifficulties = ref([]);
 
     // Cargar datos al montar el componente
     onMounted(() => {
@@ -308,6 +335,33 @@ export default {
       }
     };
 
+    const toggleCategory = (categoryId) => {
+      const index = selectedCategories.value.indexOf(categoryId);
+      if (index === -1) {
+        selectedCategories.value.push(categoryId);
+      } else {
+        selectedCategories.value.splice(index, 1);
+      }
+    };
+
+    const toggleTime = (time) => {
+      const index = selectedTimes.value.indexOf(time);
+      if (index === -1) {
+        selectedTimes.value.push(time);
+      } else {
+        selectedTimes.value.splice(index, 1);
+      }
+    };
+
+    const toggleDifficulty = (difficulty) => {
+      const index = selectedDifficulties.value.indexOf(difficulty);
+      if (index === -1) {
+        selectedDifficulties.value.push(difficulty);
+      } else {
+        selectedDifficulties.value.splice(index, 1);
+      }
+    };
+
     return {
       categorias,
       cuisines,
@@ -317,6 +371,10 @@ export default {
       activeButton,
       selectedIngredients,
       isLoading,
+      selectedCategories,
+      selectedCuisines,
+      selectedTimes,
+      selectedDifficulties,
       obtenerCategorias,
       obtenerCuisines,
       obtenerTimes,
@@ -331,6 +389,9 @@ export default {
       isIngredientSelected,
       clearIngredients,
       applyIngredientFilter,
+      toggleCategory,
+      toggleTime,
+      toggleDifficulty,
     };
   },
 };
