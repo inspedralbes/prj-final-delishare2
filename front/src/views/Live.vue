@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-lime-50 flex flex-col">
     <!-- Hero Section with animated background -->
-    <section class="relative overflow-hidden pt-16">
+    <section class="relative overflow-hidden">
       <div class="bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 py-16 relative">
         <div class="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
         <!-- Animated circles decoration -->
@@ -23,10 +23,10 @@
             <h1 class="text-4xl tracking-tight font-extrabold text-lime-900 sm:text-5xl md:text-6xl">
               <span
                 class="block bg-gradient-to-r from-lime-900 via-lime-700 to-green-800 bg-clip-text text-transparent">
-                Lives en Directo
+                Lives en Directe
               </span>
               <span class="block text-2xl mt-3 text-lime-700 font-medium">
-                Aprende y cocina en tiempo real con chefs expertos
+                Aprèn i cuina en temps real amb xefs experts
               </span>
             </h1>
           </div>
@@ -39,7 +39,7 @@
       <div
         class="w-full sm:w-5/6 md:w-4/5 lg:w-3/4 xl:w-2/3 2xl:w-1/2 transform hover:scale-105 transition-transform duration-300">
         <div class="relative">
-          <input type="text" v-model="searchQuery" @input="handleSearch" placeholder="Buscar lives por título o chef..."
+          <input type="text" v-model="searchQuery" @input="handleSearch" placeholder="Cerca lives per títol o xef..."
             class="w-full px-8 py-5 text-lg text-lime-900 border-2 border-lime-300 rounded-full focus:outline-none focus:ring-4 focus:ring-lime-300/50 focus:border-lime-400 bg-white/80 backdrop-blur-sm shadow-lg" />
           <div class="absolute inset-y-0 right-0 pr-8 flex items-center pointer-events-none">
             <svg class="w-6 h-6 text-lime-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,7 +58,7 @@
           <div class="w-16 h-16 border-4 border-lime-300 border-dashed rounded-full animate-spin"></div>
           <span class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl">👨‍🍳</span>
         </div>
-        <p class="mt-4 text-lime-700 font-medium animate-pulse">Preparando los lives...</p>
+        <p class="mt-4 text-lime-700 font-medium animate-pulse">Preparant els lives...</p>
       </div>
     </div>
 
@@ -70,7 +70,7 @@
         <p class="text-red-600 mb-4 font-medium">⚠️ {{ error }}</p>
         <button @click="fetchLives"
           class="bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 px-8 py-3 rounded-full hover:from-green-600 hover:via-lime-500 hover:to-lime-400 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-medium">
-          Volver a intentar
+          Tornar a intentar
         </button>
       </div>
     </div>
@@ -79,7 +79,7 @@
     <div v-else-if="filteredLives.length === 0 && searchQuery" class="max-w-7xl mx-auto px-6 py-12">
       <div class="text-center">
         <div class="text-6xl mb-4">🔍</div>
-        <p class="text-lime-700 text-xl">No encontramos resultados para "<span class="font-semibold">{{ searchQuery
+        <p class="text-lime-700 text-xl">No hem trobat resultats per "<span class="font-semibold">{{ searchQuery
             }}</span>"</p>
       </div>
     </div>
@@ -88,7 +88,7 @@
     <div v-else-if="displayedLives.length === 0" class="max-w-7xl mx-auto px-6 py-12">
       <div class="text-center">
         <div class="text-6xl mb-4">📅</div>
-        <p class="text-lime-700 text-xl">No hay lives programados actualmente</p>
+        <p class="text-lime-700 text-xl">No hi ha lives programats actualment</p>
       </div>
     </div>
 
@@ -104,16 +104,32 @@
               <div class="relative">
                 <img :src="live.chef.img || defaultProfile" alt="Chef"
                   class="h-16 w-16 rounded-full object-cover border-2 border-white shadow-md group-hover:scale-110 transition-transform duration-300">
-                <div class="absolute -bottom-1 -right-1 bg-lime-400 rounded-full p-1 border-2 border-white">
-                  <svg class="w-4 h-4 text-lime-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                <div class="absolute -bottom-1 -right-1 bg-lime-400 rounded-full p-1.5 border-2 border-white">
+                  <svg class="w-5 h-5 text-lime-800" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M89.5817 120C58.6934 91.5024 74.0344 44.757 110.302 41.133C127.029 39.4629 149.113 54.0714 159.999 54.0714C194.568 54.0714 228.221 27.2561 260.493 54.0714C279.192 69.6052 269.699 99.5044 257.006 107.036" stroke="currentColor" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M90 117C142.667 111.566 197.696 95.755 250 112.449" stroke="currentColor" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M93.0559 139C92.8995 145.073 93.028 151.088 94 157" stroke="currentColor" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M97 155.173C145.65 132.936 205.18 134.027 254 156" stroke="currentColor" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M253 131C253.464 138.692 254 146.28 254 154" stroke="currentColor" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M93.7931 186.199C85.6744 187.218 87.5015 211.695 103.941 211.695C103.941 305 263.001 295 247.277 202.221C256 202.221 265.677 181.04 253.5 179" stroke="currentColor" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M160 206C160.457 203.005 160.774 199.981 161 197" stroke="currentColor" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M196 206C196 203.545 196 200.005 196 197" stroke="currentColor" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M186 245C179.911 247.785 172.5 249.957 168 245.225" stroke="currentColor" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M38 360C47.0818 317.424 79.2813 287.286 125.151 287.286C125.88 287.286 154.503 315.535 180.414 313.586C203.33 311.863 216.097 294.682 235.003 287.286C263.137 276.278 307 338.995 307 358.456" stroke="currentColor" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M350 159C338.607 183.953 286.988 272.605 292.396 306" stroke="currentColor" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M353.983 156C361.109 192.062 371.983 282.642 333 308" stroke="currentColor" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M328 304C318.437 300.114 309.042 295.03 299 293" stroke="currentColor" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M294.975 308C285.934 328.2 276.314 343.303 299 320.79" stroke="currentColor" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M311 320C308.736 331.403 297.744 346.679 290 331.889" stroke="currentColor" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M211 336.863C210.815 349.971 203 348.348 203 336" stroke="currentColor" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M146 351.449C135.34 353.573 138.871 349.231 143.412 344" stroke="currentColor" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
                   </svg>
                 </div>
               </div>
               <div>
                 <h3 class="text-lg font-bold text-lime-900">{{ live.chef.name }}</h3>
                 <p class="text-sm text-lime-600 flex items-center">
-                  <span class="mr-1">⭐</span> Chef profesional
+                   Xef professional
                 </p>
               </div>
             </div>
@@ -155,14 +171,14 @@
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Recordarme
+                Recorda'm
               </button>
               <button @click="joinLive(live)"
                 class="flex-1 bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 px-4 py-3 rounded-xl transition-all duration-300 hover:shadow-lg hover:brightness-110 hover:scale-105 flex items-center justify-center font-medium">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
-                ¡Unirme!
+                Uneix-te!
               </button>
             </div>
           </div>
@@ -207,7 +223,6 @@ export default {
     });
 
     const handleSearch = () => {
-      // La lógica de búsqueda ahora se maneja en las propiedades computadas
     };
 
     const fetchLives = async () => {
@@ -217,11 +232,10 @@ export default {
 
         const response = await communicationManager.getLives();
 
-        // Acepta tanto response.data como response directo
         const responseData = response.data || response;
 
         if (!responseData || !Array.isArray(responseData)) {
-          throw new Error('Formato de respuesta inesperado');
+          throw new Error('Formato de resposta inesperado');
         }
 
         lives.value = responseData;
@@ -234,13 +248,13 @@ export default {
     };
 
     const setReminder = (live) => {
-      const title = encodeURIComponent(`Live de cocina: ${live.recipe.title}`);
+      const title = encodeURIComponent(`Live de cuina: ${live.recipe.title}`);
       const description = encodeURIComponent(live.recipe.description);
       const location = encodeURIComponent('Online');
 
       // Convertir fecha y hora a formato de Google Calendar (UTC)
       const startDate = new Date(`${live.dia}T${live.hora}`);
-      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // duración 1 hora
+      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
 
       const formatDate = (date) =>
         date.toISOString().replace(/-|:|\.\d\d\d/g, '');
@@ -255,24 +269,67 @@ export default {
 
     const joinLive = (live) => {
       router.push({
-        name: 'ChatRoom', // Usa el nombre de la ruta
+        name: 'ChatRoom', 
         params: {
-          liveId: live.id // Asegúrate que live.id existe
+          liveId: live.id 
         }
       });
     };
 
     const formatDate = (dateString) => {
       try {
-        if (!dateString) return 'Fecha no definida';
+        if (!dateString) return 'Data no definida';
         const date = new Date(dateString);
-        if (isNaN(date.getTime())) return 'Fecha inválida';
+        if (isNaN(date.getTime())) return 'Data invàlida';
 
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        return date.toLocaleDateString('es-ES', options);
+        const options = { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        };
+
+        const catalanDate = date.toLocaleDateString('ca-ES', options);
+        
+        // Personalizar nombres de meses y días
+        const months = {
+          'gener': 'gener',
+          'febrer': 'febrer',
+          'març': 'març',
+          'abril': 'abril',
+          'maig': 'maig',
+          'juny': 'juny',
+          'juliol': 'juliol',
+          'agost': 'agost',
+          'setembre': 'setembre',
+          'octubre': 'octubre',
+          'novembre': 'novembre',
+          'desembre': 'desembre'
+        };
+
+        const days = {
+          'dilluns': 'dilluns',
+          'dimarts': 'dimarts',
+          'dimecres': 'dimecres',
+          'dijous': 'dijous',
+          'divendres': 'divendres',
+          'dissabte': 'dissabte',
+          'diumenge': 'diumenge'
+        };
+
+        // Reemplazar los nombres en español por catalán
+        let formattedDate = catalanDate;
+        Object.entries(months).forEach(([cat, _]) => {
+          formattedDate = formattedDate.replace(cat, cat);
+        });
+        Object.entries(days).forEach(([cat, _]) => {
+          formattedDate = formattedDate.replace(cat, cat);
+        });
+
+        return formattedDate;
       } catch (e) {
         console.error('Error formateando fecha:', e);
-        return 'Fecha inválida';
+        return 'Data invàlida';
       }
     };
 
