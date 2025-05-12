@@ -1,125 +1,354 @@
 <template>
-  <div class="live-chat-container">
-    <!-- Página de espera para usuarios normales -->
-    <div v-if="!isLiveStarted && !isChef" class="waiting-room">
-      <div class="waiting-content">
-        <div class="waiting-animation">
-          <div class="cooking-icon">👨‍🍳</div>
-          <div class="pulse-animation"></div>
-        </div>
-        <h2>Esperando a que el chef inicie el live...</h2>
-        <div class="waiting-info">
-          <p><span class="info-icon">👥</span> Usuarios esperando: <strong>{{ waitingUsers.length }}</strong></p>
-          <p><span class="info-icon">🍳</span> Chef: <strong>{{ chefName || 'Conectando...' }}</strong></p>
-        </div>
-        <div class="loader">
-          <div class="dot-flashing"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Panel de control del chef -->
-    <div v-if="isChef && !isLiveStarted" class="chef-control-panel">
-      <div class="chef-header">
-        <h2><span class="chef-icon">👨‍🍳</span> Panel del Chef</h2>
-        <p>Preparado para iniciar tu transmisión en vivo</p>
-      </div>
-      <div class="user-count">
-        <span class="users-waiting">👥 {{ waitingUsers.length }} usuario(s) esperando</span>
-      </div>
-      <div class="video-controls-container">
-        <div class="preview-container">
-          <video ref="chefPreviewVideo" autoplay muted playsinline class="preview-video"
-            :class="{ 'video-active': isCameraOn, 'video-inactive': !isCameraOn }"></video>
-          <div class="video-overlay" v-if="!isCameraOn">
-            <p>Cámara apagada</p>
+  <div class="min-h-screen bg-lime-50 flex flex-col">
+    <!-- Hero Section con fondo animado -->
+    <section class="relative overflow-hidden">
+      <div class="bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 py-8 relative">
+        <div class="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
+        <!-- Círculos decorativos animados -->
+        <div class="absolute inset-0 overflow-hidden">
+          <div
+            class="absolute -left-10 -top-10 w-40 h-40 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob">
+          </div>
+          <div
+            class="absolute -right-10 -top-10 w-40 h-40 bg-lime-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000">
+          </div>
+          <div
+            class="absolute -bottom-10 left-20 w-40 h-40 bg-green-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000">
           </div>
         </div>
-        <div class="control-buttons">
-          <button @click="toggleCamera" class="control-button camera" :class="{ 'active': isCameraOn }">
-            <span class="button-icon">{{ isCameraOn ? '📷' : '📷' }}</span>
-            <span class="button-text">{{ isCameraOn ? 'Cámara ON' : 'Cámara OFF' }}</span>
-          </button>
-          <button @click="toggleAudio" class="control-button audio" :class="{ 'active': isAudioOn }">
-            <span class="button-icon">{{ isAudioOn ? '🎤' : '🎤' }}</span>
-            <span class="button-text">{{ isAudioOn ? 'Audio ON' : 'Audio OFF' }}</span>
-          </button>
-        </div>
-      </div>
-      <button @click="startLiveChat" class="start-button" :disabled="!isConnected">
-        <span class="button-icon">🚀</span>
-        <span class="button-text">Iniciar Live Chat</span>
-      </button>
-    </div>
 
-    <!-- Chat activo -->
-    <div v-if="isLiveStarted" class="active-chat">
-      <div class="video-container" v-if="showVideo || isChef">
-        <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" autoplay :muted="isChef" playsinline class="live-video"
-          :class="{ 'video-active': isStreamActive, 'video-inactive': !isStreamActive }">
-        </video>
-        <div class="video-overlay" v-if="!isStreamActive && !isChef">
-          <p>El chef ha apagado la cámara</p>
-        </div>
-        <div class="live-controls" v-if="isChef">
-          <button @click="toggleCamera" class="live-control-button camera" :class="{ 'active': isCameraOn }">
-            <span class="control-icon">{{ isCameraOn ? '📷' : '📷' }}</span>
-          </button>
-          <button @click="toggleAudio" class="live-control-button audio" :class="{ 'active': isAudioOn }">
-            <span class="control-icon">{{ isAudioOn ? '🎤' : '🎤' }}</span>
-          </button>
-        </div>
-        <div class="viewer-controls" v-if="!isChef && isStreamActive">
-          <button @click="toggleMute" class="live-control-button mute" :class="{ 'active': isMuted }">
-            <span class="control-icon">{{ isMuted ? '🔇' : '🔊' }}</span>
-          </button>
-        </div>
-        <div class="viewer-count" v-if="isChef">
-          <span class="eye-icon">👁️</span> {{ activeUsers.length }} espectador(es)
-        </div>
-      </div>
-
-      <div class="chat-header">
-        <h3>💬 Chat en vivo</h3>
-        <div class="active-users">
-          <span class="online-icon">🟢</span>
-          <span v-for="(user, index) in activeUsers" :key="index">
-            {{ user }}{{ index < activeUsers.length - 1 ? ', ' : '' }} </span>
-              <span v-if="activeUsers.length === 0">No hay otros usuarios conectados</span>
-        </div>
-      </div>
-
-      <div class="chat-messages" ref="messagesContainer">
-        <div v-for="(msg, index) in messages" :key="index" :class="['message', msg.username === username ? 'my-message' : 'other-message',
-          { 'system-message': msg.isSystem, 'chef-message': msg.isChef && !msg.isSystem }]">
-          <div class="message-meta">
-            <span class="user-badge" v-if="msg.isChef && !msg.isSystem">👨‍🍳</span>
-            <strong v-if="msg.username !== username && !msg.isSystem">{{ msg.username }}</strong>
-            <span class="message-time">{{ formatTime(msg.timestamp) }}</span>
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+          <div class="text-center">
+            <h1 class="text-4xl tracking-tight font-extrabold text-lime-900 sm:text-5xl md:text-6xl">
+              <span
+                class="block bg-gradient-to-r from-lime-900 via-lime-700 to-green-800 bg-clip-text text-transparent">
+                Live Chat
+              </span>
+              <span class="block text-2xl mt-3 text-lime-700 font-medium">
+                Comparte y aprende en tiempo real
+              </span>
+            </h1>
           </div>
-          <div class="message-content">{{ msg.message }}</div>
         </div>
       </div>
+    </section>
 
-      <div class="chat-input">
-        <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Escribe tu mensaje..."
-          :disabled="!isConnected" />
-        <button @click="sendMessage" :disabled="!isConnected || !newMessage.trim()" class="send-button">
-          <span class="send-icon">✉️</span>
-          <span class="send-text">Enviar</span>
-        </button>
+    <!-- Mensaje de live finalizado -->
+    <div v-if="showEndMessage" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl transform transition-all">
+        <div class="text-center">
+          <div class="w-16 h-16 mx-auto mb-4 text-red-500">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9 9.563C9.309 8.935 9.787 8.4 10.38 8.016C10.973 7.632 11.657 7.414 12.36 7.386C13.064 7.358 13.76 7.52 14.38 7.856C15 8.192 15.52 8.688 15.88 9.288" />
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold text-lime-900 mb-2">El chef ha finalizado la transmisión</h2>
+          <p class="text-lime-600 mb-6">Gracias por participar en el live</p>
+          <button @click="goToLiveList"
+            class="bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 px-8 py-3 rounded-full hover:from-green-600 hover:via-lime-500 hover:to-lime-400 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-medium flex items-center justify-center mx-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span>Volver a Lives</span>
+          </button>
+        </div>
       </div>
     </div>
 
-    <div v-if="!isConnected" class="connection-status">
-      <div class="connection-loader"></div>
-      <span>Conectando al chat...</span>
+    <!-- Contenido normal del chat -->
+    <template v-else>
+      <!-- Página de espera para usuarios normales -->
+      <div v-if="!isLiveStarted && !isChef" class="flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-xl">
+          <div class="text-center">
+            <div class="relative w-24 h-24 mx-auto mb-2">
+              <div class="w-full h-full text-lime-600">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                  stroke="currentColor" class="animate-bounce">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+              </div>
+              <div class="absolute inset-0 bg-lime-400 rounded-full opacity-20 animate-ping"></div>
+            </div>
+            <h2 class="text-2xl font-bold text-lime-900 mb-4">Esperando a que el chef inicie el live...</h2>
+            <div class="bg-lime-50 rounded-xl p-4 mb-6">
+              <p class="flex items-center justify-center text-lime-700 text-lg font-semibold mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Usuarios esperando: <span class="font-semibold ml-2">{{ waitingUsers.length }}</span>
+              </p>
+              <p class="flex items-center justify-center text-lime-700 text-lg font-semibold">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+                Chef: <span class="font-semibold ml-2">{{ chefName || 'Conectando...' }}</span>
+              </p>
+            </div>
+            <div class="flex justify-center">
+              <div class="w-3 h-3 bg-lime-400 rounded-full animate-pulse mx-1"></div>
+              <div class="w-3 h-3 bg-lime-400 rounded-full animate-pulse mx-1" style="animation-delay: 0.2s"></div>
+              <div class="w-3 h-3 bg-lime-400 rounded-full animate-pulse mx-1" style="animation-delay: 0.4s"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel de control del chef -->
+      <div v-else-if="isChef && !isLiveStarted" class="min-h-screen p-4">
+        <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-6">
+          <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-lime-900 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+              </svg>
+              Panel del Chef
+            </h2>
+            <p class="text-lime-600 mt-2">Preparado para iniciar tu transmisión en vivo</p>
+          </div>
+
+          <div class="bg-lime-50 rounded-xl p-4 mb-6 text-center">
+            <span class="text-lime-700 font-semibold flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              {{ waitingUsers.length }} usuario(s) esperando
+            </span>
+          </div>
+
+          <div class="mb-6">
+            <div class="relative aspect-video bg-gray-900 rounded-xl overflow-hidden mb-4">
+              <video ref="chefPreviewVideo" autoplay muted playsinline class="w-full h-full object-cover"
+                :class="{ 'opacity-50': !isCameraOn }">
+              </video>
+              <div v-if="!isCameraOn"
+                class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white">
+                <p>Cámara apagada</p>
+              </div>
+            </div>
+
+            <div class="flex justify-center gap-4">
+              <button @click="toggleCamera" class="flex items-center px-6 py-3 rounded-full transition-all duration-300"
+                :class="isCameraOn ? 'bg-lime-500 hover:bg-lime-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span>{{ isCameraOn ? 'Cámara ON' : 'Cámara OFF' }}</span>
+              </button>
+              <button @click="toggleAudio" class="flex items-center px-6 py-3 rounded-full transition-all duration-300"
+                :class="isAudioOn ? 'bg-lime-500 hover:bg-lime-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+                <span>{{ isAudioOn ? 'Audio ON' : 'Audio OFF' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <button @click="startLiveChat" :disabled="!isConnected"
+            class="w-full bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 px-8 py-4 rounded-full hover:from-green-600 hover:via-lime-500 hover:to-lime-400 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Iniciar Live Chat</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Chat activo -->
+      <div v-else-if="isLiveStarted" class="min-h-screen flex flex-col">
+        <!-- Video container -->
+        <div v-if="showVideo || isChef" class="relative aspect-video bg-black">
+          <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" autoplay :muted="isChef" playsinline
+            class="w-full h-full object-cover" :class="{ 'opacity-50': !isStreamActive }">
+          </video>
+
+          <div v-if="!isStreamActive && !isChef"
+            class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white">
+            <p>El chef ha apagado la cámara</p>
+          </div>
+
+          <!-- Controles del chef -->
+          <div v-if="isChef"
+            class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 bg-black bg-opacity-50 rounded-full p-2">
+            <button @click="toggleCamera"
+              class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
+              :class="isCameraOn ? 'bg-lime-500 hover:bg-lime-600' : 'bg-gray-600 hover:bg-gray-700'">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </button>
+            <button @click="toggleAudio"
+              class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
+              :class="isAudioOn ? 'bg-lime-500 hover:bg-lime-600' : 'bg-gray-600 hover:bg-gray-700'">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Controles del viewer -->
+          <div v-if="!isChef && isStreamActive" class="absolute bottom-4 right-4">
+            <button @click="toggleMute"
+              class="w-10 h-10 rounded-full bg-black bg-opacity-50 flex items-center justify-center transition-all duration-300 hover:bg-opacity-70">
+              <svg v-if="isMuted" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+              </svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Contador de viewers -->
+          <div v-if="isChef"
+            class="absolute top-4 right-4 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            {{ activeUsers.length }} espectador(es)
+          </div>
+        </div>
+
+        <!-- Botones de salida -->
+        <div class="p-4 flex justify-end">
+          <button v-if="!isChef" @click="leaveLive"
+            class="bg-gradient-to-r from-yellow-400 to-yellow-300 text-yellow-900 px-6 py-3 rounded-full transition-all duration-300 hover:shadow-lg hover:brightness-110 hover:scale-105 flex items-center font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span>Salir del Live</span>
+          </button>
+          <button v-if="isChef" @click="endLiveForAll"
+            class="bg-gradient-to-r from-red-500 to-red-400 text-white px-6 py-3 rounded-full transition-all duration-300 hover:shadow-lg hover:brightness-110 hover:scale-105 flex items-center font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 9.563C9.309 8.935 9.787 8.4 10.38 8.016C10.973 7.632 11.657 7.414 12.36 7.386C13.064 7.358 13.76 7.52 14.38 7.856C15 8.192 15.52 8.688 15.88 9.288" />
+            </svg>
+            <span>Finalizar Live</span>
+          </button>
+        </div>
+
+        <!-- Chat container -->
+        <div class="flex-1 flex flex-col bg-white">
+          <!-- Chat header -->
+          <div class="bg-gradient-to-r from-lime-900 via-lime-700 to-green-800 text-white p-4">
+            <h3 class="text-xl font-semibold flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              Chat en vivo
+            </h3>
+            <div class="text-sm text-lime-100 mt-1 flex items-center flex-wrap">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-lime-300" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span v-for="(user, index) in activeUsers" :key="index">
+                {{ user }}{{ index < activeUsers.length - 1 ? ', ' : '' }} </span>
+                  <span v-if="activeUsers.length === 0">No hay otros usuarios conectados</span>
+            </div>
+          </div>
+
+          <!-- Messages container -->
+          <div class="flex-1 overflow-y-auto p-4 bg-lime-50" ref="messagesContainer">
+            <div v-for="(msg, index) in messages" :key="index" :class="[
+              'mb-4 max-w-[80%] rounded-2xl p-3',
+              msg.username === username ? 'ml-auto bg-gradient-to-r from-lime-500 to-lime-400 text-white' :
+                msg.isSystem ? 'mx-auto bg-lime-100 text-lime-700 text-center' :
+                  msg.isChef ? 'bg-white border-l-4 border-lime-500' : 'bg-white'
+            ]">
+              <div class="flex items-center justify-between mb-1 text-sm">
+                <span v-if="msg.isChef && !msg.isSystem" class="mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                  </svg>
+                </span>
+                <strong v-if="msg.username !== username && !msg.isSystem">{{ msg.username }}</strong>
+                <span class="opacity-75">{{ formatTime(msg.timestamp) }}</span>
+              </div>
+              <div class="break-words">{{ msg.message }}</div>
+            </div>
+          </div>
+
+          <!-- Chat input -->
+          <div class="p-4 bg-white border-t">
+            <form @submit.prevent="sendMessage" class="flex gap-2">
+              <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Escribe tu mensaje..."
+                :disabled="!canSendMessages"
+                class="flex-1 px-4 py-2 rounded-full border border-lime-300 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 disabled:bg-lime-50 disabled:cursor-not-allowed">
+              <button type="submit" :disabled="!canSendMessages || !newMessage.trim()"
+                class="bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 px-6 py-2 rounded-full transition-all duration-300 hover:shadow-lg hover:brightness-110 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+                <span>Enviar</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- Estado de conexión -->
+    <div v-if="!isConnected" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+      <div class="bg-white rounded-2xl p-6 flex items-center">
+        <div class="w-6 h-6 border-4 border-lime-400 border-t-transparent rounded-full animate-spin mr-4"></div>
+        <span class="text-lime-700">Conectando al chat...</span>
+      </div>
     </div>
   </div>
 </template>
+
 <script>
 import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { io } from 'socket.io-client';
 import { useAuthStore } from '@/stores/authStore';
 import communicationManager from '@/services/communicationManager';
@@ -127,6 +356,7 @@ import communicationManager from '@/services/communicationManager';
 export default {
   setup() {
     const route = useRoute();
+    const router = useRouter();
     const authStore = useAuthStore();
     const liveId = ref(route.params.liveId);
     const socket = ref(null);
@@ -153,6 +383,7 @@ export default {
     const videoInitialized = ref(false);
     const isMuted = ref(false);
     const isAudioOn = ref(false);
+    const showEndMessage = ref(false);
 
     const configuration = {
       iceServers: [
@@ -191,6 +422,81 @@ export default {
       }
     };
 
+    const goToLiveList = () => {
+      router.push('/live');
+    };
+
+    const endLiveForAll = async () => {
+      if (!isChef.value || !socket.value) return;
+
+      const confirmEnd = confirm('¿Estás seguro de que deseas finalizar la transmisión para todos?');
+      if (!confirmEnd) return;
+
+      try {
+        // Primero limpiamos los recursos locales
+        if (localStream.value) {
+          localStream.value.getTracks().forEach(track => track.stop());
+          localStream.value = null;
+        }
+
+        closeAllPeerConnections();
+
+        // Actualizamos el estado local
+        isLiveStarted.value = false;
+        isCameraOn.value = false;
+        isAudioOn.value = false;
+        isStreamActive.value = false;
+
+        // Emitimos el evento al servidor
+        socket.value.emit('chefEndLive', { liveId: liveId.value }, (response) => {
+          if (response?.success) {
+            console.log('Live finalizado correctamente');
+            showEndMessage.value = true;
+
+            // Desconectamos el socket y redirigimos
+            socket.value.disconnect();
+            isConnected.value = false;
+            router.push('/live');
+          } else {
+            console.error('Error al finalizar live:', response?.message);
+            alert('No se pudo finalizar el live. Inténtalo de nuevo.');
+          }
+        });
+      } catch (error) {
+        console.error('Error al finalizar live:', error);
+        alert('Error al finalizar el live. Inténtalo de nuevo.');
+      }
+    };
+    const leaveLive = () => {
+      if (!confirm('¿Estás seguro de que quieres salir del live?')) {
+        return;
+      }
+
+      if (!socket.value) return;
+
+      // Emitir evento para notificar la salida
+      socket.value.emit('leaveRoom', {
+        liveId: liveId.value,
+        username: username.value
+      });
+
+      // Limpiar recursos
+      if (userVideo.value && userVideo.value.srcObject) {
+        userVideo.value.srcObject.getTracks().forEach(track => track.stop());
+        userVideo.value.srcObject = null;
+      }
+
+      // Cerrar conexiones peer
+      closeAllPeerConnections();
+
+      // Desconectar del socket
+      socket.value.disconnect();
+      isConnected.value = false;
+      isLiveStarted.value = false;
+
+      // Redirigir a /live
+      router.push('/live');
+    };
     /// Alterna el estado de la cámara del chef
     const toggleCamera = async () => {
       try {
@@ -761,6 +1067,9 @@ export default {
           isConnected.value = false;
           console.log('Desconectado del servidor');
         });
+
+        // Agregar el listener para el evento liveEnded
+        socket.value.on('liveEnded', handleLiveEnded);
       }
     };
 
@@ -791,6 +1100,29 @@ export default {
       return isConnected.value && (isLiveStarted.value || isChef.value);
     });
 
+    const handleLiveEnded = (data) => {
+      console.log('Live finalizado:', data);
+
+      // Limpiar recursos
+      if (userVideo.value) {
+        userVideo.value.srcObject = null;
+      }
+      closeAllPeerConnections();
+
+      // Actualizar estado
+      isLiveStarted.value = false;
+      isStreamActive.value = false;
+      showEndMessage.value = true;
+
+      // Agregar mensaje al chat
+      messages.value.push({
+        username: 'Sistema',
+        message: data.message || 'El chef ha finalizado la transmisión en vivo.',
+        timestamp: new Date(),
+        isSystem: true
+      });
+    };
+
     return {
       username, activeUsers, waitingUsers, messages, newMessage,
       isConnected, isLiveStarted, isChef, chefName, messagesContainer,
@@ -799,124 +1131,62 @@ export default {
       userVideo, isCameraOn, isAudioOn,
       toggleAudio, isStreamActive, isMuted,
       toggleMute, showVideo, toggleCamera,
-      requestChefVideo
+      requestChefVideo, leaveLive, endLiveForAll,
+      showEndMessage, goToLiveList
     };
   }
 };
 </script>
 
-<style scoped>
-/* Variables CSS */
-:root {
-  --primary-color: #FF6B6B;
-  --secondary-color: #4ECDC4;
-  --dark-color: #292F36;
-  --light-color: #F7FFF7;
-  --accent-color: #FFE66D;
-  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --transition: all 0.3s ease;
-  --border-radius: 12px;
-  --chat-header-height: 60px;
-  --chat-input-height: 80px;
+<style>
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
 }
 
-/* Estilos base */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+.animate-blob {
+  animation: blob 7s infinite;
 }
 
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  line-height: 1.6;
-  color: #333;
+.animation-delay-2000 {
+  animation-delay: 2s;
 }
 
-/* Contenedor principal */
-.live-chat-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  max-width: 1200px;
-  margin: 0 auto;
-  background-color: #F7F7F7;
-  overflow: hidden;
+.animation-delay-4000 {
+  animation-delay: 4s;
 }
 
-/* Sala de espera */
-.waiting-room {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  padding: 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
 }
 
-.waiting-content {
-  text-align: center;
-  padding: 2rem;
-  max-width: 500px;
-  width: 100%;
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-.waiting-animation {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  margin: 0 auto 2rem;
-}
-
-.cooking-icon {
-  font-size: 4rem;
-  position: relative;
-  z-index: 2;
-  animation: bounce 2s infinite;
-}
-
-.pulse-animation {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--secondary-color);
-  border-radius: 50%;
-  opacity: 0.2;
-  animation: pulse 2s infinite;
-}
-
-.waiting-room h2 {
-  color: var(--dark-color);
-  margin-bottom: 1.5rem;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-.waiting-info {
-  background: white;
-  padding: 1rem;
-  border-radius: var(--border-radius);
-  margin: 1.5rem 0;
-  box-shadow: var(--shadow);
-}
-
-.waiting-info p {
-  margin: 0.5rem 0;
-  color: var(--dark-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.95rem;
-}
-
-.info-icon {
-  margin-right: 10px;
-  font-size: 1.2rem;
-}
-
-/* Animaciones */
 @keyframes bounce {
 
   0%,
@@ -925,633 +1195,24 @@ body {
   }
 
   50% {
-    transform: translateY(-15px);
+    transform: translateY(-25%);
   }
 }
 
-@keyframes pulse {
-  0% {
-    transform: scale(0.8);
-    opacity: 0.2;
-  }
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
 
-  50% {
-    transform: scale(1.1);
-    opacity: 0.3;
-  }
+@keyframes ping {
 
+  75%,
   100% {
-    transform: scale(0.8);
-    opacity: 0.2;
-  }
-}
-
-.dot-flashing {
-  position: relative;
-  width: 10px;
-  height: 10px;
-  border-radius: 5px;
-  background-color: var(--primary-color);
-  color: var(--primary-color);
-  animation: dot-flashing 1s infinite linear alternate;
-  animation-delay: 0.5s;
-  margin: 20px auto;
-}
-
-.dot-flashing::before,
-.dot-flashing::after {
-  content: '';
-  display: inline-block;
-  position: absolute;
-  top: 0;
-  width: 10px;
-  height: 10px;
-  border-radius: 5px;
-  background-color: var(--primary-color);
-  color: var(--primary-color);
-}
-
-.dot-flashing::before {
-  left: -15px;
-  animation: dot-flashing 1s infinite alternate;
-  animation-delay: 0s;
-}
-
-.dot-flashing::after {
-  left: 15px;
-  animation: dot-flashing 1s infinite alternate;
-  animation-delay: 1s;
-}
-
-@keyframes dot-flashing {
-  0% {
-    opacity: 0.2;
-    transform: scale(0.8);
-  }
-
-  50% {
-    opacity: 0.5;
-    transform: scale(1);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
-}
-
-/* Panel del chef */
-.chef-control-panel {
-  padding: 1.5rem;
-  background: white;
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
-  text-align: center;
-  max-width: 600px;
-  width: 100%;
-  margin: 1rem auto;
-}
-
-.chef-header h2 {
-  color: var(--dark-color);
-  margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-}
-
-.chef-header p {
-  color: #666;
-  margin-bottom: 1.5rem;
-  font-size: 0.95rem;
-}
-
-.chef-icon {
-  margin-right: 10px;
-}
-
-.user-count {
-  margin: 1.5rem 0;
-}
-
-.users-waiting {
-  background: var(--accent-color);
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-weight: bold;
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.95rem;
-}
-
-.video-controls-container {
-  margin: 1.5rem 0;
-}
-
-.preview-container {
-  position: relative;
-  width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
-  border-radius: var(--border-radius);
-  overflow: hidden;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  aspect-ratio: 16/9;
-}
-
-.preview-video {
-  width: 100%;
-  height: 100%;
-  background-color: #000;
-  display: block;
-  object-fit: cover;
-}
-
-.video-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  font-size: 1.2rem;
-}
-
-.control-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.control-button {
-  display: flex;
-  align-items: center;
-  padding: 0.8rem 1.5rem;
-  border: none;
-  border-radius: 30px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: var(--transition);
-  box-shadow: var(--shadow);
-  font-size: 0.95rem;
-}
-
-.control-button.camera {
-  background: #f0f0f0;
-  color: #333;
-}
-
-.control-button.camera.active {
-  background: #4CAF50;
-  color: white;
-}
-
-.control-button.audio {
-  background: #f0f0f0;
-  color: #333;
-}
-
-.control-button.audio.active {
-  background: #2196F3;
-  color: white;
-}
-
-.button-icon {
-  margin-right: 8px;
-  font-size: 1.1rem;
-}
-
-.start-button {
-  background: var(--primary-color);
-  color: rgb(0, 0, 0);
-  border: none;
-  padding: 1rem 2rem;
-  font-size: 1.1rem;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: var(--transition);
-  box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 1.5rem auto 0;
-  font-weight: bold;
-  width: 100%;
-  max-width: 300px;
-}
-
-.start-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(255, 107, 107, 0.4);
-}
-
-.start-button:disabled {
-  background: #cccccc;
-  transform: none;
-  box-shadow: none;
-  cursor: not-allowed;
-}
-
-/* Chat activo */
-.active-chat {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background: white;
-  overflow: hidden;
-}
-
-.video-container {
-  position: relative;
-  width: 100%;
-  background-color: #000;
-  aspect-ratio: 16/9;
-}
-
-.live-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.live-controls {
-  position: absolute;
-  bottom: 15px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 10px;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 8px;
-  border-radius: 20px;
-}
-
-.live-control-button {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: var(--transition);
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-}
-
-.live-control-button.active {
-  background: var(--primary-color);
-}
-
-.live-control-button:hover {
-  transform: scale(1.1);
-}
-
-.viewer-controls {
-  position: absolute;
-  bottom: 15px;
-  right: 15px;
-  display: flex;
-  gap: 10px;
-}
-
-.live-control-button.mute {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.live-control-button.mute.active {
-  background: #FF6B6B;
-}
-
-.live-control-button.mute:hover {
-  transform: scale(1.1);
-}
-
-.viewer-count {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-}
-
-.eye-icon {
-  margin-right: 5px;
-}
-
-.chat-header {
-  padding: 1rem;
-  background: var(--dark-color);
-  color: white;
-  min-height: var(--chat-header-height);
-}
-
-.chat-header h3 {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  font-size: 1.2rem;
-}
-
-.active-users {
-  font-size: 0.8rem;
-  margin-top: 0.5rem;
-  color: rgba(255, 255, 255, 0.8);
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  line-height: 1.4;
-}
-
-.online-icon {
-  margin-right: 5px;
-}
-
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem;
-  background: #f9f9f9;
-  scroll-behavior: smooth;
-  min-height: 0;
-  /* Fix for flexbox scrolling in some browsers */
-}
-
-.message {
-  margin-bottom: 1rem;
-  padding: 0.8rem 1rem;
-  border-radius: 12px;
-  max-width: 80%;
-  position: relative;
-  animation: fadeIn 0.3s ease-out;
-  word-break: break-word;
-}
-
-@keyframes fadeIn {
-  from {
+    transform: scale(2);
     opacity: 0;
-    transform: translateY(5px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
-.my-message {
-  margin-left: auto;
-  background: var(--secondary-color);
-  color: rgb(0, 0, 0);
-  border-bottom-right-radius: 4px;
-  background-color: #cccccc;
-}
-
-.other-message {
-  margin-right: auto;
-  background: white;
-  color: #333;
-  border-bottom-left-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.chef-message {
-  border-left: 4px solid var(--primary-color);
-}
-
-.system-message {
-  margin-left: auto;
-  margin-right: auto;
-  background: #f0f0f0;
-  color: #666;
-  text-align: center;
-  max-width: 90%;
-  font-size: 0.9rem;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-}
-
-.message-meta {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.3rem;
-  font-size: 0.8rem;
-}
-
-.my-message .message-meta {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.other-message .message-meta {
-  color: #666;
-}
-
-.user-badge {
-  margin-right: 5px;
-}
-
-.message-time {
-  opacity: 0.8;
-}
-
-.message-content {
-  line-height: 1.4;
-}
-
-.chat-input {
-  display: flex;
-  padding: 1rem;
-  background: white;
-  border-top: 1px solid #eee;
-  min-height: var(--chat-input-height);
-  align-items: center;
-}
-
-.chat-input input {
-  flex: 1;
-  padding: 0.8rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 30px;
-  margin-right: 0.5rem;
-  font-size: 1rem;
-  transition: var(--transition);
-  min-width: 0;
-  /* Fix for flexbox overflow */
-}
-
-.chat-input input:focus {
-  outline: none;
-  border-color: var(--secondary-color);
-  box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.2);
-}
-
-.send-button {
-  padding: 0.8rem 1.5rem;
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  transition: var(--transition);
-  white-space: nowrap;
-}
-
-.send-button:hover {
-  background: #ff5252;
-  transform: translateY(-2px);
-}
-
-.send-button:disabled {
-  background: #cccccc;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.send-icon {
-  margin-right: 5px;
-}
-
-.connection-status {
-  padding: 1rem;
-  text-align: center;
-  background: #fff3cd;
-  color: #856404;
-  border-radius: 4px;
-  margin: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.connection-loader {
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(133, 100, 4, 0.3);
-  border-radius: 50%;
-  border-top-color: #856404;
-  animation: spin 1s ease-in-out infinite;
-  margin-right: 10px;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .live-chat-container {
-    height: 100vh;
-    border-radius: 0;
-  }
-
-  .waiting-content,
-  .chef-control-panel {
-    padding: 1rem;
-  }
-
-  .video-container {
-    max-height: 40vh;
-  }
-
-  .message {
-    max-width: 90%;
-    padding: 0.6rem 0.8rem;
-    font-size: 0.95rem;
-    color: #000;
-  }
-
-  .control-buttons {
-    flex-direction: row;
-    gap: 0.5rem;
-  }
-
-  .control-button {
-    padding: 0.6rem 1rem;
-    font-size: 0.9rem;
-  }
-
-  .start-button {
-    padding: 0.8rem 1.5rem;
-    font-size: 1rem;
-  }
-
-  .chat-header h3 {
-    font-size: 1.1rem;
-  }
-
-  .active-users {
-    font-size: 0.75rem;
-  }
-
-  .chat-input {
-    padding: 0.8rem;
-    padding-bottom: 100px;
-  }
-
-  .chat-input input {
-    padding: 0.6rem 1rem;
-    font-size: 0.95rem;
-  }
-
-  .send-button {
-    padding: 0.6rem 1rem;
-    font-size: 0.95rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .waiting-room h2 {
-    font-size: 1.2rem;
-  }
-
-  .waiting-info p {
-    font-size: 0.85rem;
-  }
-
-  .chef-header h2 {
-    font-size: 1.3rem;
-  }
-
-  .control-buttons {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .control-button {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .send-text {
-    display: none;
-  }
-
-  .send-button {
-    width: auto;
-    padding: 0.8rem;
-    border-radius: 50%;
-  }
-
-  .send-icon {
-    margin-right: 0;
-  }
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 </style>

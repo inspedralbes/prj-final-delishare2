@@ -4,7 +4,7 @@ const http = require('http').createServer(app);
 const { Server } = require('socket.io');
 
 const port = process.env.PORT || 4000;
-
+2
 // Configura middleware para servir archivos estáticos desde la carpeta 'public'
 app.use(express.static('public'));
 
@@ -134,6 +134,43 @@ io.on('connection', (socket) => {
       callback && callback({ success: false, error: error.message });
     }
   });
+
+  /// Maneja la finalización del live por parte del chef
+socket.on('chefEndLive', ({ liveId }, callback) => {
+  try {
+    const room = liveRooms.get(liveId);
+    if (!room) throw new Error('Sala no encontrada');
+
+    if (room.chefSocketId !== socket.id) {
+      throw new Error('No autorizado para finalizar el live');
+    }
+
+    // Notificar a todos que el live ha terminado
+    io.to(liveId).emit('liveEnded', {
+      message: 'El chef ha finalizado la transmisión en vivo. Serás redirigido...',
+      endedBy: room.chef,
+      redirectTo: '/live'
+    });
+
+    // Limpiar la sala
+    room.waitingUsers.clear();
+    room.activeUsers.clear();
+    room.isLiveActive = false;
+    room.hasVideo = false;
+    room.chef = null;
+    room.chefSocketId = null;
+
+    // Eliminar la sala del mapa
+    liveRooms.delete(liveId);
+
+    callback({ success: true });
+
+  } catch (error) {
+    console.error('❌ Error al finalizar live:', error);
+    callback({ success: false, message: error.message });
+  }
+});
+
 
   /// Maneja solicitudes de transmisión de video
   socket.on('requestVideoStream', ({ liveId }) => {
