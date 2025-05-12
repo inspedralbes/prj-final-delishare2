@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 
 // Configuración base de Axios
 const apiClient = axios.create({
-  baseURL: 'https://delishare.cat/api',
+  baseURL: 'http://127.0.0.1:8000/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -797,7 +797,7 @@ getRecipeSteps(recipeId) {
       const token = localStorage.getItem('token');
       if (!token) throw new Error("No token found");
 
-      const response = await axios.get(`https://delishare.cat/api/userInfo/${userId}`, {
+      const response = await axios.get(`http://127.0.0.1:8000/api/userInfo/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;

@@ -1,16 +1,24 @@
 <template>
-  <div class="filter-buttons">
-    <!-- Botones principales en fila -->
-    <div class="button-group">
-      <button @click="toggleSubButtons('categoria')" class="button-main">Categoria</button>
-      <button @click="toggleSubButtons('cuisine')" class="button-main">Cuina</button>
-      <button @click="toggleSubButtons('tiempo')" class="button-main">Temps</button>
-      <button @click="toggleSubButtons('ingredientes')" class="button-main">Ingredientes</button>
-      <button @click="toggleSubButtons('dificultad')" class="button-main">Dificultad</button>
-    </div>
-
-    <!-- Subbotones para Categorías -->
-    <div v-if="activeButton === 'categoria'" class="subbutton-group">
+  <div class="flex flex-col gap-6 p-6">
+    <!-- Filtro por categoría -->
+    <div class="flex flex-col gap-3">
+      <button 
+        @click="toggleFilterSection('category')"
+        class="text-xl font-bold text-[#166534] hover:text-[#22c55e] transition-colors text-left flex items-center justify-between bg-gradient-to-r from-[#f0fdf4] to-[#dcfce7] p-4 rounded-xl shadow-sm"
+      >
+        Filtrar per categoria
+        <svg 
+          class="w-6 h-6 transform transition-transform"
+          :class="{ 'rotate-180': activeSection === 'category' }"
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div v-if="activeSection === 'category'" class="pl-4 border-l-2 border-[#22c55e] bg-white/50 p-4 rounded-lg">
+        <div class="flex flex-wrap gap-2">
       <button 
         v-for="dato in categorias" 
         :key="dato.id" 
@@ -20,121 +28,229 @@
       >
         {{ dato.name }}
       </button>
+        </div>
+      </div>
     </div>
 
-    <!-- Subbotones para Cocinas -->
-    <div v-if="activeButton === 'cuisine'" class="subbutton-group">
+    <!-- Filtro por cocina -->
+    <div class="flex flex-col gap-3">
+      <button 
+        @click="toggleFilterSection('cuisine')"
+        class="text-xl font-bold text-[#166534] hover:text-[#22c55e] transition-colors text-left flex items-center justify-between bg-gradient-to-r from-[#f0fdf4] to-[#dcfce7] p-4 rounded-xl shadow-sm"
+      >
+        Filtrar per cuina
+        <svg 
+          class="w-6 h-6 transform transition-transform"
+          :class="{ 'rotate-180': activeSection === 'cuisine' }"
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div v-if="activeSection === 'cuisine'" class="pl-4 border-l-2 border-[#22c55e] bg-white/50 p-4 rounded-lg">
+        <div class="flex flex-wrap gap-2">
       <button 
         v-for="cuisine in cuisines" 
         :key="cuisine.id" 
-        class="button-secondary"
-        @click="filtrarPorCuisine(cuisine.id)"
+        class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
+        :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedCuisines.includes(cuisine.id) }"
+        @click="toggleCuisine(cuisine.id)"
       >
         {{ cuisine.country }}
       </button>
-    </div>
-
-    <!-- Subbotones para Tiempo -->
-    <div v-if="activeButton === 'tiempo'" class="subbutton-group">
-      <button 
-        v-for="time in times" 
-        :key="time"
-        class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
-        :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedTimes.includes(time) }"
-        @click="toggleTime(time)"
-      >
-        {{ time }} minuts
-      </button>
-    </div>
-
-    <!-- Subbotones para Ingredientes -->
-    <div v-if="activeButton === 'ingredientes'" class="subbutton-group">
-      <div class="ingredient-selection">
-        <!-- Mostrar ingredientes seleccionados -->
-        <div v-if="selectedIngredients.length" class="selected-ingredients">
-          <span class="selected-label">Seleccionats:</span>
-          <span v-for="ingredient in selectedIngredients" :key="ingredient" class="ingredient-tag">
-            {{ ingredient }}
-            <button @click="removeIngredient(ingredient)" class="remove-btn">×</button>
-          </span>
-          <button @click="applyIngredientFilter" class="apply-btn">Aplicar Filtro</button>
-          <button @click="clearIngredients" class="clear-btn">Limpiar</button>
         </div>
-        
-        <!-- Lista de ingredientes disponibles -->
-        <div class="ingredient-list">
+      </div>
+    </div>
+
+    <!-- Filtro por tiempo -->
+    <div class="flex flex-col gap-3">
+      <button 
+        @click="toggleFilterSection('time')"
+        class="text-xl font-bold text-[#166534] hover:text-[#22c55e] transition-colors text-left flex items-center justify-between bg-gradient-to-r from-[#f0fdf4] to-[#dcfce7] p-4 rounded-xl shadow-sm"
+      >
+        Filtrar per temps
+        <svg 
+          class="w-6 h-6 transform transition-transform"
+          :class="{ 'rotate-180': activeSection === 'time' }"
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div v-if="activeSection === 'time'" class="pl-4 border-l-2 border-[#22c55e] bg-white/50 p-4 rounded-lg">
+        <div class="flex flex-wrap gap-2">
           <button 
-            v-for="ingredient in ingredients" 
-            :key="ingredient"
-            class="button-secondary"
-            :class="{ 'selected': isIngredientSelected(ingredient) }"
-            @click="toggleIngredient(ingredient)"
+            v-for="time in times" 
+            :key="time"
+            class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
+            :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedTimes.includes(time) }"
+            @click="toggleTime(time)"
           >
-            {{ ingredient }}
+            {{ time }} minuts
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Subbotones para Dificultad -->
-    <div v-if="activeButton === 'dificultad'" class="subbutton-group">
+    <!-- Filtro por ingredientes -->
+    <div class="flex flex-col gap-3">
       <button 
-        class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
-        :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedDifficulties.includes('facil') }"
-        @click="toggleDifficulty('facil')"
+        @click="toggleFilterSection('ingredients')"
+        class="text-xl font-bold text-[#166534] hover:text-[#22c55e] transition-colors text-left flex items-center justify-between bg-gradient-to-r from-[#f0fdf4] to-[#dcfce7] p-4 rounded-xl shadow-sm"
       >
-        Fàcil (1-5 passos)
+        Filtrar per ingredients
+        <svg 
+          class="w-6 h-6 transform transition-transform"
+          :class="{ 'rotate-180': activeSection === 'ingredients' }"
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
       </button>
-      <button 
-        class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
-        :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedDifficulties.includes('regular') }"
-        @click="toggleDifficulty('regular')"
-      >
-        Regular (6-10 passos)
-      </button>
-      <button 
-        class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
-        :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedDifficulties.includes('dificil') }"
-        @click="toggleDifficulty('dificil')"
-      >
-        Difícil (10+ passos)
-      </button>
+      <div v-if="activeSection === 'ingredients'" class="pl-4 border-l-2 border-[#22c55e] bg-white/50 p-4 rounded-lg">
+        <!-- Barra de búsqueda de ingredientes -->
+        <div class="mb-4">
+          <input 
+            type="text" 
+            v-model="ingredientSearch" 
+            placeholder="Cerca ingredients..." 
+            class="w-full px-4 py-2 border border-[#22c55e] rounded-full focus:ring-2 focus:ring-[#22c55e] focus:border-transparent outline-none transition-all duration-200"
+          />
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button 
+            v-for="ingredient in displayedIngredients" 
+            :key="ingredient"
+            class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
+            :class="{ 'ring-2 ring-[#166534] ring-offset-2': isIngredientSelected(ingredient) }"
+            @click="toggleIngredient(ingredient)"
+          >
+            {{ ingredient }}
+          </button>
+        </div>
+        <!-- Botón de mostrar más -->
+        <div v-if="hasMoreIngredients" class="mt-4 text-center">
+          <button 
+            @click="loadMoreIngredients" 
+            class="text-[#166534] hover:text-[#22c55e] font-medium text-sm flex items-center gap-1 mx-auto"
+          >
+            Mostrar més ingredients
+            <svg 
+              class="w-4 h-4" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+        <div v-if="selectedIngredients.length" class="flex flex-wrap items-center gap-2 mt-4 p-3 bg-[#f0fdf4] rounded-lg">
+          <span class="font-bold text-[#166534]">Seleccionats:</span>
+          <span v-for="ingredient in selectedIngredients" :key="ingredient" class="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm">
+            {{ ingredient }}
+            <button @click="removeIngredient(ingredient)" class="text-white hover:text-[#f0fdf4]">×</button>
+          </span>
+        </div>
+      </div>
     </div>
 
-    <!-- Recetas filtradas -->
-    <div v-if="recetas.length" class="recipe-list">
-      <RecipeCard
-        v-for="receta in recetas"
-        :key="receta.id"
-        :recipeId="receta.id"
-        :title="receta.title"
-        :description="receta.description || 'Descripción no disponible'"
-        :image="receta.image"
-      />
+    <!-- Filtro por dificultad -->
+    <div class="flex flex-col gap-3">
+      <button 
+        @click="toggleFilterSection('difficulty')"
+        class="text-xl font-bold text-[#166534] hover:text-[#22c55e] transition-colors text-left flex items-center justify-between bg-gradient-to-r from-[#f0fdf4] to-[#dcfce7] p-4 rounded-xl shadow-sm"
+      >
+        Filtrar per dificultat
+        <svg 
+          class="w-6 h-6 transform transition-transform"
+          :class="{ 'rotate-180': activeSection === 'difficulty' }"
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div v-if="activeSection === 'difficulty'" class="pl-4 border-l-2 border-[#22c55e] bg-white/50 p-4 rounded-lg">
+        <div class="flex flex-wrap gap-2">
+          <button 
+            class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
+            :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedDifficulties.includes('facil') }"
+            @click="toggleDifficulty('facil')"
+          >
+            Fàcil (1-5 passos)
+          </button>
+          <button 
+            class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
+            :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedDifficulties.includes('regular') }"
+            @click="toggleDifficulty('regular')"
+          >
+            Regular (6-10 passos)
+          </button>
+          <button 
+            class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
+            :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedDifficulties.includes('dificil') }"
+            @click="toggleDifficulty('dificil')"
+          >
+            Difícil (10+ passos)
+          </button>
+        </div>
+      </div>
     </div>
 
-    <h3 class="font-bold text-[#166534] mb-3">Filtres seleccionats:</h3>
-    <button 
-      @click="applyAllFilters" 
-      class="px-4 py-2 text-sm bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full hover:from-[#16a34a] hover:to-[#bef264] transition-all duration-200 shadow-sm font-medium"
-      :disabled="!hasSelectedFilters"
-      :class="{ 'opacity-50 cursor-not-allowed': !hasSelectedFilters }"
-    >
-      Aplicar filtres
-    </button>
-    <button 
-      @click="clearAllFilters" 
-      class="px-4 py-2 text-sm bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-sm font-medium"
-      :disabled="!hasSelectedFilters"
-      :class="{ 'opacity-50 cursor-not-allowed': !hasSelectedFilters }"
-    >
-      Netejar filtres
-    </button>
+    <!-- Resumen de filtros seleccionados -->
+    <div v-if="hasSelectedFilters" class="mt-4 p-4 bg-gradient-to-r from-[#f0fdf4] to-[#dcfce7] rounded-xl">
+      <h3 class="font-bold text-[#166534] mb-3">Filtres seleccionats:</h3>
+      <div class="flex flex-wrap gap-2">
+        <span v-for="category in selectedCategories" :key="'cat-'+category" class="px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm">
+          {{ getCategoryName(category) }}
+        </span>
+        <span v-for="cuisine in selectedCuisines" :key="'cuis-'+cuisine" class="px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm">
+          {{ getCuisineName(cuisine) }}
+        </span>
+        <span v-for="time in selectedTimes" :key="'time-'+time" class="px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm">
+          {{ time }} min
+        </span>
+        <span v-for="difficulty in selectedDifficulties" :key="'diff-'+difficulty" class="px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm">
+          {{ getDifficultyName(difficulty) }}
+        </span>
+        <span v-for="ingredient in selectedIngredients" :key="'ing-'+ingredient" class="px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm">
+          {{ ingredient }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Botones de control -->
+    <div class="flex justify-end gap-3 mt-6">
+      <button 
+        @click="applyAllFilters" 
+        class="px-4 py-2 text-sm bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full hover:from-[#16a34a] hover:to-[#bef264] transition-all duration-200 shadow-sm font-medium"
+        :disabled="!hasSelectedFilters"
+        :class="{ 'opacity-50 cursor-not-allowed': !hasSelectedFilters }"
+      >
+        Aplicar filtres
+      </button>
+      <button 
+        @click="clearAllFilters" 
+        class="px-4 py-2 text-sm bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-sm font-medium"
+        :disabled="!hasSelectedFilters"
+        :class="{ 'opacity-50 cursor-not-allowed': !hasSelectedFilters }"
+      >
+        Netejar filtres
+      </button>
+    </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import communicationManager from '../services/communicationManager';
 import RecipeCard from './RecipeCard.vue';
 
@@ -148,21 +264,63 @@ export default {
     }
   },
   setup(props, { emit }) {
-    // Variables reactivas para almacenar los datos
     const categorias = ref([]);
     const cuisines = ref([]);
     const times = ref([]);
     const ingredients = ref([]);
-    const recetas = ref([]);
-    const activeButton = ref('');
     const selectedIngredients = ref([]);
-    const isLoading = ref(false);
     const selectedCategories = ref([]);
     const selectedCuisines = ref([]);
     const selectedTimes = ref([]);
     const selectedDifficulties = ref([]);
+    const isLoading = ref(false);
+    const activeSection = ref(null);
+    const ingredientSearch = ref('');
+    const displayedIngredientsCount = ref(10);
 
-    // Cargar datos al montar el componente
+    // Computed properties
+    const hasSelectedFilters = computed(() => {
+      return selectedCategories.value.length > 0 ||
+             selectedCuisines.value.length > 0 ||
+             selectedTimes.value.length > 0 ||
+             selectedDifficulties.value.length > 0 ||
+             selectedIngredients.value.length > 0;
+    });
+
+    // Computed property para filtrar ingredientes según la búsqueda
+    const filteredIngredients = computed(() => {
+      if (!ingredientSearch.value) return ingredients.value;
+      const searchTerm = ingredientSearch.value.toLowerCase();
+      return ingredients.value.filter(ingredient => 
+        ingredient.toLowerCase().includes(searchTerm)
+      );
+    });
+
+    // Computed property para los ingredientes mostrados
+    const displayedIngredients = computed(() => {
+      return filteredIngredients.value.slice(0, displayedIngredientsCount.value);
+    });
+
+    // Computed property para verificar si hay más ingredientes por mostrar
+    const hasMoreIngredients = computed(() => {
+      return displayedIngredientsCount.value < filteredIngredients.value.length;
+    });
+
+    // Función para cargar más ingredientes
+    const loadMoreIngredients = () => {
+      displayedIngredientsCount.value += 5;
+    };
+
+    // Resetear el contador cuando se cambia la búsqueda
+    const resetDisplayedCount = () => {
+      displayedIngredientsCount.value = 10;
+    };
+
+    // Watch para resetear el contador cuando cambia la búsqueda
+    watch(ingredientSearch, () => {
+      resetDisplayedCount();
+    });
+
     onMounted(() => {
       obtenerCategorias();
       obtenerCuisines();
@@ -170,7 +328,10 @@ export default {
       obtenerIngredients();
     });
 
-    // Función para obtener las categorías
+    const toggleFilterSection = (section) => {
+      activeSection.value = activeSection.value === section ? null : section;
+    };
+
     const obtenerCategorias = async () => {
       try {
         categorias.value = await communicationManager.fetchCategories();
@@ -179,7 +340,6 @@ export default {
       }
     };
 
-    // Función para obtener las cocinas (países)
     const obtenerCuisines = async () => {
       try {
         cuisines.value = await communicationManager.fetchCuisines();
@@ -188,7 +348,6 @@ export default {
       }
     };
 
-    // Función para obtener los tiempos disponibles
     const obtenerTimes = async () => {
       try {
         const response = await communicationManager.getAllTimes();
@@ -198,7 +357,6 @@ export default {
       }
     };
 
-    // Función para obtener los ingredientes
     const obtenerIngredients = async () => {
       try {
         const response = await communicationManager.fetchIngredients();
@@ -208,139 +366,21 @@ export default {
       }
     };
 
-    // Función para filtrar por categoría
-    const filtrarPorCategoria = async (categoryId) => {
-      try {
-        const response = await communicationManager.fetchRecipesByCategory(categoryId);
-        recetas.value = response.recipes;
-        emit('filtradoPorCategoria', true);
-      } catch (error) {
-        console.error('Error al filtrar recetas por categoría:', error);
-      }
-    };
-
-    // Función para filtrar por cocina (país)
-    const filtrarPorCuisine = async (cuisineId) => {
-      try {
-        const response = await communicationManager.fetchRecipesByCuisine(cuisineId);
-        recetas.value = response.recipes;
-        emit('filtradoPorCuisine', true);
-      } catch (error) {
-        console.error('Error al filtrar recetas por cocina:', error);
-      }
-    };
-
-    // Función para filtrar por tiempo
-    const filtrarPorTiempo = async (time) => {
-      try {
-        const response = await communicationManager.fetchRecipesByTime(time);
-        recetas.value = response.recipes;
-        emit('filtradoPorTiempo', true);
-      } catch (error) {
-        console.error('Error al filtrar recetas por tiempo:', error);
-      }
-    };
-
-    // Función para filtrar por dificultad (basado en número de pasos)
-    const filtrarPorDificultad = async (nivel) => {
-      isLoading.value = true;
-      try {
-        // Usamos las recetas proporcionadas como prop o fetchRecipes si no hay
-        const todasLasRecetas = props.allRecipes.length > 0 
-          ? props.allRecipes 
-          : await communicationManager.fetchRecipes();
-        
-        // Array para almacenar las recetas filtradas
-        const recetasFiltradas = [];
-        
-        // Para cada receta, obtenemos sus pasos y evaluamos su dificultad
-        for (const receta of todasLasRecetas) {
-          try {
-            const stepsResponse = await communicationManager.getRecipeSteps(receta.id);
-            const numSteps = stepsResponse.steps.length;
-            
-            // Clasificamos según el número de pasos
-            let dificultad;
-            if (numSteps <= 5) {
-              dificultad = 'facil';
-            } else if (numSteps <= 10) {
-              dificultad = 'regular';
-            } else {
-              dificultad = 'dificil';
-            }
-            
-            // Si coincide con el nivel solicitado, la agregamos
-            if (dificultad === nivel) {
-              recetasFiltradas.push(receta);
-            }
-          } catch (error) {
-            console.error(`Error al obtener pasos para la receta ${receta.id}:`, error);
-          }
-        }
-        
-        // Actualizamos el listado de recetas filtradas
-        recetas.value = recetasFiltradas;
-        emit('filtradoPorDificultad', recetasFiltradas);
-      } catch (error) {
-        console.error('Error al filtrar recetas por dificultad:', error);
-      } finally {
-        isLoading.value = false;
-      }
-    };
-
-    // Alterna la visualización de los subbotones según el botón principal
-    const toggleSubButtons = (buttonName) => {
-      activeButton.value = activeButton.value === buttonName ? '' : buttonName;
-    };
-
-    // Añade o quita un ingrediente de la selección
-    const toggleIngredient = (ingredient) => {
-      const index = selectedIngredients.value.indexOf(ingredient);
-      if (index === -1) {
-        selectedIngredients.value.push(ingredient);
-      } else {
-        selectedIngredients.value.splice(index, 1);
-      }
-    };
-
-    // Elimina un ingrediente de la selección
-    const removeIngredient = (ingredient) => {
-      selectedIngredients.value = selectedIngredients.value.filter(i => i !== ingredient);
-    };
-    
-    // Verifica si un ingrediente está seleccionado
-    const isIngredientSelected = (ingredient) => {
-      return selectedIngredients.value.includes(ingredient);
-    };
-
-    // Limpia todos los ingredientes seleccionados
-    const clearIngredients = () => {
-      selectedIngredients.value = [];
-      recetas.value = [];
-    };
-    
-    // Aplica el filtro con los ingredientes seleccionados
-    const applyIngredientFilter = async () => {
-      if (selectedIngredients.value.length === 0) {
-        recetas.value = [];
-        return;
-      }
-
-      try {
-        const response = await communicationManager.fetchRecipesByIngredients(selectedIngredients.value);
-        recetas.value = response.recipes;
-        emit('filtradoPorIngrediente', true);
-      } catch (error) {
-        console.error('Error al filtrar recetas por ingredientes:', error);
-      }
-    };
-
     const toggleCategory = (categoryId) => {
       const index = selectedCategories.value.indexOf(categoryId);
       if (index === -1) {
         selectedCategories.value.push(categoryId);
       } else {
         selectedCategories.value.splice(index, 1);
+      }
+    };
+
+    const toggleCuisine = (cuisineId) => {
+      const index = selectedCuisines.value.indexOf(cuisineId);
+      if (index === -1) {
+        selectedCuisines.value.push(cuisineId);
+      } else {
+        selectedCuisines.value.splice(index, 1);
       }
     };
 
@@ -362,168 +402,210 @@ export default {
       }
     };
 
+    // Funciones helper para obtener nombres
+    const getCategoryName = (categoryId) => {
+      const category = categorias.value.find(c => c.id === categoryId);
+      return category ? category.name : '';
+    };
+
+    const getCuisineName = (cuisineId) => {
+      const cuisine = cuisines.value.find(c => c.id === cuisineId);
+      return cuisine ? cuisine.country : '';
+    };
+
+    const getDifficultyName = (difficulty) => {
+      const names = {
+        'facil': 'Fàcil',
+        'regular': 'Regular',
+        'dificil': 'Difícil'
+      };
+      return names[difficulty] || difficulty;
+    };
+
+    // Función para aplicar todos los filtros
+    const applyAllFilters = async () => {
+      if (!hasSelectedFilters.value) return;
+
+      isLoading.value = true;
+      try {
+        // Obtener todas las recetas si no están disponibles
+        let allRecipes = props.allRecipes;
+        if (!allRecipes || allRecipes.length === 0) {
+          const response = await communicationManager.fetchRecipes();
+          allRecipes = Array.isArray(response) ? response : [];
+        }
+
+        let filteredRecipes = [...allRecipes];
+
+        // Aplicar filtros de categoría
+        if (selectedCategories.value.length > 0) {
+          const categoryRecipes = await Promise.all(
+            selectedCategories.value.map(categoryId => 
+              communicationManager.fetchRecipesByCategory(categoryId)
+            )
+          );
+          const categoryRecipeIds = new Set(
+            categoryRecipes.flatMap(response => {
+              if (Array.isArray(response)) return response.map(r => r.id);
+              if (response && response.recipes) return response.recipes.map(r => r.id);
+              return [];
+            })
+          );
+          filteredRecipes = filteredRecipes.filter(recipe => 
+            categoryRecipeIds.has(recipe.id)
+          );
+        }
+
+        // Aplicar filtros de cocina
+        if (selectedCuisines.value.length > 0) {
+          const cuisineRecipes = await Promise.all(
+            selectedCuisines.value.map(cuisineId => 
+              communicationManager.fetchRecipesByCuisine(cuisineId)
+            )
+          );
+          const cuisineRecipeIds = new Set(
+            cuisineRecipes.flatMap(response => {
+              if (Array.isArray(response)) return response.map(r => r.id);
+              if (response && response.recipes) return response.recipes.map(r => r.id);
+              return [];
+            })
+          );
+          filteredRecipes = filteredRecipes.filter(recipe => 
+            cuisineRecipeIds.has(recipe.id)
+          );
+        }
+
+        // Aplicar filtros de tiempo
+        if (selectedTimes.value.length > 0) {
+          const timeRecipes = await Promise.all(
+            selectedTimes.value.map(time => 
+              communicationManager.fetchRecipesByTime(time)
+            )
+          );
+          const timeRecipeIds = new Set(
+            timeRecipes.flatMap(response => {
+              if (Array.isArray(response)) return response.map(r => r.id);
+              if (response && response.recipes) return response.recipes.map(r => r.id);
+              return [];
+            })
+          );
+          filteredRecipes = filteredRecipes.filter(recipe => 
+            timeRecipeIds.has(recipe.id)
+          );
+        }
+
+        // Aplicar filtros de ingredientes
+        if (selectedIngredients.value.length > 0) {
+          const ingredientRecipes = await communicationManager.fetchRecipesByIngredients(
+            selectedIngredients.value
+          );
+          const ingredientRecipeIds = new Set(
+            Array.isArray(ingredientRecipes) ? ingredientRecipes.map(r => r.id) :
+            ingredientRecipes && ingredientRecipes.recipes ? ingredientRecipes.recipes.map(r => r.id) : []
+          );
+          filteredRecipes = filteredRecipes.filter(recipe => 
+            ingredientRecipeIds.has(recipe.id)
+          );
+        }
+
+        // Aplicar filtros de dificultad
+        if (selectedDifficulties.value.length > 0) {
+          const difficultyRecipes = await Promise.all(
+            filteredRecipes.map(async (recipe) => {
+              try {
+                const stepsResponse = await communicationManager.getRecipeSteps(recipe.id);
+                const steps = Array.isArray(stepsResponse) ? stepsResponse :
+                            stepsResponse && stepsResponse.steps ? stepsResponse.steps : [];
+                const numSteps = steps.length;
+                let difficulty;
+                if (numSteps <= 5) difficulty = 'facil';
+                else if (numSteps <= 10) difficulty = 'regular';
+                else difficulty = 'dificil';
+                return selectedDifficulties.value.includes(difficulty) ? recipe : null;
+          } catch (error) {
+                console.error(`Error al obtener pasos para la receta ${recipe.id}:`, error);
+                return null;
+              }
+            })
+          );
+          filteredRecipes = difficultyRecipes.filter(recipe => recipe !== null);
+        }
+
+        console.log('Recetas filtradas:', filteredRecipes); // Debug log
+
+        // Emitir las recetas filtradas
+        if (filteredRecipes.length > 0) {
+          emit('filtradoPorCategoria', filteredRecipes);
+          emit('closeDrawer');
+        } else {
+          // Si no hay recetas filtradas, emitir un array vacío
+          emit('filtradoPorCategoria', []);
+        }
+      } catch (error) {
+        console.error('Error al aplicar filtros:', error);
+        emit('filtradoPorCategoria', []);
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
+    // Función para limpiar todos los filtros
+    const clearAllFilters = () => {
+      selectedCategories.value = [];
+      selectedCuisines.value = [];
+      selectedTimes.value = [];
+      selectedDifficulties.value = [];
+      selectedIngredients.value = [];
+    };
+
+    const toggleIngredient = (ingredient) => {
+      const index = selectedIngredients.value.indexOf(ingredient);
+      if (index === -1) {
+        selectedIngredients.value.push(ingredient);
+      } else {
+        selectedIngredients.value.splice(index, 1);
+      }
+    };
+
+    const removeIngredient = (ingredient) => {
+      selectedIngredients.value = selectedIngredients.value.filter(i => i !== ingredient);
+    };
+    
+    const isIngredientSelected = (ingredient) => {
+      return selectedIngredients.value.includes(ingredient);
+    };
+
     return {
       categorias,
       cuisines,
       times,
       ingredients,
-      recetas,
-      activeButton,
       selectedIngredients,
-      isLoading,
       selectedCategories,
       selectedCuisines,
       selectedTimes,
       selectedDifficulties,
-      obtenerCategorias,
-      obtenerCuisines,
-      obtenerTimes,
-      obtenerIngredients,
-      filtrarPorCategoria,
-      filtrarPorCuisine,
-      filtrarPorTiempo,
-      filtrarPorDificultad,
-      toggleSubButtons,
+      isLoading,
+      activeSection,
+      ingredientSearch,
+      displayedIngredients,
+      hasMoreIngredients,
+      hasSelectedFilters,
+      loadMoreIngredients,
+      toggleFilterSection,
+      toggleCategory,
+      toggleCuisine,
+      toggleTime,
+      toggleDifficulty,
+      getCategoryName,
+      getCuisineName,
+      getDifficultyName,
+      applyAllFilters,
+      clearAllFilters,
       toggleIngredient,
       removeIngredient,
       isIngredientSelected,
-      clearIngredients,
-      applyIngredientFilter,
-      toggleCategory,
-      toggleTime,
-      toggleDifficulty,
     };
   },
 };
 </script>
-
-<style scoped>
-/* Contenedor para los botones principales alineados en fila */
-.button-group {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
-/* Botones principales (azul más oscuro, más pequeños, en fila) */
-.button-main {
-  font-size: 0.85rem;
-  padding: 8px 12px;
-  background-color: #0c0636;
-  border: none;
-  color: white;
-  cursor: pointer;
-  border-radius: 5px;
-  display: inline-block;
-}
-
-.button-main:hover {
-  background-color: #322b5f;
-}
-
-/* Botones secundarios (verde suave) */
-.button-secondary {
-  font-size: 0.85rem;
-  padding: 8px 12px;
-  background-color: #02067d;
-  border: none;
-  color: white;
-  cursor: pointer;
-  border-radius: 5px;
-  margin: 5px 5px;
-  transition: all 0.2s;
-}
-
-.button-secondary:hover {
-  background-color: #4545a0;
-}
-
-.button-secondary.selected {
-  background-color: #4CAF50;
-  font-weight: bold;
-}
-
-/* Estilo de los subbotones, centrados */
-.subbutton-group {
-  margin-top: 10px;
-}
-
-/* Estilo de la lista de recetas */
-.recipe-list {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); 
-  gap: 20px;
-  justify-items: center;
-  margin-top: 20px;
-}
-
-/* Estilos para la selección de ingredientes */
-.ingredient-selection {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.selected-ingredients {
-  margin-bottom: 15px;
-  padding: 10px;
-  background-color: #f5f5f5;
-  border-radius: 5px;
-}
-
-.selected-label {
-  font-weight: bold;
-  margin-right: 10px;
-}
-
-.ingredient-tag {
-  display: inline-block;
-  background-color: #4CAF50;
-  color: white;
-  padding: 3px 8px;
-  border-radius: 15px;
-  margin-right: 8px;
-  margin-bottom: 5px;
-  font-size: 0.8rem;
-}
-
-.remove-btn {
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  margin-left: 5px;
-  padding: 0;
-  font-weight: bold;
-}
-
-.apply-btn {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  margin-left: 10px;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-
-.clear-btn {
-  background-color: #f44336;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  margin-left: 5px;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-
-.ingredient-list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  max-height: 300px;
-  overflow-y: auto;
-}
-</style>
