@@ -29,18 +29,31 @@
     <!-- Search Section with floating elements -->
     <div class="w-full px-6 -mt-8 relative z-20 flex justify-center">
       <div class="w-full sm:w-5/6 md:w-4/5 lg:w-3/4 xl:w-2/3 2xl:w-1/2 transform hover:scale-105 transition-transform duration-300">
-        <div class="relative">
-          <input 
-            type="text" 
-            v-model="searchQuery" 
-            placeholder="Cerca receptes per títol..." 
-            class="w-full px-8 py-5 text-lg text-lime-900 border-2 border-lime-300 rounded-full focus:outline-none focus:ring-4 focus:ring-lime-300/50 focus:border-lime-400 bg-white/80 backdrop-blur-sm shadow-lg" 
-          />
-          <div class="absolute inset-y-0 right-0 pr-8 flex items-center pointer-events-none">
-            <svg class="w-6 h-6 text-lime-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+        <div class="relative flex items-center gap-3">
+          <div class="relative flex-1">
+            <input 
+              type="text" 
+              v-model="searchQuery" 
+              placeholder="Cerca receptes per títol..." 
+              class="w-full pl-12 pr-8 py-5 text-lg text-lime-900 border-2 border-lime-300 rounded-full focus:outline-none focus:ring-4 focus:ring-lime-300/50 focus:border-lime-400 bg-white/80 backdrop-blur-sm shadow-lg" 
+            />
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <svg class="w-6 h-6 text-lime-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
           </div>
+          <button 
+            class="bg-gradient-to-r from-[#22c55e] to-[#a3e635] border-none rounded-full w-10 h-10 flex items-center justify-center shadow-[0_2px_8px_0_rgba(163,230,53,0.10)] cursor-pointer transition-all duration-200 hover:shadow-[0_4px_16px_0_rgba(163,230,53,0.18)] hover:bg-gradient-to-r hover:from-[#16a34a] hover:to-[#bef264] flex-shrink-0" 
+            @click="drawerOpen = true" 
+            aria-label="Obrir filtres"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect y="4" width="24" height="2.5" rx="1.25" fill="white"/>
+              <rect y="10.75" width="24" height="2.5" rx="1.25" fill="white"/>
+              <rect y="17.5" width="24" height="2.5" rx="1.25" fill="white"/>
+            </svg>
+          </button>
         </div>
       </div>
     </div>
@@ -48,14 +61,6 @@
     <!-- Mostrar contenido solo si está autenticado -->
     <div v-if="authStore.isAuthenticated" class="flex-1">
       
-        <button class="bg-gradient-to-r from-[#22c55e] to-[#a3e635] border-none rounded-full w-9 h-9 flex items-center justify-center shadow-[0_2px_8px_0_rgba(163,230,53,0.10)] cursor-pointer transition-all duration-200 hover:shadow-[0_4px_16px_0_rgba(163,230,53,0.18)] hover:bg-gradient-to-r hover:from-[#16a34a] hover:to-[#bef264]" @click="drawerOpen = true" aria-label="Obrir filtres">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect y="4" width="24" height="2.5" rx="1.25" fill="#22c55e"/>
-            <rect y="10.75" width="24" height="2.5" rx="1.25" fill="#22c55e"/>
-            <rect y="17.5" width="24" height="2.5" rx="1.25" fill="#22c55e"/>
-          </svg>
-        </button>
-
       <div v-if="loading" class="my-5 text-base text-gray-700">Carregant receptes...</div>
       <div v-else>
         <div v-if="filteredRecipes.length === 0" class="my-5 text-base text-gray-700">

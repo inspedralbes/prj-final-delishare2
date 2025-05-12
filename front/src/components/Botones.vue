@@ -209,20 +209,40 @@
     <div v-if="hasSelectedFilters" class="mt-4 p-4 bg-gradient-to-r from-[#f0fdf4] to-[#dcfce7] rounded-xl">
       <h3 class="font-bold text-[#166534] mb-3">Filtres seleccionats:</h3>
       <div class="flex flex-wrap gap-2">
-        <span v-for="category in selectedCategories" :key="'cat-'+category" class="px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm">
+        <span v-for="category in selectedCategories" :key="'cat-'+category" 
+          class="group relative px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm flex items-center gap-1 cursor-pointer hover:from-[#16a34a] hover:to-[#bef264] transition-all duration-200"
+          @click="toggleCategory(category)"
+        >
           {{ getCategoryName(category) }}
+          <span class="absolute -right-1 -top-1 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[#166534] text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200">×</span>
         </span>
-        <span v-for="cuisine in selectedCuisines" :key="'cuis-'+cuisine" class="px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm">
+        <span v-for="cuisine in selectedCuisines" :key="'cuis-'+cuisine" 
+          class="group relative px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm flex items-center gap-1 cursor-pointer hover:from-[#16a34a] hover:to-[#bef264] transition-all duration-200"
+          @click="toggleCuisine(cuisine)"
+        >
           {{ getCuisineName(cuisine) }}
+          <span class="absolute -right-1 -top-1 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[#166534] text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200">×</span>
         </span>
-        <span v-for="time in selectedTimes" :key="'time-'+time" class="px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm">
+        <span v-for="time in selectedTimes" :key="'time-'+time" 
+          class="group relative px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm flex items-center gap-1 cursor-pointer hover:from-[#16a34a] hover:to-[#bef264] transition-all duration-200"
+          @click="toggleTime(time)"
+        >
           {{ time }} min
+          <span class="absolute -right-1 -top-1 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[#166534] text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200">×</span>
         </span>
-        <span v-for="difficulty in selectedDifficulties" :key="'diff-'+difficulty" class="px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm">
+        <span v-for="difficulty in selectedDifficulties" :key="'diff-'+difficulty" 
+          class="group relative px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm flex items-center gap-1 cursor-pointer hover:from-[#16a34a] hover:to-[#bef264] transition-all duration-200"
+          @click="toggleDifficulty(difficulty)"
+        >
           {{ getDifficultyName(difficulty) }}
+          <span class="absolute -right-1 -top-1 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[#166534] text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200">×</span>
         </span>
-        <span v-for="ingredient in selectedIngredients" :key="'ing-'+ingredient" class="px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm">
+        <span v-for="ingredient in selectedIngredients" :key="'ing-'+ingredient" 
+          class="group relative px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm flex items-center gap-1 cursor-pointer hover:from-[#16a34a] hover:to-[#bef264] transition-all duration-200"
+          @click="toggleIngredient(ingredient)"
+        >
           {{ ingredient }}
+          <span class="absolute -right-1 -top-1 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[#166534] text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200">×</span>
         </span>
       </div>
     </div>
@@ -240,8 +260,6 @@
       <button 
         @click="clearAllFilters" 
         class="px-4 py-2 text-sm bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-sm font-medium"
-        :disabled="!hasSelectedFilters"
-        :class="{ 'opacity-50 cursor-not-allowed': !hasSelectedFilters }"
       >
         Netejar filtres
       </button>
@@ -556,6 +574,9 @@ export default {
       selectedTimes.value = [];
       selectedDifficulties.value = [];
       selectedIngredients.value = [];
+      // Emitir todas las recetas al limpiar los filtros
+      emit('filtradoPorCategoria', props.allRecipes);
+      emit('closeDrawer');
     };
 
     const toggleIngredient = (ingredient) => {
