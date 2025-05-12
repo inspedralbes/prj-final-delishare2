@@ -1,8 +1,7 @@
 <template>
   <div class="min-h-screen bg-lime-50 flex flex-col">
     <!-- Hero Section with animated background -->
-    <section class="relative overflow-hidden">
-      <div class="absolute inset-0 bg-[url('@/assets/images/pattern-food.png')] opacity-5 animate-pulse"></div>
+    <section class="relative overflow-hidden pt-16">
       <div class="bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 py-16 relative">
         <div class="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
         <!-- Animated circles decoration -->
@@ -94,7 +93,7 @@
     </div>
 
     <!-- Lives Grid with hover effects -->
-    <div v-else class="max-w-7xl mx-auto px-6 py-12">
+    <div v-else class="max-w-7xl mx-auto px-6 py-12 pb-32 md:pb-24">
       <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
         <div v-for="live in displayedLives" :key="live.id"
           class="group bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
