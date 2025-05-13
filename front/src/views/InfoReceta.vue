@@ -1,167 +1,245 @@
 <template>
-  <div v-if="!authStore.token" class="auth-error-container">
-    <div class="auth-error-message">
-      <p>Debes iniciar sesión para ver los detalles de esta receta</p>
-      <button @click="goToLogin">Ir a Login</button>
+  <div v-if="!authStore.token" class="min-h-screen bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 flex items-center justify-center p-4">
+    <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-8 max-w-md w-full shadow-xl text-center">
+      <p class="text-lime-900 text-lg mb-6">Debes iniciar sesión para ver los detalles de esta receta</p>
+      <button @click="goToLogin" class="bg-gradient-to-r from-lime-500 via-green-500 to-emerald-500 text-white px-6 py-3 rounded-lg hover:from-lime-600 hover:via-green-600 hover:to-emerald-600 transition-all duration-300 shadow-lg hover:shadow-xl">
+        Ir a Login
+      </button>
     </div>
-
   </div>
 
-  <div v-else>
-    <!-- Popup de notificacions -->
-    <div v-if="popupMessage" class="popup-notification">
+  <div v-else class="min-h-screen bg-gradient-to-br from-lime-100 via-lime-200 to-green-200">
+    <!-- Popup de notificaciones -->
+    <div v-if="popupMessage" class="fixed top-5 right-5 bg-gradient-to-r from-lime-500 to-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
       {{ popupMessage }}
     </div>
 
-    <div class="recipe-detail">
-      <button class="back-button" @click="goBack">← </button>
+    <div class="max-w-4xl mx-auto px-4 py-8 mb-24">
+      <!-- Botón de retroceso -->
+      <button @click="goBack" class="mb-6 flex items-center text-lime-900 hover:text-lime-700 transition-colors duration-200">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Tornar enrere
+      </button>
 
+      <!-- Información principal de la receta -->
+      <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden mb-8">
+        <div class="p-6">
+          <h1 class="text-3xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">{{ recipe.title }}</h1>
+          <p class="text-lime-700 mb-6">
+            <span class="font-semibold">Autor:</span>
+            <router-link :to="'/user/' + recipe.user_id" class="text-lime-600 hover:text-lime-800 transition-colors duration-200">
+              @{{ recipe.creador }}
+            </router-link>
+          </p>
 
-      <h1 class="recipe-title">{{ recipe.title }}</h1>
-      <p>
-        <strong>Autor: </strong>
-        <router-link :to="'/user/' + recipe.user_id" class="creator-link">
-          @{{ recipe.creador }}
-        </router-link>
-      </p>
+          <!-- Imagen de la receta -->
+          <div class="relative rounded-xl overflow-hidden mb-6 shadow-lg">
+            <img :src="recipe.image" :alt="recipe.title" class="w-full h-[300px] object-cover" />
+          </div>
 
-      <div class="media-container">
-        <div class="recipe-image-container">
-          <img :src="recipe.image" :alt="recipe.title" class="recipe-image" />
-        </div>
-      </div>
+          <!-- Botones de acción -->
+          <div class="flex flex-wrap gap-4 mb-6">
+            <button @click="downloadPDF" class="w-10 h-10 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg">
+              <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </button>
 
-      <div class="button-container">
-        <!-- Botón de descargar receta en PDF -->
-        <button @click="downloadPDF" class="download-button" title="Descargar receta en PDF">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black"
-            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-        </button>
+            <button @click="checkRecipeInFolder" :disabled="isButtonDisabled" class="w-10 h-10 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg">
+              <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+              </svg>
+            </button>
 
-        <!-- Botó per mostrar la selecció de carpeta -->
-        <button @click="checkRecipeInFolder" :disabled="isButtonDisabled">
-          <img :src="getSaveCarpeta"
-            :alt="isSavedCarpeta ? 'Treure la recepta de la carpeta' : 'Desar la recepta a la carpeta'"
-            class="button-icon" />
-        </button>
+            <button @click="saveToSavedRecipes(recipe.id)" :disabled="isButtonDisabled" class="w-10 h-10 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg">
+              <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+            </button>
 
-        <!-- Modal per triar la carpeta -->
-        <div v-if="showFolderSelection" :class="{ show: showFolderSelection }" class="save-options-modal">
-          <div class="save-options-content">
-            <h3>On vols desar la recepta?</h3>
-            <select v-model="selectedFolderId">
-              <option v-for="folder in userFolders" :key="folder.id" :value="folder.id">
-                {{ folder.name }}
-              </option>
-            </select>
-            <button @click="saveToFolder">Desar a la carpeta</button>
-            <button @click="hideModal" class="cancel-button">Cancel·lar</button>
+            <button @click="toggleLike(recipe.id)" class="w-10 h-10 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg">
+              <svg class="w-6 h-6 mx-auto" :fill="!isLiked ? 'white' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Descripción -->
+          <div class="prose max-w-none mb-8">
+            <p class="text-lime-800">{{ recipe.description || 'Sense descripció' }}</p>
+          </div>
+
+          <!-- Información extra -->
+          <div class="mb-8">
+            <button @click="toggleExtraInfo" class="w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-lime-100 to-green-100 rounded-lg hover:from-lime-200 hover:to-green-200 transition-all duration-300 shadow-md">
+              <span class="font-medium text-lime-900">Informació extra</span>
+              <svg class="w-5 h-5 transform transition-transform duration-200" :class="{ 'rotate-180': isExtraInfoVisible }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div v-if="isExtraInfoVisible" class="mt-4 p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg shadow-inner">
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="text-center">
+                  <p class="text-sm text-lime-600">Temps de preparació</p>
+                  <p class="font-semibold text-lime-900">{{ recipe.prep_time }} min</p>
+                </div>
+                <div class="text-center">
+                  <p class="text-sm text-lime-600">Temps de cocció</p>
+                  <p class="font-semibold text-lime-900">{{ recipe.cook_time }} min</p>
+                </div>
+                <div class="text-center">
+                  <p class="text-sm text-lime-600">Racions</p>
+                  <p class="font-semibold text-lime-900">{{ recipe.servings }}</p>
+                </div>
+                <div class="text-center">
+                  <p class="text-sm text-lime-600">Likes</p>
+                  <p class="font-semibold text-lime-900">{{ recipe.likes_count }} ❤️</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ingredientes -->
+          <div class="mb-8">
+            <h2 class="text-2xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">Ingredients</h2>
+            <ul class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <li v-for="(ingredient, index) in recipe.ingredients" :key="index" 
+                  class="flex items-center p-3 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg shadow-sm">
+                <span class="w-2 h-2 bg-gradient-to-r from-lime-500 to-green-500 rounded-full mr-3"></span>
+                <span class="text-lime-900">{{ ingredient.name }} - {{ ingredient.quantity }} {{ ingredient.unit }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Pasos -->
+          <div class="mb-8">
+            <h2 class="text-2xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">Passos</h2>
+            <ol class="space-y-4">
+              <li v-for="(step, index) in recipe.steps" :key="index" 
+                  class="flex p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg shadow-sm">
+                <span class="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-full flex items-center justify-center mr-4">
+                  {{ index + 1 }}
+                </span>
+                <span class="text-lime-900">{{ step }}</span>
+              </li>
+            </ol>
+          </div>
+
+          <!-- Información nutricional -->
+          <div v-if="recipe.nutrition" class="mb-8">
+            <h3 class="text-2xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">Informació Nutricional</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div class="p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg text-center shadow-sm">
+                <p class="text-sm text-lime-600">Calories</p>
+                <p class="font-semibold text-lime-900">{{ recipe.nutrition.calories || 'N/A' }}</p>
+              </div>
+              <div class="p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg text-center shadow-sm">
+                <p class="text-sm text-lime-600">Proteïnes</p>
+                <p class="font-semibold text-lime-900">{{ recipe.nutrition.protein ? `${recipe.nutrition.protein}g` : 'N/A' }}</p>
+              </div>
+              <div class="p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg text-center shadow-sm">
+                <p class="text-sm text-lime-600">Carbohidrats</p>
+                <p class="font-semibold text-lime-900">{{ recipe.nutrition.carbs ? `${recipe.nutrition.carbs}g` : 'N/A' }}</p>
+              </div>
+              <div class="p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg text-center shadow-sm">
+                <p class="text-sm text-lime-600">Greixos</p>
+                <p class="font-semibold text-lime-900">{{ recipe.nutrition.fats ? `${recipe.nutrition.fats}g` : 'N/A' }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Video -->
+          <div v-if="recipe.video" class="mb-8">
+            <h3 class="text-2xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">Video</h3>
+            <div class="relative rounded-xl overflow-hidden shadow-lg">
+              <video controls class="w-full">
+                <source :src="recipe.video" type="video/mp4">
+                Tu navegador no soporta el elemento de video.
+              </video>
+            </div>
+          </div>
+
+          <!-- Comentarios -->
+          <div class="mb-8">
+            <h3 class="text-2xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">Comentaris</h3>
+            <div class="mb-6">
+              <textarea 
+                v-model="newComment" 
+                placeholder="Escriu un comentari..." 
+                class="w-full p-4 border-2 border-lime-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-300 focus:border-lime-400 resize-none shadow-sm"
+                rows="3"
+              ></textarea>
+              <button 
+                @click="addComment" 
+                class="mt-3 px-6 py-2 bg-gradient-to-r from-lime-500 via-green-500 to-emerald-500 text-white rounded-lg hover:from-lime-600 hover:via-green-600 hover:to-emerald-600 transition-all duration-300 shadow-md hover:shadow-lg"
+              >
+                Comentar
+              </button>
+            </div>
+            <div class="space-y-4">
+              <div v-for="(comment, index) in comments" :key="index" 
+                   class="p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg shadow-sm">
+                <p class="font-medium text-lime-900">
+                  <span class="text-lime-600">{{ comment.name || 'Usuari desconegut' }}</span>
+                  <span class="text-lime-800">: {{ comment.comment }}</span>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-
-        <!-- Popup si la recepta ja està desada en una carpeta -->
-        <div v-if="showFolderAlert" class="folder-alert">
-          <div class="folder-alert-content">
-            <p>La recepta ja està desada en una de les teves carpetes.</p>
-            <button @click="addToAnotherFolder">Afegir a una altra carpeta</button>
-            <button @click="cancelAddToFolder">Cancel·lar</button>
-          </div>
-        </div>
-
-        <!-- Botó de desar/eliminar de guardades -->
-        <button @click="saveToSavedRecipes(recipe.id)" :disabled="isButtonDisabled">
-          <img :src="getSaveIcon"
-            :alt="isSaved ? 'Treure la recepta de les guardades' : 'Desar la recepta a les guardades'"
-            class="button-icon" />
-        </button>
-        <button @click="toggleLike(recipe.id)">
-          <img :src="getLikeIcon" :alt="isLiked ? 'Treure el like' : 'Posar el like'" class="button-icon" />
-        </button>
       </div>
     </div>
-    <div class="recipe-section">
 
-      <div class="recipe-info">
-        <p class="recipe-description">
-          {{ recipe.description || 'Sense descripció' }}
-        </p>
-      </div>
-      <div class="recipe-section">
-
-        <button class="back-button" @click="toggleExtraInfo">
-          {{ isExtraInfoVisible ? 'Amagar informació extra' : 'Informació extra' }}
-        </button>
-        <div v-if="isExtraInfoVisible" class="extra-info">
-          <p><strong>Temps de preparació:</strong> {{ recipe.prep_time }} minuts</p>
-          <p><strong>Temps de cocció:</strong> {{ recipe.cook_time }} minuts</p>
-          <p><strong>Racions:</strong> {{ recipe.servings }}</p>
-          <p><strong>Likes:</strong> {{ recipe.likes_count }} ❤️</p>
+    <!-- Modal de selección de carpeta -->
+    <div v-if="showFolderSelection" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-8 max-w-md w-full mx-4 shadow-xl">
+        <h3 class="text-xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">On vols desar la recepta?</h3>
+        <select 
+          v-model="selectedFolderId" 
+          class="w-full p-3 border-2 border-lime-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-300 focus:border-lime-400 mb-4 shadow-sm"
+        >
+          <option v-for="folder in userFolders" :key="folder.id" :value="folder.id">
+            {{ folder.name }}
+          </option>
+        </select>
+        <div class="flex justify-end gap-4">
+          <button 
+            @click="hideModal" 
+            class="px-4 py-2 text-lime-700 hover:text-lime-900 transition-colors duration-200"
+          >
+            Cancel·lar
+          </button>
+          <button 
+            @click="saveToFolder" 
+            class="px-4 py-2 bg-gradient-to-r from-lime-500 via-green-500 to-emerald-500 text-white rounded-lg hover:from-lime-600 hover:via-green-600 hover:to-emerald-600 transition-all duration-300 shadow-md hover:shadow-lg"
+          >
+            Desar
+          </button>
         </div>
       </div>
-      <div class="recipe-section">
-        <h2>Ingredients</h2>
-        <ul class="ingredients-list">
-          <li v-for="(ingredient, index) in recipe.ingredients" :key="index">
-            {{ ingredient.name }} - {{ ingredient.quantity }} {{ ingredient.unit }}
-          </li>
-
-        </ul>
-      </div>
-      <div class="recipe-section">
-        <h2>Passos</h2>
-        <ol class="steps-list">
-          <li v-for="(step, index) in recipe.steps" :key="index">
-            {{ step }}
-          </li>
-        </ol>
-      </div>
-      <div class="recipe-section">
-        <div v-if="recipe.nutrition">
-          <h3>Informació Nutricional</h3>
-          <p><strong>Calories:</strong> {{ recipe.nutrition.calories || 'N/A' }}</p>
-          <p>
-            <strong>Proteïnes:</strong>
-            {{ recipe.nutrition.protein ? `${recipe.nutrition.protein}g` : 'N/A' }}
-          </p>
-          <p>
-            <strong>Carbohidrats:</strong>
-            {{ recipe.nutrition.carbs ? `${recipe.nutrition.carbs}g` : 'N/A' }}
-          </p>
-          <p>
-            <strong>Greixos:</strong>
-            {{ recipe.nutrition.fats ? `${recipe.nutrition.fats}g` : 'N/A' }}
-          </p>
-        </div>
-        <!-- Mostrar video si existe -->
-        <div v-if="recipe.video" class="video-container">
-          <video controls class="recipe-video">
-            <source :src="recipe.video" type="video/mp4">
-            Tu navegador no soporta el elemento de video.
-          </video>
-        </div>
-      </div>
-
     </div>
 
-    <div class="recipe-section">
-
-      <div class="comment-input-container">
-        <textarea v-model="newComment" placeholder="Escriu un comentari..." class="comment-textarea"></textarea>
-        <button @click="addComment" class="comment-button">Comentar</button>
+    <!-- Alerta de carpeta -->
+    <div v-if="showFolderAlert" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-8 max-w-md w-full mx-4 shadow-xl">
+        <p class="text-lime-900 mb-6">La recepta ja està desada en una de les teves carpetes.</p>
+        <div class="flex justify-end gap-4">
+          <button 
+            @click="cancelAddToFolder" 
+            class="px-4 py-2 text-lime-700 hover:text-lime-900 transition-colors duration-200"
+          >
+            Cancel·lar
+          </button>
+          <button 
+            @click="addToAnotherFolder" 
+            class="px-4 py-2 bg-gradient-to-r from-lime-500 via-green-500 to-emerald-500 text-white rounded-lg hover:from-lime-600 hover:via-green-600 hover:to-emerald-600 transition-all duration-300 shadow-md hover:shadow-lg"
+          >
+            Afegir a una altra carpeta
+          </button>
+        </div>
       </div>
-      <ul class="comments-list">
-        <li v-for="(comment, index) in comments" :key="index" class="comment-item">
-          <div class="comment-header">
-            <p class="comment-user">
-              <strong>{{ comment.name || 'Usuari desconegut' }} : {{ comment.comment }}</strong>
-            </p>
-          </div>
-        </li>
-      </ul>
     </div>
   </div>
 </template>
@@ -503,7 +581,7 @@ export default {
       );
 
       if (isInFolder) {
-        this.showPopup('La recepta ja està desada en aquesta carpeta');
+        this.showPopup('La recepta ya está desada en esta carpeta');
         this.showFolderSelection = false;
         return;
       }
@@ -560,343 +638,19 @@ export default {
 };
 </script>
 
-<style scoped>
-.auth-error-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
-.auth-error-message {
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  color: #721c24;
-  padding: 20px;
-  border-radius: 5px;
-  text-align: center;
-  max-width: 400px;
-}
-
-.auth-error-message button {
-  background-color: #721c24;
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 4px;
-  margin-top: 10px;
-  cursor: pointer;
-}
-
-.auth-error {
-  padding: 20px;
-  background: #ffebee;
-  color: #c62828;
-  text-align: center;
-  margin: 20px;
-  border-radius: 4px;
-}
-
-.auth-error a {
-  color: #d32f2f;
-  font-weight: bold;
-}
-
-* {
-  font-family: 'Times New Roman', Times, serif;
-}
-
-.recipe-description {
-  margin-left: 10px;
-}
-
-.recipe-detail {
-  max-width: 800px;
-  margin: 20px auto;
-  padding: 20px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.back-button {
-  background: transparent;
-  color: #0c0636;
-  border: 2px solid #0c0636;
-  padding: 8px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.back-button:hover {
-  background: #004080;
-  color: #fff;
-}
-
-.media-container {
-  margin: 20px 0;
-}
-
-.recipe-image-container {
-  display: flex;
-  justify-content: center;
-}
-
-.recipe-image {
-  max-width: 100%;
-  max-height: 400px;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.video-container {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-
-.recipe-video {
-  max-width: 100%;
-  max-height: 400px;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.extra-info {
-  background: transparent;
-  color: #004080;
-  border: 2px solid #004080;
-  padding: 10px;
-  border-radius: 8px;
-  margin-top: 10px;
-}
-
-button {
-  background-color: #ffffff;
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.button-container {
-  display: flex;
-  width: 100%;
-  gap: 15px;
-  margin-top: 15px;
-}
-
-.button-container button {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-  display: flex;
-}
-
-.button-icon {
-  width: 25px;
-  height: 25px;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateY(-50px);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.save-options-content h3 {
-  font-size: 18px;
-  margin-bottom: 20px;
-}
-
-.save-options-content button {
-  margin-top: 10px;
-  background-color: #3498db;
-  color: white;
-  padding: 10px;
-  border: none;
-  border-radius: 5px;
-}
-
-.save-options-content button:hover {
-  background-color: #3498db;
-}
-
-.cancel-button:hover {
-  background-color: #bbb;
-}
-
-.save-options-content select {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 20px;
-  border-radius: 5px;
-  border: 1px solid #ddd;
-}
-
-.save-options-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.save-options-content {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.folder-alert {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.folder-alert-content {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.folder-alert button {
-  margin-top: 10px;
-  background-color: #3498db;
-  color: white;
-  padding: 10px;
-  border: none;
-  border-radius: 5px;
-}
-
-.folder-alert button:hover {
-  background-color: #2980b9;
-}
-
-.recipe-section {
-  margin-top: 10px;
-  padding: 20px;
-  background: #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.comments-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  margin-bottom: 30px;
-
-}
-
-.comment-item {
-  background: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-.comment-header {
-  display: flex;
-  align-items: center;
-}
-
-.comment-user {
-  font-weight: bold;
-  color: #004080;
-}
-
-.comment-text {
-  margin-top: 5px;
-  font-size: 14px;
-  color: #333;
-}
-
-.comment-input-container {
-  display: flex;
-  flex-direction: column;
-  margin-top: 1px;
-}
-
-.comment-textarea {
-  height: 50px;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  resize: none;
-  font-size: 14px;
-}
-
-.comment-button {
-  background-color: #0c0636;
-  color: white;
-  padding: 10px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 16px;
-  border: none;
-  margin-top: 10px;
-  transition: background-color 0.3s ease;
-}
-
-.comment-button:hover {
-  background-color: #322b5f;
-}
-
-.creator-link {
-  color: #3498db;
-  text-decoration: none;
-  font-weight: bold;
-  transition: color 0.3s ease, text-decoration 0.3s ease;
-}
-
-.creator-link:hover {
-  color: #1abc9c;
-  text-decoration: underline;
-}
-
-/* Estils per al popup de notificacions */
-.popup-notification {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: #3498db;
-  color: #fff;
-  padding: 10px 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  animation: fadeIn 0.5s ease;
-}
-
-@keyframes fadeIn {
+<style>
+@keyframes fade-in {
   from {
     opacity: 0;
     transform: translateY(-10px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
 }
 </style>
