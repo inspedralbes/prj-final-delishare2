@@ -131,36 +131,37 @@
 
           <div class="mb-6">
             <div v-if="showVideo || isChef" class="relative aspect-video bg-black">
-              <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" 
-                     autoplay 
-                     :muted="isChef" 
-                     playsinline
-                     class="w-full h-full object-cover" 
-                     :class="{ 'opacity-50': !isStreamActive }"
-                     @loadedmetadata="handleVideoPlayback($event.target)">
+              <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" autoplay :muted="isChef" playsinline
+                class="w-full h-full object-cover" :class="{ 'opacity-50': !isStreamActive }"
+                @loadedmetadata="handleVideoPlayback($event.target)">
               </video>
 
               <!-- Overlay para el botón de play -->
-              <div v-if="showPlayButton" 
-                   class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                <button @click="handlePlayClick" 
-                        class="bg-lime-500 hover:bg-lime-600 text-white px-6 py-3 rounded-full flex items-center space-x-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <div v-if="showPlayButton"
+                class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                <button @click="handlePlayClick"
+                  class="bg-lime-500 hover:bg-lime-600 text-white px-6 py-3 rounded-full flex items-center space-x-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span>Reproducir Video</span>
                 </button>
               </div>
 
               <!-- Overlay para el botón de unmute -->
-              <div v-if="showUnmuteButton" 
-                   class="absolute bottom-4 right-4">
-                <button @click="handleUnmuteClick" 
-                        class="bg-black bg-opacity-50 hover:bg-opacity-70 text-white px-4 py-2 rounded-full flex items-center space-x-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+              <div v-if="showUnmuteButton" class="absolute bottom-4 right-4">
+                <button @click="handleUnmuteClick"
+                  class="bg-black bg-opacity-50 hover:bg-opacity-70 text-white px-4 py-2 rounded-full flex items-center space-x-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
                   </svg>
                   <span>Activar Sonido</span>
                 </button>
@@ -169,7 +170,7 @@
 
             <div class="flex justify-center gap-4">
               <button @click="toggleCamera" class="flex items-center px-6 py-3 rounded-full transition-all duration-300"
-                :class="isCameraOn ? 'bg-lime-500 hover:bg-lime-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700">
+                :class="isCameraOn ? 'bg-lime-500 hover:bg-lime-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
                   stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -207,13 +208,9 @@
       <div v-else-if="isLiveStarted" class="min-h-screen flex flex-col">
         <!-- Video container -->
         <div v-if="showVideo || isChef" class="relative aspect-video bg-black">
-          <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" 
-                 autoplay 
-                 :muted="isChef" 
-                 playsinline
-                 class="w-full h-full object-cover" 
-                 :class="{ 'opacity-50': !isStreamActive }"
-                 @loadedmetadata="handleVideoPlayback($event.target)">
+          <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" autoplay :muted="isChef" playsinline
+            class="w-full h-full object-cover" :class="{ 'opacity-50': !isStreamActive }"
+            @loadedmetadata="handleVideoPlayback($event.target)">
           </video>
 
           <div v-if="!isStreamActive && !isChef"
@@ -427,7 +424,7 @@ export default {
         { urls: 'stun:stun2.l.google.com:19302' },
         { urls: 'stun:stun3.l.google.com:19302' },
         { urls: 'stun:stun4.l.google.com:19302' },
-        
+
         // TURN servers (prioridad alta)
         {
           urls: [
@@ -657,20 +654,20 @@ export default {
       try {
         const pc = new RTCPeerConnection(configuration);
         const dataChannel = pc.createDataChannel('test');
-        
+
         const offer = await pc.createOffer({
           offerToReceiveAudio: true,
           offerToReceiveVideo: true
         });
-        
+
         await pc.setLocalDescription(offer);
-        
+
         // Esperar a que se recojan los candidatos ICE
         await new Promise(resolve => setTimeout(resolve, 2000));
-        
+
         const hasTURNCandidate = pc.localDescription.sdp.includes('relay');
         console.log('¿Tiene candidatos TURN?:', hasTURNCandidate);
-        
+
         if (!hasTURNCandidate) {
           console.warn('No se detectaron candidatos TURN, intentando forzar TURN...');
           // Forzar el uso de TURN
@@ -679,7 +676,7 @@ export default {
             iceTransportPolicy: 'relay'
           });
         }
-        
+
         pc.close();
         return hasTURNCandidate;
       } catch (error) {
@@ -703,10 +700,10 @@ export default {
       // Manejo de errores ICE
       pc.oniceconnectionstatechange = async () => {
         console.log(`ICE Connection State para ${socketId}:`, pc.iceConnectionState);
-        
+
         if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
           console.log(`Reintentando conexión ICE para ${socketId}`);
-          
+
           // Verificar si tenemos candidatos TURN
           const hasTURN = await checkTURNConnectivity();
           if (!hasTURN) {
@@ -716,14 +713,14 @@ export default {
               iceTransportPolicy: 'relay'
             });
           }
-          
+
           // Limpiar timeouts existentes
           if (iceGatheringTimeout) clearTimeout(iceGatheringTimeout);
           if (connectionTimeout) clearTimeout(connectionTimeout);
-          
+
           // Reiniciar la conexión
           pc.restartIce();
-          
+
           // Establecer nuevo timeout para la recolección de ICE
           iceGatheringTimeout = setTimeout(() => {
             if (pc.iceGatheringState !== 'complete') {
@@ -742,11 +739,11 @@ export default {
         console.log(`Connection State para ${socketId}:`, pc.connectionState);
         if (pc.connectionState === 'failed') {
           console.log(`Reintentando conexión WebRTC para ${socketId}`);
-          
+
           // Limpiar timeouts existentes
           if (iceGatheringTimeout) clearTimeout(iceGatheringTimeout);
           if (connectionTimeout) clearTimeout(connectionTimeout);
-          
+
           reconnectPeerConnection(socketId);
         }
       };
@@ -1281,7 +1278,7 @@ export default {
     const reconnectPeerConnection = async (socketId) => {
       try {
         console.log(`Intentando reconectar con ${socketId}`);
-        
+
         if (isChef.value) {
           // Si es el chef, reinicia la llamada con configuración forzada TURN
           const pc = createPeerConnection(socketId);
@@ -1313,10 +1310,14 @@ export default {
     };
 
     const handleVideoPlayback = async (videoElement) => {
+      if (!videoElement) return;
+
       try {
         // Intentar reproducir con sonido
         await videoElement.play();
         console.log('Reproducción iniciada con sonido');
+        showPlayButton.value = false;
+        showUnmuteButton.value = false;
       } catch (error) {
         console.log('No se pudo reproducir con sonido, intentando sin sonido');
         try {
@@ -1324,12 +1325,12 @@ export default {
           videoElement.muted = true;
           await videoElement.play();
           console.log('Reproducción iniciada sin sonido');
-          
-          // Mostrar botón para activar sonido
+          showPlayButton.value = false;
           showUnmuteButton.value = true;
         } catch (error) {
           console.warn('No se pudo reproducir el video:', error);
           showPlayButton.value = true;
+          showUnmuteButton.value = false;
         }
       }
     };
@@ -1352,6 +1353,7 @@ export default {
           console.log('Sonido activado');
         } catch (error) {
           console.error('Error al activar el sonido:', error);
+          showUnmuteButton.value = true;
         }
       }
     };
@@ -1369,7 +1371,8 @@ export default {
       showPlayButton,
       showUnmuteButton,
       handlePlayClick,
-      handleUnmuteClick
+      handleUnmuteClick,
+      handleVideoPlayback
     };
   }
 };
