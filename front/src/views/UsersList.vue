@@ -1,102 +1,168 @@
 <template>
-  <div class="users-container">
-    <h1 class="title">Lista de Usuarios</h1>
-    <BotonesCrud />
+  <div class="min-h-screen bg-lime-50 flex flex-col">
+    <!-- Hero Section with animated background -->
+    <section class="relative overflow-hidden">
+      <div class="bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 py-16 relative">
+        <div class="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
+        <!-- Animated circles decoration -->
+        <div class="absolute inset-0 overflow-hidden">
+          <div class="absolute -left-10 -top-10 w-40 h-40 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 motion-safe:animate-[blob_7s_infinite]"></div>
+          <div class="absolute -right-10 -top-10 w-40 h-40 bg-lime-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 motion-safe:animate-[blob_7s_infinite_2s]"></div>
+          <div class="absolute -bottom-10 left-20 w-40 h-40 bg-green-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 motion-safe:animate-[blob_7s_infinite_4s]"></div>
+        </div>
 
-    <div v-if="loading" class="loading-spinner">
-      <div class="spinner"></div>
-      <p class="loading-text">Cargando usuarios...</p>
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+          <div class="text-center">
+            <h1 class="text-4xl tracking-tight font-extrabold text-lime-900 sm:text-5xl md:text-6xl">
+              <span class="block bg-gradient-to-r from-lime-900 via-lime-700 to-green-800 bg-clip-text text-transparent">
+                Gestió d'Usuaris
+              </span>
+              <span class="block text-2xl mt-3 text-lime-700 font-medium">
+                Administra els usuaris de la plataforma
+              </span>
+            </h1>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search Section -->
+    <div class="w-full px-6 -mt-8 relative z-20 flex justify-center">
+      <div class="w-full sm:w-5/6 md:w-4/5 lg:w-3/4 xl:w-2/3 2xl:w-1/2 transform hover:scale-105 transition-transform duration-300">
+        <div class="relative">
+          <input 
+            type="text" 
+            v-model="searchTerm" 
+            placeholder="Cerca usuaris..." 
+            class="w-full pl-12 pr-8 py-5 text-lg text-lime-900 border-2 border-lime-300 rounded-full focus:outline-none focus:ring-4 focus:ring-lime-300/50 focus:border-lime-400 bg-white/80 backdrop-blur-sm shadow-lg" 
+          />
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <svg class="w-6 h-6 text-lime-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div v-else-if="error" class="error-message">
-      <p class="error-text">{{ error }}</p>
-      <button @click="fetchUsers" class="retry-button">Reintentar</button>
-    </div>
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-6 py-12">
+      <BotonesCrud />
 
-    <div v-else>
-      <div class="search-box">
-        <input
-          type="text"
-          v-model="searchTerm"
-          placeholder="Buscar usuarios..."
-          class="search-input"
-        />
+      <!-- Loading State -->
+      <div v-if="loading" class="flex flex-col items-center justify-center py-12">
+        <div class="relative">
+          <div class="w-16 h-16 border-4 border-lime-300 border-dashed rounded-full animate-spin"></div>
+          <span class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl">👥</span>
+        </div>
+        <p class="mt-4 text-lime-700 font-medium animate-pulse">Carregant usuaris...</p>
       </div>
 
-      <div v-if="filteredUsers.length === 0" class="no-results">
-        <p>No se encontraron usuarios con ese criterio de búsqueda.</p>
+      <!-- Error State -->
+      <div v-else-if="error" class="bg-red-50 rounded-xl p-8 text-center border border-red-200 shadow-lg hover:shadow-xl transition-all duration-300 motion-safe:animate-[shake_0.5s_ease-in-out]">
+        <div class="text-4xl mb-4">😕</div>
+        <p class="text-red-600 mb-4 font-medium">{{ error }}</p>
+        <button @click="fetchUsers" class="bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 px-8 py-3 rounded-full hover:from-green-600 hover:via-lime-500 hover:to-lime-400 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-medium">
+          Tornar a intentar
+        </button>
       </div>
 
-      <div v-else class="table-container">
-        <table class="users-table">
-          <thead>
-            <tr>
-              <th>Usuario</th>
-              <th>Correo electrónico</th>
-              <th>Rol</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="user in filteredUsers" :key="user.id" class="user-row">
-              <td class="user-name-cell">
-                <div class="user-info">
-                  <div class="avatar-small">
-                    <span class="initials-small">{{ getUserInitials(user.name) }}</span>
+      <!-- No Results State -->
+      <div v-else-if="filteredUsers.length === 0" class="text-center py-12">
+        <div class="text-6xl mb-4">🔍</div>
+        <p class="text-lime-700 text-xl">No s'han trobat usuaris amb aquest criteri de cerca.</p>
+      </div>
+
+      <!-- Users Table -->
+      <div v-else class="bg-white rounded-2xl shadow-lg overflow-hidden max-w-3xl mx-auto">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="bg-gradient-to-r from-lime-50 to-green-50">
+                <th class="px-3 py-2 text-left text-xs font-semibold text-lime-900">Usuari</th>
+                <th class="px-2 py-2 text-left text-xs font-semibold text-lime-900">Email</th>
+                <th class="px-2 py-2 text-left text-xs font-semibold text-lime-900">Rol</th>
+                <th class="px-2 py-2 text-center text-xs font-semibold text-lime-900">.</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-lime-100">
+              <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-lime-50/50 transition-colors duration-200">
+                <td class="px-3 py-2">
+                  <div class="flex items-center space-x-2">
+                    <div class="flex-shrink-0">
+                      <div class="w-7 h-7 rounded-full bg-gradient-to-r from-lime-400 to-green-500 flex items-center justify-center text-white text-xs font-semibold">
+                        {{ getUserInitials(user.name) }}
+                      </div>
+                    </div>
+                    <div class="text-xs font-medium text-lime-900">{{ user.name }}</div>
                   </div>
-                  <span>{{ user.name }}</span>
-                </div>
-              </td>
-              <td class="user-email-cell">{{ user.email }}</td>
-              <td>
-                <select v-model="user.role" @change="updateUserRole(user)" class="role-select">
-                  <option value="user">Usuario</option>
-                  <option value="chef">Chef</option>
-                  <option value="admin">Admin</option>
-
-                </select>
-              </td>
-              <td class="actions-cell">
-                <button 
-                  @click="deleteUser(user.id)" 
-                  class="delete-button"
-                  title="Eliminar usuario"
-                >
-                  <svg class="delete-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                    </path>
-                  </svg>
-                  <span>Eliminar</span>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                </td>
+                <td class="px-2 py-2 text-xs text-lime-700 whitespace-nowrap">{{ user.email }}</td>
+                <td class="px-2 py-2">
+                  <select 
+                    v-model="user.role" 
+                    @change="updateUserRole(user)" 
+                    class="text-xs rounded border-lime-300 focus:border-lime-400 focus:ring focus:ring-lime-200 focus:ring-opacity-50 min-w-[70px]"
+                  >
+                    <option value="user">Nom</option>
+                    <option value="chef">Xef</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </td>
+                <td class="px-2 py-2 text-center">
+                  <button 
+                    @click="deleteUser(user.id)" 
+                    class="inline-flex items-center px-1.5 py-1 text-xs font-medium text-red-600 hover:text-red-800 transition-colors duration-200"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <!-- Modal de confirmación -->
-    <div v-if="showConfirmModal" class="modal-overlay">
-      <div class="modal-container">
-        <h3 class="modal-title">Confirmar eliminación</h3>
-        <p class="modal-text">¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer.</p>
-        <div class="modal-buttons">
-          <button @click="cancelDelete" class="cancel-button">Cancelar</button>
-          <button @click="confirmDelete" class="confirm-button">Eliminar</button>
+    <!-- Confirmation Modal -->
+    <div v-if="showConfirmModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 transform transition-all">
+        <h3 class="text-xl font-bold text-lime-900 mb-4">Confirmar eliminació</h3>
+        <p class="text-lime-700 mb-6">Estàs segur que vols eliminar aquest usuari? Aquesta acció no es pot desfer.</p>
+        <div class="flex justify-end space-x-4">
+          <button 
+            @click="cancelDelete" 
+            class="px-4 py-2 text-sm font-medium text-lime-700 hover:text-lime-900 transition-colors duration-200"
+          >
+            Cancel·lar
+          </button>
+          <button 
+            @click="confirmDelete" 
+            class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors duration-200"
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div v-if="showSuccessModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 transform transition-all">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-lime-900 mb-2">¡Èxit!</h3>
+          <p class="text-lime-700">{{ successMessage }}</p>
         </div>
       </div>
     </div>
   </div>
-  <!-- Modal de éxito -->
-<div v-if="showSuccessModal" class="modal-overlay">
-  <div class="modal-container success">
-    <h3 class="modal-title">¡Éxito!</h3>
-    <p class="modal-text">{{ successMessage }}</p>
-  </div>
-</div>
-
 </template>
 
 <script>
@@ -116,9 +182,8 @@ export default {
       searchTerm: '',
       showConfirmModal: false,
       userToDelete: null,
-       successMessage: '',
-       showSuccessModal: false,
-
+      successMessage: '',
+      showSuccessModal: false,
     };
   },
   computed: {
@@ -141,7 +206,7 @@ export default {
       try {
         const token = localStorage.getItem('token');
         if (!token) {
-          this.error = 'No se encontró el token de autenticación. Por favor, inicia sesión.';
+          this.error = 'No s\'ha trobat el token d\'autenticació. Si us plau, inicia sessió.';
           this.loading = false;
           return;
         }
@@ -149,9 +214,9 @@ export default {
       } catch (err) {
         console.error('Error fetching users:', err);
         if (err.response && err.response.status === 401) {
-          this.error = 'Tu sesión ha expirado o no tienes autorización. Por favor, vuelve a iniciar sesión.';
+          this.error = 'La teva sessió ha expirat o no tens autorització. Si us plau, torna a iniciar sessió.';
         } else {
-          this.error = 'Ocurrió un error al cargar los usuarios. Por favor, inténtalo de nuevo.';
+          this.error = 'Ha ocorregut un error en carregar els usuaris. Si us plau, torna-ho a intentar.';
         }
       } finally {
         this.loading = false;
@@ -175,392 +240,38 @@ export default {
       this.userToDelete = null;
     },
     async confirmDelete() {
-  if (!this.userToDelete) return;
-  try {
-    await communicationManager.deleteUser(this.userToDelete);
-    this.users = this.users.filter(user => user.id !== this.userToDelete);
-    this.showSuccess('Usuario eliminado correctamente');
-  } catch (error) {
-    console.error('Error al eliminar el usuario:', error);
-    if (error.response && error.response.status === 403) {
-      console.error('No tienes permisos para eliminar este usuario');
+      if (!this.userToDelete) return;
+      try {
+        await communicationManager.deleteUser(this.userToDelete);
+        this.users = this.users.filter(user => user.id !== this.userToDelete);
+        this.showSuccess('Usuari eliminat correctament');
+      } catch (error) {
+        console.error('Error al eliminar el usuari:', error);
+        if (error.response && error.response.status === 403) {
+          console.error('No tens permisos per eliminar aquest usuari');
+        }
+      } finally {
+        this.showConfirmModal = false;
+        this.userToDelete = null;
+      }
+    },
+    async updateUserRole(user) {
+      try {
+        await communicationManager.updateUserRole(user.id, user.role);
+        this.showSuccess(`Rol actualitzat a "${user.role}" per l'usuari ${user.name}`);
+      } catch (error) {
+        console.error('Error al actualitzar el rol:', error);
+        alert('Ha ocorregut un error en actualitzar el rol. Torna-ho a intentar.');
+      }
+    },
+    showSuccess(message) {
+      this.successMessage = message;
+      this.showSuccessModal = true;
+      setTimeout(() => {
+        this.showSuccessModal = false;
+        this.successMessage = '';
+      }, 1000);
     }
-  } finally {
-    this.showConfirmModal = false;
-    this.userToDelete = null;
-  }
-},
-async updateUserRole(user) {
-  try {
-    await communicationManager.updateUserRole(user.id, user.role);
-    this.showSuccess(`Rol actualizado a "${user.role}" para el usuario ${user.name}`);
-  } catch (error) {
-    console.error('Error al actualizar el rol:', error);
-    alert('Ocurrió un error al actualizar el rol. Intenta nuevamente.');
-  }
-},
-showSuccess(message) {
-  this.successMessage = message;
-  this.showSuccessModal = true;
-  setTimeout(() => {
-    this.showSuccessModal = false;
-    this.successMessage = '';
-  }, 1000); // Oculta después de 3 segundos
-}
   }
 };
 </script>
-
-  
-  <style scoped>
-  .users-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1.5rem;
-  }
-  
-  .title {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 1.5rem;
-    color: #1f2937;
-  }
-  
-  .loading-spinner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 200px;
-  }
-  
-  .spinner {
-    border-radius: 50%;
-    width: 3rem;
-    height: 3rem;
-    border: 2px solid transparent;
-    border-bottom-color: #2563eb;
-    animation: spin 1s linear infinite;
-  }
-  
-  .loading-text {
-    margin-top: 0.75rem;
-    color: #4b5563;
-  }
-  
-  .error-message {
-    background-color: #fef2f2;
-    border-left: 4px solid #ef4444;
-    color: #b91c1c;
-    padding: 1rem 1.5rem;
-    border-radius: 0.375rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  }
-  
-  .error-text {
-    font-weight: 500;
-  }
-  .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-container {
-  background-color: white;
-  padding: 20px 30px;
-  border-radius: 10px;
-  text-align: center;
-  max-width: 400px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.modal-container.success {
-  border-left: 5px solid #4caf50;
-}
-
-.modal-title {
-  font-size: 1.5rem;
-  margin-bottom: 10px;
-}
-
-.modal-text {
-  font-size: 1rem;
-  color: #333;
-}
-
-  
-  .retry-button {
-    background-color: #dc2626;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    margin-top: 0.75rem;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  
-  .retry-button:hover {
-    background-color: #b91c1c;
-  }
-  
-  .search-box {
-    margin-bottom: 1.5rem;
-  }
-  
-  .search-input {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    transition: all 0.2s;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  }
-  
-  .search-input:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
-  }
-  
-  .no-results {
-    padding: 1.5rem;
-    background-color: #f9fafb;
-    border-radius: 0.5rem;
-    text-align: center;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    border: 1px solid #f3f4f6;
-  }
-  
-  .table-container {
-    overflow-x: auto;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-  
-  .users-table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: white;
-  }
-  
-  .users-table th,
-  .users-table td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid #e5e7eb;
-  }
-  
-  .users-table th {
-    background-color: #f9fafb;
-    font-weight: 600;
-    color: #4b5563;
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  
-  .user-row {
-    transition: background-color 0.2s;
-  }
-  
-  .user-row:hover {
-    background-color: #f9fafb;
-  }
-  
-  .user-name-cell {
-    min-width: 250px;
-  }
-  
-  .user-email-cell {
-    min-width: 250px;
-    color: #4b5563;
-  }
-  
-  .actions-cell {
-    text-align: center;
-    min-width: 120px;
-  }
-  
-  .user-info {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-  
-  .avatar-small {
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 50%;
-    background: linear-gradient(to right, #3b82f6, #1e40af);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .initials-small {
-    font-size: 0.875rem;
-    font-weight: bold;
-  }
-  
-  .delete-button {
-    background-color: #ef4444;
-    color: white;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.375rem;
-    font-size: 0.75rem;
-    transition: background-color 0.2s;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .delete-button:hover {
-    background-color: #dc2626;
-  }
-  
-  .delete-icon {
-    width: 0.875rem;
-    height: 0.875rem;
-    margin-right: 0.25rem;
-  }
-  
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 50;
-  }
-  
-  .modal-container {
-    background-color: white;
-    padding: 2rem;
-    border-radius: 0.5rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    max-width: 28rem;
-    width: 100%;
-    animation: fadeIn 0.2s ease-out forwards;
-  }
-  
-  .modal-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    color: #1f2937;
-  }
-  
-  .modal-text {
-    color: #4b5563;
-  }
-  
-  .modal-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 2rem;
-  }
-  
-  .cancel-button {
-    padding: 0.5rem 1.25rem;
-    background-color: #e5e7eb;
-    border-radius: 0.375rem;
-    transition: background-color 0.2s;
-    border: none;
-    cursor: pointer;
-  }
-  
-  .cancel-button:hover {
-    background-color: #d1d5db;
-  }
-  
-  .confirm-button {
-    padding: 0.5rem 1.25rem;
-    background-color: #dc2626;
-    color: white;
-    border-radius: 0.375rem;
-    transition: background-color 0.2s;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    border: none;
-    cursor: pointer;
-  }
-  
-  .confirm-button:hover {
-    background-color: #b91c1c;
-  }
-  
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-  }
-  
-  @media (max-width: 640px) {
-    .users-table {
-    font-size: 0.875rem;
-  }
-  
-  .users-table th,
-  .users-table td {
-    padding: 0.5rem 0.25rem; /* Reducimos más el padding */
-  }
-  
-  .user-name-cell,
-  .user-email-cell {
-    min-width: auto; /* Eliminamos el ancho mínimo fijo */
-    max-width: 150px; /* Establecemos un máximo más pequeño */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  .actions-cell {
-    min-width: 40px; /* Reducimos el ancho mínimo */
-  }
-  
-  .avatar-small {
-    width: 1.75rem;
-    height: 1.75rem;
-    display: none; /* Ocultamos el avatar en móvil para ahorrar espacio */
-  }
-  
-  .delete-button {
-    padding: 0.25rem; /* Reducimos el padding del botón */
-  }
-  
-  .delete-button span {
-    display: none;
-  }
-  
-  .delete-icon {
-    margin-right: 0;
-    width: 0.75rem;
-    height: 0.75rem;
-  }
-  
-  .user-info {
-    gap: 0.25rem; /* Reducimos el espacio entre elementos */
-  }
-}
-  </style>

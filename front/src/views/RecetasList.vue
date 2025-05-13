@@ -1,66 +1,136 @@
 <template>
-  <div class="recetas-container">
-    <h1 class="title">Todas las Recetas</h1>
-    <BotonesCrud/>
+  <div class="min-h-screen bg-lime-50 flex flex-col">
+    <!-- Hero Section with animated background -->
+    <section class="relative overflow-hidden">
+      <div class="bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 py-16 relative">
+        <div class="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
+        <!-- Animated circles decoration -->
+        <div class="absolute inset-0 overflow-hidden">
+          <div class="absolute -left-10 -top-10 w-40 h-40 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 motion-safe:animate-[blob_7s_infinite]"></div>
+          <div class="absolute -right-10 -top-10 w-40 h-40 bg-lime-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 motion-safe:animate-[blob_7s_infinite_2s]"></div>
+          <div class="absolute -bottom-10 left-20 w-40 h-40 bg-green-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 motion-safe:animate-[blob_7s_infinite_4s]"></div>
+        </div>
 
-    <div v-if="loading" class="loading">
-      <div class="spinner"></div>
-      <p>Cargando recetas...</p>
-    </div>
-    
-    <div v-else-if="error" class="error">
-      <p>Error al cargar las recetas: {{ error }}</p>
-      <button @click="fetchRecetas" class="retry-btn">Intentar nuevamente</button>
-    </div>
-    
-    <div v-else-if="recetas.length === 0" class="no-recetas">
-      <p>No hay recetas disponibles.</p>
-    </div>
-    
-    <div v-else class="recetas-grid">
-      <div v-for="receta in recetas" :key="receta.id" class="receta-card">
-       
-        <div class="receta-content">
-          <h2 class="receta-title">{{ receta.title }}</h2>
-          <div class="receta-meta">
-            <span class="category">{{ receta.category?.name }}</span>
-            <span class="cuisine">{{ receta.cuisine?.country }}</span>
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+          <div class="text-center">
+            <h1 class="text-4xl tracking-tight font-extrabold text-lime-900 sm:text-5xl md:text-6xl">
+              <span class="block bg-gradient-to-r from-lime-900 via-lime-700 to-green-800 bg-clip-text text-transparent">
+                Totes les Receptes
+              </span>
+              <span class="block text-2xl mt-3 text-lime-700 font-medium">
+                Explora i gestiona totes les receptes
+              </span>
+            </h1>
           </div>
-          <p class="receta-description">{{ truncateDescription(receta.description) }}</p>
-          <div class="receta-footer">
-            <span class="author">Por: {{ receta.user?.name }}</span>
-            <button @click="showDeleteModal(receta)" class="view-btn">Eliminar receta</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search Section -->
+    <div class="w-full px-6 -mt-4 relative z-20 flex justify-center items-center gap-4">
+      <div class="w-full sm:w-2/3 md:w-1/2 lg:w-1/3 transform hover:scale-105 transition-transform duration-300">
+        <div class="relative">
+          <input 
+            type="text" 
+            v-model="searchTerm" 
+            placeholder="Cerca receptes..." 
+            class="w-full pl-10 pr-6 py-2.5 text-sm text-lime-900 border-2 border-lime-300 rounded-full focus:outline-none focus:ring-4 focus:ring-lime-300/50 focus:border-lime-400 bg-white/80 backdrop-blur-sm shadow-lg" 
+          />
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="w-4 h-4 text-lime-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <BotonesCrud />
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-6 py-6 mb-16">
+
+
+      <!-- Loading State -->
+      <div v-if="loading" class="flex flex-col items-center justify-center py-12">
+        <div class="relative">
+          <div class="w-16 h-16 border-4 border-lime-300 border-dashed rounded-full animate-spin"></div>
+          <span class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl">🍳</span>
+        </div>
+        <p class="mt-4 text-lime-700 font-medium animate-pulse">Carregant receptes...</p>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error" class="bg-red-50 rounded-xl p-8 text-center border border-red-200 shadow-lg hover:shadow-xl transition-all duration-300 motion-safe:animate-[shake_0.5s_ease-in-out]">
+        <div class="text-4xl mb-4">😕</div>
+        <p class="text-red-600 mb-4 font-medium">{{ error }}</p>
+        <button @click="fetchRecetas" class="bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 px-8 py-3 rounded-full hover:from-green-600 hover:via-lime-500 hover:to-lime-400 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-medium">
+          Tornar a intentar
+        </button>
+      </div>
+
+      <!-- No Results State -->
+      <div v-else-if="filteredRecetas.length === 0" class="text-center py-12">
+        <div class="text-6xl mb-4">🔍</div>
+        <p class="text-lime-700 text-xl">No hi ha receptes disponibles.</p>
+      </div>
+
+      <!-- Recipes Grid -->
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-for="receta in filteredRecetas" :key="receta.id" class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <div class="p-6">
+            <h2 class="text-xl font-bold text-lime-900 mb-2">{{ receta.title }}</h2>
+            <div class="flex flex-wrap gap-2 mb-3">
+              <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">{{ receta.category?.name }}</span>
+              <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">{{ receta.cuisine?.country }}</span>
+            </div>
+            <p class="text-lime-700 text-sm mb-4">{{ truncateDescription(receta.description) }}</p>
+            <div class="flex justify-between items-center">
+              <span class="text-lime-600 text-sm">Per: {{ receta.user?.name }}</span>
+              <button @click="showDeleteModal(receta)" class="px-3 py-1.5 text-xs rounded font-semibold bg-red-500 text-white hover:bg-red-600 transition">
+                Eliminar
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Modal de confirmación -->
-    <div v-if="showModal" class="modal-overlay" @click="cancelDelete">
-      <div class="modal-content" @click.stop>
-        <h3>Confirmar eliminación</h3>
-        <p>¿Estás seguro de que deseas eliminar la receta "{{ recetaToDelete?.title }}"?</p>
-        <div class="modal-buttons">
-          <button @click="cancelDelete" class="cancel-btn">Cancelar</button>
-          <button @click="confirmDelete" class="confirm-btn">Eliminar</button>
+    <!-- Confirmation Modal -->
+    <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 transform transition-all">
+        <h3 class="text-xl font-bold text-lime-900 mb-4">Confirmar eliminació</h3>
+        <p class="text-lime-700 mb-6">Estàs segur que vols eliminar la recepta "{{ recetaToDelete?.title }}"?</p>
+        <div class="flex justify-end space-x-4">
+          <button @click="cancelDelete" class="px-4 py-2 text-sm font-medium text-lime-700 hover:text-lime-900 transition-colors duration-200">
+            Cancel·lar
+          </button>
+          <button @click="confirmDelete" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors duration-200">
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div v-if="showSuccessModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 transform transition-all">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-lime-900 mb-2">¡Èxit!</h3>
+          <p class="text-lime-700">{{ successMessage }}</p>
         </div>
       </div>
     </div>
   </div>
-  <!-- Modal de éxito -->
-<div v-if="showSuccessModal" class="modal-overlay">
-  <div class="modal-content success">
-    <h3>¡Éxito!</h3>
-    <p>{{ successMessage }}</p>
-  </div>
-</div>
-
 </template>
 
 <script>
 import communicationManager from '@/services/communicationManager';
-import BotonesCrud  from '@/components/BotonesCrud.vue';
-
+import BotonesCrud from '@/components/BotonesCrud.vue';
 
 export default {
   name: 'RecetasList',
@@ -76,7 +146,19 @@ export default {
       recetaToDelete: null,
       successMessage: null,
       showSuccessModal: false,
-
+      searchTerm: '',
+    }
+  },
+  computed: {
+    filteredRecetas() {
+      if (!this.searchTerm) return this.recetas;
+      const searchLower = this.searchTerm.toLowerCase();
+      return this.recetas.filter(receta =>
+        receta.title.toLowerCase().includes(searchLower) ||
+        receta.description?.toLowerCase().includes(searchLower) ||
+        receta.category?.name.toLowerCase().includes(searchLower) ||
+        receta.cuisine?.country.toLowerCase().includes(searchLower)
+      );
     }
   },
   mounted() {
@@ -87,7 +169,6 @@ export default {
       this.loading = true;
       this.error = null;
       try {
-        // Usamos communicationManager en lugar de fetch directo
         this.recetas = await communicationManager.fetchRecipes();
       } catch (err) {
         this.error = err.message;
@@ -105,21 +186,21 @@ export default {
       this.recetaToDelete = null;
     },
     async confirmDelete() {
-  try {
-    await communicationManager.deleteRecipe(this.recetaToDelete.id);
-    this.recetas = this.recetas.filter(receta => receta.id !== this.recetaToDelete.id);
-    this.showModal = false;
-    this.successMessage = `La receta "${this.recetaToDelete.title}" fue eliminada exitosamente.`;
-    this.showSuccessModal = true;
-    this.recetaToDelete = null;
-    setTimeout(() => {
-      this.showSuccessModal = false;
-      this.successMessage = null;
-    }, 1000); // se cierra solo después de 3 segundos
-  } catch (error) {
-    alert('Ocurrió un error al eliminar la receta.');
-  }
-},
+      try {
+        await communicationManager.deleteRecipe(this.recetaToDelete.id);
+        this.recetas = this.recetas.filter(receta => receta.id !== this.recetaToDelete.id);
+        this.showModal = false;
+        this.successMessage = `La recepta "${this.recetaToDelete.title}" ha estat eliminada amb èxit.`;
+        this.showSuccessModal = true;
+        this.recetaToDelete = null;
+        setTimeout(() => {
+          this.showSuccessModal = false;
+          this.successMessage = null;
+        }, 1000);
+      } catch (error) {
+        alert('Ha ocorregut un error en eliminar la recepta.');
+      }
+    },
     truncateDescription(desc) {
       if (!desc) return '';
       return desc.length > 150 ? desc.substring(0, 150) + '...' : desc;
@@ -127,508 +208,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-/* Variables y reset básico */
-:root {
-  --primary-color: #3498db;
-  --primary-dark: #2980b9;
-  --accent-color: #e74c3c;
-  --accent-dark: #c0392b;
-  --text-dark: #2c3e50;
-  --text-medium: #34495e;
-  --text-light: #7f8c8d;
-  --background-light: #f8f9fa;
-  --shadow-subtle: 0 4px 6px rgba(0, 0, 0, 0.05);
-  --shadow-medium: 0 6px 12px rgba(0, 0, 0, 0.1);
-  --shadow-strong: 0 10px 25px rgba(0, 0, 0, 0.15);
-  --border-radius: 10px;
-  --transition-quick: 0.2s ease;
-  --transition-smooth: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.recetas-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-/* Animación de entrada */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Título principal con línea decorativa */
-.title {
-  text-align: center;
-  margin-bottom: 3rem;
-  color: var(--text-dark);
-  font-size: 2.5rem;
-  font-weight: 700;
-  position: relative;
-  padding-bottom: 1rem;
-}
-.modal-content.success {
-  border-top-color: #2ecc71;
-}
-
-.modal-content.success h3 {
-  color: #27ae60;
-}
-
-.title::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: 80px;
-  height: 4px;
-  background: linear-gradient(to right, var(--primary-color), var(--accent-color));
-  transform: translateX(-50%);
-  border-radius: 2px;
-  animation: expandLine 0.6s ease-in-out forwards;
-}
-
-@keyframes expandLine {
-  from { width: 0; opacity: 0; }
-  to { width: 80px; opacity: 1; }
-}
-
-/* Estado de carga mejorado */
-.loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 300px;
-}
-
-.spinner {
-  border: 3px solid rgba(52, 152, 219, 0.2);
-  border-top: 3px solid var(--primary-color);
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 1s cubic-bezier(0.76, 0.21, 0.24, 0.93) infinite;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 0 15px rgba(52, 152, 219, 0.3);
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.loading p {
-  color: var(--text-medium);
-  font-size: 1.1rem;
-  animation: pulse 1.5s infinite alternate;
-}
-
-@keyframes pulse {
-  from { opacity: 0.6; }
-  to { opacity: 1; }
-}
-
-/* Estado de error mejorado */
-.error {
-  text-align: center;
-  color: var(--accent-color);
-  padding: 2.5rem;
-  background: rgba(231, 76, 60, 0.08);
-  border-radius: var(--border-radius);
-  border-left: 4px solid var(--accent-color);
-  box-shadow: var(--shadow-subtle);
-  transform: translateZ(0);
-  transition: transform var(--transition-smooth);
-}
-
-.retry-btn {
-  margin-top: 1.5rem;
-  padding: 0.7rem 1.5rem;
-  background: var(--accent-color);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all var(--transition-smooth);
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 5px rgba(231, 76, 60, 0.3);
-}
-
-.retry-btn:hover {
-  background: var(--accent-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(231, 76, 60, 0.4);
-}
-
-.retry-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(231, 76, 60, 0.4);
-}
-
-/* Estado sin recetas */
-.no-recetas {
-  text-align: center;
-  padding: 3rem 2rem;
-  background: var(--background-light);
-  border-radius: var(--border-radius);
-  color: var(--text-light);
-  font-size: 1.1rem;
-  box-shadow: var(--shadow-subtle);
-  border: 1px dashed #e0e0e0;
-}
-
-/* Grid de recetas mejorado */
-.recetas-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 2.5rem;
-  animation: gridFadeIn 0.6s ease-out;
-}
-
-@keyframes gridFadeIn {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Tarjetas de recetas con animación y efectos */
-.receta-card {
-  background: white;
-  border-radius: var(--border-radius);
-  overflow: hidden;
-  box-shadow: var(--shadow-medium);
-  transition: all var(--transition-smooth);
-  position: relative;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  animation: cardAppear 0.4s ease-out forwards;
-  opacity: 0;
-  transform: scale(0.96);
-}
-
-.receta-card:nth-child(odd) {
-  animation-delay: 0.1s;
-}
-
-.receta-card:nth-child(even) {
-  animation-delay: 0.2s;
-}
-
-@keyframes cardAppear {
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.receta-card:hover {
-  transform: translateY(-8px);
-  box-shadow: var(--shadow-strong);
-  border-color: rgba(52, 152, 219, 0.2);
-}
-
-.receta-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(to right, var(--primary-color), var(--accent-color));
-  opacity: 0;
-  transition: opacity var(--transition-smooth);
-}
-
-.receta-card:hover::before {
-  opacity: 1;
-}
-
-
-
-/* Contenido de la tarjeta */
-.receta-content {
-  padding: 1.8rem;
-  position: relative;
-}
-
-.receta-title {
-  margin: 0 0 0.8rem;
-  color: var(--text-dark);
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.3;
-  transition: color var(--transition-quick);
-}
-
-.receta-card:hover .receta-title {
-  color: var(--primary-color);
-}
-
-/* Metadatos con estilo de badge */
-.receta-meta {
-  display: flex;
-  gap: 0.8rem;
-  margin-bottom: 1.2rem;
-  flex-wrap: wrap;
-}
-
-.category,
-.cuisine {
-  display: inline-block;
-  padding: 0.3rem 0.8rem;
-  font-size: 0.8rem;
-  border-radius: 50px;
-  font-weight: 500;
-  transition: all var(--transition-quick);
-}
-
-.category {
-  background-color: rgba(52, 152, 219, 0.1);
-  color: var(--primary-color);
-  border: 1px solid rgba(52, 152, 219, 0.3);
-}
-
-.cuisine {
-  background-color: rgba(231, 76, 60, 0.1);
-  color: var(--accent-color);
-  border: 1px solid rgba(231, 76, 60, 0.3);
-}
-
-.receta-card:hover .category,
-.receta-card:hover .cuisine {
-  transform: translateY(-2px);
-}
-
-/* Descripción de receta */
-.receta-description {
-  color: var(--text-medium);
-  margin-bottom: 1.8rem;
-  line-height: 1.6;
-  position: relative;
-  font-size: 0.95rem;
-}
-
-/* Footer de la tarjeta */
-.receta-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-  padding-top: 1.2rem;
-}
-
-.author {
-  color: var(--text-light);
-  font-style: italic;
-  font-size: 0.9rem;
-  transition: color var(--transition-quick);
-}
-
-.receta-card:hover .author {
-  color: var(--text-medium);
-}
-
-.view-btn {
-  padding: 0.5rem 1rem;
-  background: #db0202;
-  color: white;
-  text-decoration: none;
-  border-radius: 4px;
-  transition: all var(--transition-smooth);
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
-  box-shadow: 0 2px 5px rgba(219, 2, 2, 0.3);
-}
-
-.view-btn:hover {
-  background: #b30000;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(219, 2, 2, 0.4);
-}
-
-.view-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(219, 2, 2, 0.4);
-}
-
-/* Estilos del modal mejorados */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  backdrop-filter: blur(3px);
-  animation: fadeInOverlay 0.3s ease;
-}
-
-@keyframes fadeInOverlay {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.modal-content {
-  background-color: white;
-  padding: 2.5rem;
-  border-radius: var(--border-radius);
-  max-width: 500px;
-  width: 90%;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
-  animation: dropInModal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  transform-origin: center;
-  border-top: 4px solid #db0202;
-}
-
-@keyframes dropInModal {
-  from { 
-    opacity: 0;
-    transform: scale(0.9) translateY(-20px);
-  }
-  to { 
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.modal-content h3 {
-  margin-top: 0;
-  color: var(--text-dark);
-  font-size: 1.6rem;
-  margin-bottom: 1rem;
-}
-
-.modal-content p {
-  color: var(--text-medium);
-  font-size: 1.1rem;
-  line-height: 1.5;
-}
-
-.modal-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-.cancel-btn {
-  padding: 0.7rem 1.2rem;
-  background: #e0e0e0;
-  color: #333;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all var(--transition-smooth);
-  font-weight: 600;
-}
-
-.cancel-btn:hover {
-  background: #c0c0c0;
-  transform: translateY(-2px);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.cancel-btn:active {
-  transform: translateY(0);
-}
-
-.confirm-btn {
-  padding: 0.7rem 1.2rem;
-  background: #db0202;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all var(--transition-smooth);
-  font-weight: 600;
-  box-shadow: 0 2px 5px rgba(219, 2, 2, 0.3);
-}
-
-.confirm-btn:hover {
-  background: #b30000;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(219, 2, 2, 0.4);
-}
-
-.confirm-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(219, 2, 2, 0.4);
-}
-
-/* Responsividad mejorada */
-@media (max-width: 992px) {
-  .recetas-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .recetas-grid {
-    grid-template-columns: 1fr;
-    gap: 1.8rem;
-    padding-bottom: 50px;
-  }
-  
-  .title {
-    font-size: 2rem;
-    margin-bottom: 2rem;
-  }
-  
-  .modal-content {
-    width: 95%;
-    padding: 1.8rem;
-  }
-  
-  .receta-card {
-    max-width: 500px;
-    margin: 0 auto;
-  }
-}
-
-@media (max-width: 480px) {
-  .recetas-container {
-    padding: 1.5rem 1rem;
-  }
-  
-  .receta-content {
-    padding: 1.5rem;
-  }
-  
-  .modal-buttons {
-    flex-direction: column-reverse;
-    gap: 0.8rem;
-  }
-  
-  .confirm-btn, .cancel-btn {
-    width: 100%;
-    padding: 0.8rem;
-  }
-}
-
-/* Estilo para pantalla impresa */
-@media print {
-  .recetas-container {
-    padding: 0;
-  }
-  
-  .receta-card {
-    box-shadow: none;
-    border: 1px solid #ddd;
-    page-break-inside: avoid;
-  }
-  
-  .view-btn, .modal-overlay {
-    display: none;
-  }
-}
-</style>

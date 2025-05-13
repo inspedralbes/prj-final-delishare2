@@ -1,109 +1,59 @@
 <template>
-    <div class="bootnes-crud">
-      <h2>Panel de Administración</h2>
-      
-      <div class="button-container">
-        <router-link to="/recetas" class="btn btn-primary">
-          Recetas
-        </router-link>
-        <router-link to="/categories" class="btn btn-success">
-          Categorías
-        </router-link>
-        <router-link to="/cuisines" class="btn btn-info">
-          Cocinas
-        </router-link>
-        <router-link to="/comments" class="btn btn-warning">
-          Comentarios
-        </router-link>
-        <router-link to="/users" class="btn btn-danger">
-          Usuarios
-        </router-link>
+  <div>
+    <button 
+      @click="drawerOpen = true" 
+      class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-lime-500 to-green-500 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+    <transition name="drawer">
+      <div v-if="drawerOpen" class="fixed inset-0 bg-black/18 z-[1000] flex justify-end" @click.self="drawerOpen = false">
+        <div class="bg-white w-[90vw] max-w-[400px] h-screen shadow-[-2px_0_16px_rgba(34,197,94,0.10)] rounded-l-[18px] p-8 px-6 relative flex flex-col animate-[slideInDrawer_0.3s_cubic-bezier(.4,0,.2,1)]">
+          <button class="absolute top-5 right-5 bg-transparent border-none text-3xl text-[#22c55e] cursor-pointer z-10" @click="drawerOpen = false" aria-label="Tancar menú">&times;</button>
+          <h2 class="text-2xl font-bold text-[#166534] mb-5 text-center">Panel d'Administració</h2>
+          <div class="flex flex-col gap-2">
+            <router-link to="/recetas" class="px-3 py-1.5 text-xs rounded font-semibold bg-blue-500 text-white hover:bg-blue-600 transition">Recetes</router-link>
+            <router-link to="/categories" class="px-3 py-1.5 text-xs rounded font-semibold bg-green-500 text-white hover:bg-green-600 transition">Categories</router-link>
+            <router-link to="/cuisines" class="px-3 py-1.5 text-xs rounded font-semibold bg-cyan-500 text-white hover:bg-cyan-600 transition">Cuines</router-link>
+            <router-link to="/comments" class="px-3 py-1.5 text-xs rounded font-semibold bg-yellow-400 text-lime-900 hover:bg-yellow-500 transition">Comentaris</router-link>
+            <router-link to="/users" class="px-3 py-1.5 text-xs rounded font-semibold bg-red-500 text-white hover:bg-red-600 transition">Usuaris</router-link>
+          </div>
+        </div>
       </div>
-    </div>
-  </template>
-  
-  <script>
-  export default {
-    name: 'BootnesCrud'
+    </transition>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'BotonesCrud',
+  data() {
+    return {
+      drawerOpen: false
+    };
   }
-  </script>
-  
-  <style scoped>
-  .bootnes-crud {
-    padding: 20px;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+</script>
+
+<style scoped>
+.drawer-enter-active,
+.drawer-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.drawer-enter-from,
+.drawer-leave-to {
+  opacity: 0;
+}
+
+@keyframes slideInDrawer {
+  from {
+    transform: translateX(100%);
   }
-  
-  h2 {
-    margin-bottom: 20px;
-    color: #343a40;
+  to {
+    transform: translateX(0);
   }
-  
-  .button-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  
-  .btn {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    text-align: center;
-    display: inline-block;
-  }
-  
-  .btn:hover {
-    opacity: 0.9;
-    transform: translateY(-2px);
-  }
-  
-  .btn-primary {
-    background-color: #007bff;
-    color: white;
-  }
-  
-  .btn-success {
-    background-color: #28a745;
-    color: white;
-  }
-  
-  .btn-info {
-    background-color: #17a2b8;
-    color: white;
-  }
-  
-  .btn-warning {
-    background-color: #ffc107;
-    color: #212529;
-  }
-  
-  .btn-danger {
-    background-color: #dc3545;
-    color: white;
-  }
-  
-  /* Enlaces específicos */
-  a.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .button-container {
-      flex-direction: column;
-    }
-    
-    .btn {
-      width: 100%;
-    }
-  }
-  </style>
+}
+</style>
