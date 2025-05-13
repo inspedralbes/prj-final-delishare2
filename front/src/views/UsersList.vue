@@ -27,27 +27,29 @@
     </section>
 
     <!-- Search Section -->
-    <div class="w-full px-6 -mt-8 relative z-20 flex justify-center">
-      <div class="w-full sm:w-5/6 md:w-4/5 lg:w-3/4 xl:w-2/3 2xl:w-1/2 transform hover:scale-105 transition-transform duration-300">
+    <div class="w-full px-6 -mt-12 sm:-mt-8 relative z-20 flex justify-center items-center gap-4">
+      <div class="w-full sm:w-2/3 md:w-1/2 lg:w-1/3 transform hover:scale-105 transition-transform duration-300">
         <div class="relative">
           <input 
             type="text" 
             v-model="searchTerm" 
             placeholder="Cerca usuaris..." 
-            class="w-full pl-12 pr-8 py-5 text-lg text-lime-900 border-2 border-lime-300 rounded-full focus:outline-none focus:ring-4 focus:ring-lime-300/50 focus:border-lime-400 bg-white/80 backdrop-blur-sm shadow-lg" 
+            class="w-full pl-10 pr-6 py-2.5 text-sm text-lime-900 border-2 border-lime-300 rounded-full focus:outline-none focus:ring-4 focus:ring-lime-300/50 focus:border-lime-400 bg-white/80 backdrop-blur-sm shadow-lg" 
           />
-          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <svg class="w-6 h-6 text-lime-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="w-4 h-4 text-lime-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
         </div>
       </div>
+      <div class="-mt-2 sm:mt-0">
+        <BotonesCrud />
+      </div>
     </div>
 
     <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-6 py-12">
-      <BotonesCrud />
+    <div class="max-w-7xl mx-auto px-6 py-6">
 
       <!-- Loading State -->
       <div v-if="loading" class="flex flex-col items-center justify-center py-12">
