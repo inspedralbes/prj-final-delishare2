@@ -421,14 +421,14 @@ export default {
 
     const configuration = {
       iceServers: [
-        // STUN servers gratuitos
+        // STUN servers
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
         { urls: 'stun:stun2.l.google.com:19302' },
         { urls: 'stun:stun3.l.google.com:19302' },
         { urls: 'stun:stun4.l.google.com:19302' },
         
-        // TURN servers gratuitos (prioridad alta)
+        // TURN servers (prioridad alta)
         {
           urls: [
             'turn:openrelay.metered.ca:80',
@@ -452,7 +452,8 @@ export default {
       iceCandidatePoolSize: 10,
       bundlePolicy: 'max-bundle',
       rtcpMuxPolicy: 'require',
-      iceTransportPolicy: 'all'
+      iceTransportPolicy: 'all',
+      sdpSemantics: 'unified-plan'
     };
 
     const toggleMute = () => {
@@ -651,20 +652,33 @@ export default {
       });
     };
 
-    /// Función para verificar la conectividad TURN
+    /// Función mejorada para verificar la conectividad TURN
     const checkTURNConnectivity = async () => {
       try {
         const pc = new RTCPeerConnection(configuration);
         const dataChannel = pc.createDataChannel('test');
         
-        const offer = await pc.createOffer();
+        const offer = await pc.createOffer({
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: true
+        });
+        
         await pc.setLocalDescription(offer);
         
         // Esperar a que se recojan los candidatos ICE
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         const hasTURNCandidate = pc.localDescription.sdp.includes('relay');
         console.log('¿Tiene candidatos TURN?:', hasTURNCandidate);
+        
+        if (!hasTURNCandidate) {
+          console.warn('No se detectaron candidatos TURN, intentando forzar TURN...');
+          // Forzar el uso de TURN
+          pc.setConfiguration({
+            ...configuration,
+            iceTransportPolicy: 'relay'
+          });
+        }
         
         pc.close();
         return hasTURNCandidate;
@@ -674,7 +688,7 @@ export default {
       }
     };
 
-    /// Modificar createPeerConnection para incluir manejo de errores TURN
+    /// Función mejorada para crear conexión peer
     const createPeerConnection = (socketId) => {
       if (peerConnections.value[socketId]) {
         peerConnections.value[socketId].close();
@@ -682,6 +696,9 @@ export default {
 
       const pc = new RTCPeerConnection(configuration);
       peerConnections.value[socketId] = pc;
+
+      let iceGatheringTimeout;
+      let connectionTimeout;
 
       // Manejo de errores ICE
       pc.oniceconnectionstatechange = async () => {
@@ -693,10 +710,30 @@ export default {
           // Verificar si tenemos candidatos TURN
           const hasTURN = await checkTURNConnectivity();
           if (!hasTURN) {
-            console.warn('No se detectaron candidatos TURN, la conexión podría fallar');
+            console.warn('No se detectaron candidatos TURN, forzando uso de TURN...');
+            pc.setConfiguration({
+              ...configuration,
+              iceTransportPolicy: 'relay'
+            });
           }
           
+          // Limpiar timeouts existentes
+          if (iceGatheringTimeout) clearTimeout(iceGatheringTimeout);
+          if (connectionTimeout) clearTimeout(connectionTimeout);
+          
+          // Reiniciar la conexión
           pc.restartIce();
+          
+          // Establecer nuevo timeout para la recolección de ICE
+          iceGatheringTimeout = setTimeout(() => {
+            if (pc.iceGatheringState !== 'complete') {
+              console.warn('Timeout en recolección de ICE, forzando TURN...');
+              pc.setConfiguration({
+                ...configuration,
+                iceTransportPolicy: 'relay'
+              });
+            }
+          }, 5000);
         }
       };
 
@@ -705,12 +742,19 @@ export default {
         console.log(`Connection State para ${socketId}:`, pc.connectionState);
         if (pc.connectionState === 'failed') {
           console.log(`Reintentando conexión WebRTC para ${socketId}`);
+          
+          // Limpiar timeouts existentes
+          if (iceGatheringTimeout) clearTimeout(iceGatheringTimeout);
+          if (connectionTimeout) clearTimeout(connectionTimeout);
+          
           reconnectPeerConnection(socketId);
         }
       };
 
+      // Manejo de candidatos ICE
       pc.onicecandidate = (event) => {
         if (event.candidate) {
+          console.log(`Nuevo candidato ICE para ${socketId}:`, event.candidate.type);
           socket.value.emit('iceCandidate', {
             liveId: liveId.value,
             target: socketId,
@@ -973,6 +1017,11 @@ export default {
         const hasTURN = await checkTURNConnectivity();
         console.log('Estado de conectividad TURN:', hasTURN ? 'Disponible' : 'No disponible');
 
+        if (!hasTURN) {
+          console.warn('TURN no disponible, forzando uso de relay...');
+          configuration.iceTransportPolicy = 'relay';
+        }
+
         socket.value = io('https://delishare.cat', {
           path: '/socket.io',
           transports: ['websocket'],
@@ -1228,13 +1277,18 @@ export default {
       });
     };
 
-    // Función para reconectar una conexión peer
+    // Función mejorada para reconectar
     const reconnectPeerConnection = async (socketId) => {
       try {
         console.log(`Intentando reconectar con ${socketId}`);
         
         if (isChef.value) {
-          // Si es el chef, reinicia la llamada
+          // Si es el chef, reinicia la llamada con configuración forzada TURN
+          const pc = createPeerConnection(socketId);
+          pc.setConfiguration({
+            ...configuration,
+            iceTransportPolicy: 'relay'
+          });
           await startCall(socketId);
         } else {
           // Si es un viewer, solicita el stream nuevamente
