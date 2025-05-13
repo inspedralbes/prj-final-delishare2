@@ -49,82 +49,81 @@
     </div>
 
     <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-6 py-3 sm:py-6">
+    <div class="max-w-7xl mx-auto px-6 py-3 sm:py-6 mb-24">
       <!-- Loading State -->
       <div v-if="loading" class="flex flex-col items-center justify-center py-12">
         <div class="relative">
           <div class="w-16 h-16 border-4 border-lime-300 border-dashed rounded-full animate-spin"></div>
-          <span class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl">📋</span>
         </div>
         <p class="mt-4 text-lime-700 font-medium animate-pulse">Carregant categories...</p>
       </div>
 
       <!-- Error State -->
       <div v-else-if="error" class="bg-red-50 rounded-xl p-8 text-center border border-red-200 shadow-lg hover:shadow-xl transition-all duration-300 motion-safe:animate-[shake_0.5s_ease-in-out]">
-        <div class="text-4xl mb-4">😕</div>
         <p class="text-red-600 mb-4 font-medium">{{ error }}</p>
         <button @click="obtenirCategories" class="bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 px-8 py-3 rounded-full hover:from-green-600 hover:via-lime-500 hover:to-lime-400 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-medium">
           Tornar a intentar
         </button>
       </div>
 
-      <!-- No Results State -->
-      <div v-else-if="filteredCategories.length === 0" class="text-center py-12">
-        <div class="text-6xl mb-4">🔍</div>
-        <p class="text-lime-700 text-xl">No s'han trobat categories.</p>
-      </div>
-
-      <!-- Categories Table -->
-      <div v-else class="bg-white rounded-2xl shadow-lg overflow-hidden max-w-3xl mx-auto">
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead>
-              <tr class="bg-gradient-to-r from-lime-50 to-green-50">
-                <th class="px-6 py-3 text-left text-xs font-semibold text-lime-900">Nom</th>
-                <th class="px-6 py-3 text-center text-xs font-semibold text-lime-900">Accions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-lime-100">
-              <tr v-for="category in filteredCategories" :key="category.id" class="hover:bg-lime-50/50 transition-colors duration-200">
-                <td class="px-6 py-4">
-                  <div class="text-sm font-medium text-lime-900">{{ category.name }}</div>
-                </td>
-                <td class="px-6 py-4 text-center">
-                  <button 
-                    @click="mostrarModalEliminar(category.id)" 
-                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-600 hover:text-red-800 transition-colors duration-200"
-                  >
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <template v-else>
+        <!-- Create Category Form -->
+        <div class="mb-8 bg-white rounded-2xl shadow-lg p-6 max-w-3xl mx-auto">
+          <h3 class="text-lg font-semibold text-lime-900 mb-4">Afegir Nova Categoria</h3>
+          <div class="flex gap-4">
+            <input 
+              v-model="newCategory.name" 
+              type="text" 
+              placeholder="Nom de la categoria" 
+              class="flex-1 px-4 py-2 text-sm text-lime-900 border-2 border-lime-300 rounded-lg focus:outline-none focus:ring-4 focus:ring-lime-300/50 focus:border-lime-400"
+            />
+            <button 
+              @click="createCategory" 
+              :disabled="!newCategory.name"
+              class="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-lime-500 to-green-500 rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed"
+            >
+              Crear Categoria
+            </button>
+          </div>
         </div>
-      </div>
 
-      <!-- Create Category Form -->
-      <div class="mt-8 mb-24 bg-white rounded-2xl shadow-lg p-6 max-w-3xl mx-auto">
-        <h3 class="text-lg font-semibold text-lime-900 mb-4">Afegir Nova Categoria</h3>
-        <div class="flex gap-4">
-          <input 
-            v-model="newCategory.name" 
-            type="text" 
-            placeholder="Nom de la categoria" 
-            class="flex-1 px-4 py-2 text-sm text-lime-900 border-2 border-lime-300 rounded-lg focus:outline-none focus:ring-4 focus:ring-lime-300/50 focus:border-lime-400"
-          />
-          <button 
-            @click="createCategory" 
-            :disabled="!newCategory.name"
-            class="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-lime-500 to-green-500 rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed"
-          >
-            Crear Categoria
-          </button>
+        <!-- No Results State -->
+        <div v-if="filteredCategories.length === 0" class="text-center py-12">
+          <p class="text-lime-700 text-xl">No s'han trobat categories.</p>
         </div>
-      </div>
+
+        <!-- Categories Table -->
+        <div v-else class="bg-white rounded-2xl shadow-lg overflow-hidden max-w-3xl mx-auto">
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="bg-gradient-to-r from-lime-50 to-green-50">
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-lime-900">Nom</th>
+                  <th class="px-6 py-3 text-center text-xs font-semibold text-lime-900">Accions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-lime-100">
+                <tr v-for="category in filteredCategories" :key="category.id" class="hover:bg-lime-50/50 transition-colors duration-200">
+                  <td class="px-6 py-4">
+                    <div class="text-sm font-medium text-lime-900">{{ category.name }}</div>
+                  </td>
+                  <td class="px-6 py-4 text-center">
+                    <button 
+                      @click="mostrarModalEliminar(category.id)" 
+                      class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-600 hover:text-red-800 transition-colors duration-200"
+                    >
+                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </template>
     </div>
 
     <!-- Confirmation Modal -->
