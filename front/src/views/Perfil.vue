@@ -7,14 +7,14 @@
       </div>
 
       <!-- Header de perfil -->
-      <div class="profile-header">
-        <button @click="toggleSettingsMenu" class="settings-btn">
-          <img :src="settingsIcon" alt="Ajustes" class="settings-icon" />
+      <div class="relative mb-10 rounded-2xl bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 p-8 shadow-lg">
+        <button @click="toggleSettingsMenu" class="absolute right-2.5 top-2.5 z-10 rounded-full p-2.5 transition-all hover:bg-white/30">
+          <img :src="settingsIcon" alt="Ajustes" class="h-6 w-6" />
         </button>
 
         <!-- Icono SVG para crear nuevo live -->
-        <div v-if="isChef && !settingsMenuOpen" class="web-button-container">
-          <button @click="handleLiveButtonClick" class="web-button" style="background: none; border: none;">
+        <div v-if="isChef && !settingsMenuOpen" class="absolute left-2.5 top-2.5 z-10">
+          <button @click="handleLiveButtonClick" class="transition-transform hover:scale-110">
             <svg width="35px" height="25px" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg" fill="black"
               stroke="black" stroke-width="1">
               <path d="M67.128,30.823C67.128,13.828,53.305,0,36.307,0c-2.862,0-5.617,0.423-8.247,1.157l-0.062-0.042 
@@ -39,11 +39,21 @@
           </button>
         </div>
 
-        <label for="file-input" class="profile-picture">
-          <img :src="user.img || defaultProfile" alt="Foto de perfil" />
-        </label>
-        <h2>{{ user.name }}</h2>
-        <p class="user-bio">{{ user.bio || 'No hay biografia disponible' }}</p>
+        <div class="flex items-start gap-6">
+          <div class="flex-shrink-0">
+            <label for="file-input" class="block cursor-pointer">
+              <div class="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white/80 shadow-lg transition-all hover:scale-105 hover:shadow-xl">
+                <img :src="user.img || defaultProfile" alt="Foto de perfil" class="h-full w-full object-cover" />
+              </div>
+            </label>
+          </div>
+          <div class="flex-grow">
+            <h2 class="mb-3 text-3xl font-bold text-lime-900">{{ user.name }}</h2>
+            <p class="rounded-xl bg-white/70 p-3 text-base text-lime-700 backdrop-blur-sm">
+              {{ user.bio || 'No hay biografia disponible' }}
+            </p>
+          </div>
+        </div>
       </div>
 
       <!-- Menú de ajustes -->
@@ -192,9 +202,13 @@
       </div>
 
       <!-- Botones para ver secciones -->
-      <div v-if="!showLiveForm && !settingsMenuOpen && activeTab === ''" class="toggle-buttons">
-        <button @click="toggleSection('recipes')" :class="{ active: showRecipes && !showLivesSection }">
-          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <div v-if="!showLiveForm && !settingsMenuOpen && activeTab === ''" class="flex justify-center gap-4 mt-8 mb-6 px-6 md:gap-2 md:mt-4 md:mb-2 md:px-2">
+        <button @click="toggleSection('recipes')" :class="[
+          'flex-1 py-2 px-2 text-sm rounded-full font-semibold transition-all duration-300',
+          'md:py-4 md:px-4 md:text-base',
+          showRecipes && !showLivesSection ? 'bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 shadow-lg hover:shadow-xl hover:brightness-110' : 'bg-gradient-to-r from-green-100 via-lime-50 to-lime-100 text-lime-700 hover:from-green-200 hover:via-lime-100 hover:to-lime-200 hover:shadow-md'
+        ]">
+          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="inline-block mr-2">
             <path
               d="M14 5.6C14 5.03995 14 4.75992 14.109 4.54601C14.2049 4.35785 14.3578 4.20487 14.546 4.10899C14.7599 4 15.0399 4 15.6 4H18.4C18.9601 4 19.2401 4 19.454 4.10899C19.6422 4.20487 19.7951 4.35785 19.891 4.54601C20 4.75992 20 5.03995 20 5.6V8.4C20 8.96005 20 9.24008 19.891 9.45399C19.7951 9.64215 19.6422 9.79513 19.454 9.89101C19.2401 10 18.9601 10 18.4 10H15.6C15.0399 10 14.7599 10 14.546 9.89101C14.3578 9.79513 14.2049 9.64215 14.109 9.45399C14 9.24008 14 8.96005 14 8.4V5.6Z"
               stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -208,10 +222,15 @@
               d="M14 15.6C14 15.0399 14 14.7599 14.109 14.546C14.2049 14.2049 14.3578 14.2049 14.546 14.1089C14.7599 14 15.0399 14 15.6 14H18.4C18.9601 14 19.2401 14 19.454 14.1089C19.6422 14.2049 19.7951 14.3578 19.891 14.546C20 14.7599 20 15.0399 20 15.6V18.4C20 18.9601 20 19.2401 19.891 19.4539C19.7951 19.6422 19.6422 19.7951 19.454 19.891C19.2401 20 18.9601 20 18.4 20H15.6C15.0399 20 14.7599 20 14.546 19.891C14.3578 19.7951 14.2049 19.6422 14.109 19.4539C14 19.2401 14 18.9601 14 18.4V15.6Z"
               stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
           </svg>
+          Les meves receptes
         </button>
 
-        <button v-if="isChef" @click="toggleSection('lives')" :class="{ active: showLivesSection }">
-          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <button v-if="isChef" @click="toggleSection('lives')" :class="[
+          'flex-1 py-2 px-2 text-sm rounded-full font-semibold transition-all duration-300',
+          'md:py-4 md:px-4 md:text-base',
+          showLivesSection ? 'bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 shadow-lg hover:shadow-xl hover:brightness-110' : 'bg-gradient-to-r from-green-100 via-lime-50 to-lime-100 text-lime-700 hover:from-green-200 hover:via-lime-100 hover:to-lime-200 hover:shadow-md'
+        ]">
+          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="inline-block mr-2">
             <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
             <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
             <g id="SVGRepo_iconCarrier">
@@ -226,20 +245,32 @@
                 stroke="#000000" stroke-width="1.5"></path>
             </g>
           </svg>
+          Els meus lives
         </button>
-        <button @click="toggleSection('saved')" :class="{ active: showSavedSection }">
-          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+        <button @click="toggleSection('saved')" :class="[
+          'flex-1 py-2 px-2 text-sm rounded-full font-semibold transition-all duration-300',
+          'md:py-4 md:px-4 md:text-base',
+          showSavedSection ? 'bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 shadow-lg hover:shadow-xl hover:brightness-110' : 'bg-gradient-to-r from-green-100 via-lime-50 to-lime-100 text-lime-700 hover:from-green-200 hover:via-lime-100 hover:to-lime-200 hover:shadow-md'
+        ]">
+          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="inline-block mr-2">
             <path
               d="M5 6.2C5 5.07989 5 4.51984 5.21799 4.09202C5.40973 3.71569 5.71569 3.40973 6.09202 3.21799C6.51984 3 7.07989 3 8.2 3H15.8C16.9201 3 17.4802 3 17.908 3.21799C18.2843 3.40973 18.5903 3.71569 18.782 4.09202C19 4.51984 19 5.07989 19 6.2V21L12 16L5 21V6.2Z"
               stroke="#000000" stroke-width="2" stroke-linejoin="round" />
           </svg>
+          Guardades
         </button>
 
-        <button @click="toggleSection('liked')" :class="{ active: showLikedSection }">
-          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <button @click="toggleSection('liked')" :class="[
+          'flex-1 py-2 px-2 text-sm rounded-full font-semibold transition-all duration-300',
+          'md:py-4 md:px-4 md:text-base',
+          showLikedSection ? 'bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 shadow-lg hover:shadow-xl hover:brightness-110' : 'bg-gradient-to-r from-green-100 via-lime-50 to-lime-100 text-lime-700 hover:from-green-200 hover:via-lime-100 hover:to-lime-200 hover:shadow-md'
+        ]">
+          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="inline-block mr-2">
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" 
                   stroke="#000000" stroke-width="2" stroke-linejoin="round"/>
           </svg>
+          M'agraden
         </button>
       </div>
 
@@ -1042,46 +1073,44 @@ export default {
   transform: translateX(-50%);
   background-color: #4CAF50;
   color: white;
-  padding: 15px 25px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
   z-index: 1000;
-  animation: slideDown 0.3s ease-out;
+  animation: fadeInOut 3s ease-in-out;
 }
 
-@keyframes slideDown {
-  from {
-    top: -50px;
-    opacity: 0;
-  }
-
-  to {
-    top: 20px;
-    opacity: 1;
-  }
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translate(-50%, -20px); }
+  10% { opacity: 1; transform: translate(-50%, 0); }
+  90% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -20px); }
 }
 
 /* Header de perfil */
 .profile-header {
-  text-align: center;
   margin-bottom: 40px;
   position: relative;
+  background: linear-gradient(135deg, #e0ff00, #ffff00);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .settings-btn {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 10px;
+  right: 10px;
   background: none;
   border: none;
   cursor: pointer;
   padding: 10px;
   border-radius: 50%;
   transition: all 0.3s ease;
+  z-index: 2;
 }
 
 .settings-btn:hover {
-  background-color: #f0f0f0;
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
 .settings-icon {
@@ -1091,34 +1120,41 @@ export default {
 
 .web-button-container {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
 }
 
-.web-button {
-  cursor: pointer;
-  transition: transform 0.3s ease;
+.profile-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 30px;
 }
 
-.web-button:hover {
-  transform: scale(1.1);
+.profile-left {
+  flex-shrink: 0;
+}
+
+.profile-right {
+  flex-grow: 1;
+  padding-top: 10px;
 }
 
 .profile-picture {
-  display: inline-block;
+  display: block;
   width: 150px;
   height: 150px;
   border-radius: 50%;
   overflow: hidden;
-  border: 5px solid #0c0636;
-  margin-bottom: 20px;
+  border: 5px solid rgba(255, 255, 255, 0.8);
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .profile-picture:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
 }
 
 .profile-picture img {
@@ -1127,17 +1163,74 @@ export default {
   object-fit: cover;
 }
 
-.profile-header h2 {
-  font-size: 2rem;
-  margin: 10px 0;
-  color: #0c0636;
+.profile-right h2 {
+  font-size: 2.2rem;
+  margin: 0 0 15px 0;
+  color: #333;
+  font-weight: 700;
 }
 
 .user-bio {
-  max-width: 600px;
-  margin: 0 auto;
-  color: #666;
+  font-size: 1.1rem;
+  color: #444;
   line-height: 1.6;
+  margin: 0;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  backdrop-filter: blur(5px);
+}
+
+@media screen and (max-width: 768px) {
+  .profile-content {
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: left;
+    gap: 15px;
+  }
+
+  .profile-right {
+    padding-top: 0;
+  }
+
+  .profile-picture {
+    width: 100px;
+    height: 100px;
+  }
+
+  .profile-right h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+
+  .user-bio {
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .profile-header {
+    padding: 20px 15px;
+  }
+
+  .profile-content {
+    gap: 10px;
+  }
+
+  .profile-picture {
+    width: 80px;
+    height: 80px;
+  }
+
+  .profile-right h2 {
+    font-size: 1.3rem;
+  }
+
+  .user-bio {
+    font-size: 0.85rem;
+    padding: 8px;
+  }
 }
 
 /* Menú de ajustes */
@@ -1373,220 +1466,183 @@ export default {
 
 /* Sección de recetas */
 .user-recipes {
-  margin-top: 40px;
-  padding: 20px;
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
 }
 
-.section-title {
-  font-size: 1.8rem;
-  color: #0c0636;
-  margin-bottom: 30px;
-  text-align: center;
-  font-weight: 700;
-}
-
-.recipe-cards {
+.recipe-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 25px;
-  margin-bottom: 40px;
-}
-.liked-section {
-  padding: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
 }
 
-.no-liked-recipes {
-  text-align: center;
-  margin: 30px 0;
-  color: #666;
+.recipe-card {
+  background: white;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s;
 }
 
-.no-liked-recipes p {
-  margin-bottom: 15px;
+.recipe-card:hover {
+  transform: translateY(-4px);
 }
 
-.liked-recipe-card {
-  margin-bottom: 20px;
-  position: relative;
+.recipe-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
 }
 
-.explore-btn {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s;
+.recipe-content {
+  padding: 1rem;
 }
 
-.explore-btn:hover {
-  background-color: #45a049;
-}
-.no-liked-recipes,
-.no-lives {
-  text-align: center;
-  padding: 40px 0;
-  color: #666;
+.recipe-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #166534;
+  margin-bottom: 0.5rem;
 }
 
-.liked-recipe-card {
-  position: relative;
-  transition: all 0.3s ease;
+.recipe-description {
+  color: #4B5563;
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
 
-.liked-recipe-card:hover {
-  transform: translateY(-5px);
+.delete-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 9999px;
+  padding: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
 }
 
-/* Lives programados */
-.live-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+.delete-button:hover {
+  background: #FEE2E2;
+}
+
+.delete-button img {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .live-card {
-  background-color: #f9f9f9;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
 }
 
 .live-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-.live-info h4 {
-  margin-top: 0;
-  color: #0c0636;
+.live-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #166534;
+  margin-bottom: 0.5rem;
+}
+
+.live-date {
+  color: #4B5563;
+  margin-bottom: 1rem;
 }
 
 .live-actions {
   display: flex;
-  gap: 10px;
-  margin-top: 15px;
+  gap: 0.75rem;
 }
 
-.edit-btn,
-.delete-btn {
-  padding: 8px 15px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 14px;
+.edit-button {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(to right, #22c55e, #a3e635);
+  color: #166534;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
-.edit-btn {
-  background-color: #2196F3;
+.edit-button:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.delete-live-button {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  background: #EF4444;
   color: white;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
-.edit-btn:hover {
-  background-color: #0b7dda;
+.delete-live-button:hover {
+  background: #DC2626;
 }
 
-.delete-btn {
-  background-color: #f44336;
-  color: white;
-}
-
-.delete-btn:hover {
-  background-color: #d32f2f;
-}
-
-/* Formulario de live */
-.live-form-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.live-form-container {
-  background-color: white;
-  border-radius: 12px;
-  padding: 30px;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-  animation: fadeIn 0.3s ease;
-}
-
-.live-form-container h3 {
-  margin-top: 0;
-  color: #0c0636;
+.empty-state {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
   text-align: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.form-group {
-  margin-bottom: 20px;
+.empty-state p {
+  color: #4B5563;
+  margin-bottom: 1rem;
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #0c0636;
+.explore-button {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(to right, #22c55e, #a3e635);
+  color: #166534;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
-.form-group input,
-.form-group select {
-  width: 100%;
-  padding: 12px 15px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 16px;
+.explore-button:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 15px;
-  margin-top: 30px;
-}
+@media (max-width: 768px) {
+  .recipe-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
 
-/* Botones de sección */
-.toggle-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-bottom: 30px;
-}
+  .recipe-image {
+    height: 150px;
+  }
 
-.toggle-buttons button {
-  background: none;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f5f5f5;
-}
+  .recipe-title {
+    font-size: 1rem;
+  }
 
-.toggle-buttons button.active {
-  background-color: #0c0636;
-  color: white;
-}
+  .recipe-description {
+    font-size: 0.75rem;
+  }
 
-.toggle-buttons button:hover:not(.active) {
-  background-color: #e0e0e0;
+  .live-card {
+    padding: 1rem;
+  }
+
+  .live-title {
+    font-size: 1rem;
+  }
+
+  .live-actions {
+    flex-direction: column;
+  }
 }
 
 /* No autenticado */
