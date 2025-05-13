@@ -208,7 +208,7 @@
           'md:py-4 md:px-4 md:text-base',
           showRecipes && !showLivesSection ? 'bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 shadow-lg hover:shadow-xl hover:brightness-110' : 'bg-gradient-to-r from-green-100 via-lime-50 to-lime-100 text-lime-700 hover:from-green-200 hover:via-lime-100 hover:to-lime-200 hover:shadow-md'
         ]">
-          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="inline-block mr-2">
+          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="inline-block">
             <path
               d="M14 5.6C14 5.03995 14 4.75992 14.109 4.54601C14.2049 4.35785 14.3578 4.20487 14.546 4.10899C14.7599 4 15.0399 4 15.6 4H18.4C18.9601 4 19.2401 4 19.454 4.10899C19.6422 4.20487 19.7951 4.35785 19.891 4.54601C20 4.75992 20 5.03995 20 5.6V8.4C20 8.96005 20 9.24008 19.891 9.45399C19.7951 9.64215 19.6422 9.79513 19.454 9.89101C19.2401 10 18.9601 10 18.4 10H15.6C15.0399 10 14.7599 10 14.546 9.89101C14.3578 9.79513 14.2049 9.64215 14.109 9.45399C14 9.24008 14 8.96005 14 8.4V5.6Z"
               stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -222,7 +222,6 @@
               d="M14 15.6C14 15.0399 14 14.7599 14.109 14.546C14.2049 14.2049 14.3578 14.2049 14.546 14.1089C14.7599 14 15.0399 14 15.6 14H18.4C18.9601 14 19.2401 14 19.454 14.1089C19.6422 14.2049 19.7951 14.3578 19.891 14.546C20 14.7599 20 15.0399 20 15.6V18.4C20 18.9601 20 19.2401 19.891 19.4539C19.7951 19.6422 19.6422 19.7951 19.454 19.891C19.2401 20 18.9601 20 18.4 20H15.6C15.0399 20 14.7599 20 14.546 19.891C14.3578 19.7951 14.2049 19.6422 14.109 19.4539C14 19.2401 14 18.9601 14 18.4V15.6Z"
               stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
           </svg>
-          Les meves receptes
         </button>
 
         <button v-if="isChef" @click="toggleSection('lives')" :class="[
@@ -230,7 +229,7 @@
           'md:py-4 md:px-4 md:text-base',
           showLivesSection ? 'bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 shadow-lg hover:shadow-xl hover:brightness-110' : 'bg-gradient-to-r from-green-100 via-lime-50 to-lime-100 text-lime-700 hover:from-green-200 hover:via-lime-100 hover:to-lime-200 hover:shadow-md'
         ]">
-          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="inline-block mr-2">
+          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="inline-block">
             <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
             <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
             <g id="SVGRepo_iconCarrier">
@@ -245,7 +244,6 @@
                 stroke="#000000" stroke-width="1.5"></path>
             </g>
           </svg>
-          Els meus lives
         </button>
 
         <button @click="toggleSection('saved')" :class="[
@@ -253,12 +251,11 @@
           'md:py-4 md:px-4 md:text-base',
           showSavedSection ? 'bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 shadow-lg hover:shadow-xl hover:brightness-110' : 'bg-gradient-to-r from-green-100 via-lime-50 to-lime-100 text-lime-700 hover:from-green-200 hover:via-lime-100 hover:to-lime-200 hover:shadow-md'
         ]">
-          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="inline-block mr-2">
+          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="inline-block">
             <path
               d="M5 6.2C5 5.07989 5 4.51984 5.21799 4.09202C5.40973 3.71569 5.71569 3.40973 6.09202 3.21799C6.51984 3 7.07989 3 8.2 3H15.8C16.9201 3 17.4802 3 17.908 3.21799C18.2843 3.40973 18.5903 3.71569 18.782 4.09202C19 4.51984 19 5.07989 19 6.2V21L12 16L5 21V6.2Z"
               stroke="#000000" stroke-width="2" stroke-linejoin="round" />
           </svg>
-          Guardades
         </button>
 
         <button @click="toggleSection('liked')" :class="[
@@ -266,11 +263,10 @@
           'md:py-4 md:px-4 md:text-base',
           showLikedSection ? 'bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 shadow-lg hover:shadow-xl hover:brightness-110' : 'bg-gradient-to-r from-green-100 via-lime-50 to-lime-100 text-lime-700 hover:from-green-200 hover:via-lime-100 hover:to-lime-200 hover:shadow-md'
         ]">
-          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="inline-block mr-2">
+          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="inline-block">
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" 
                   stroke="#000000" stroke-width="2" stroke-linejoin="round"/>
           </svg>
-          M'agraden
         </button>
       </div>
 
@@ -284,11 +280,18 @@
           <!-- Botones de navegación mejorados -->
           <div class="tabs-container">
             <div class="tabs">
-              <button :class="{ active: savedActiveTab === 'guardades' }" @click="savedActiveTab = 'guardades'">
-                <span class="tab-icon">📌</span> Guardades
+              <button :class="{ active: savedActiveTab === 'guardades' }" @click="savedActiveTab = 'guardades'" class="tab-button">
+                <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M5 6.2C5 5.07989 5 4.51984 5.21799 4.09202C5.40973 3.71569 5.71569 3.40973 6.09202 3.21799C6.51984 3 7.07989 3 8.2 3H15.8C16.9201 3 17.4802 3 17.908 3.21799C18.2843 3.40973 18.5903 3.71569 18.782 4.09202C19 4.51984 19 5.07989 19 6.2V21L12 16L5 21V6.2Z"
+                    stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                </svg>
               </button>
-              <button :class="{ active: savedActiveTab === 'carpetes' }" @click="savedActiveTab = 'carpetes'">
-                <span class="tab-icon">🗂️</span> Les meves carpetes
+              <button :class="{ active: savedActiveTab === 'carpetes' }" @click="savedActiveTab = 'carpetes'" class="tab-button">
+                <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" 
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
               </button>
             </div>
           </div>
@@ -348,7 +351,9 @@
             <div v-else class="folders-view">
               <div class="create-folder-section">
                 <button v-if="!showCreateFolderInput" @click="showCreateFolderInput = true" class="create-folder-btn">
-                  <span class="plus-icon">+</span> Crear carpeta
+                  <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
                 </button>
                 <div v-if="showCreateFolderInput" class="create-folder-input">
                   <input type="text" v-model="newFolderName" placeholder="Nom de la carpeta" @keyup.enter="createFolder"
@@ -380,9 +385,7 @@
             </div>
           </div>
         </div>
-        <div class="button-container">
-          <button @click="cancelEdit" class="back-main-btn">🔙 Tornar</button>
-        </div>
+      
       </div>
 <!-- Sección de recetas que me gustan -->
 <div v-if="showLikedSection" class="user-recipes liked-section">
@@ -1467,6 +1470,7 @@ export default {
 /* Sección de recetas */
 .user-recipes {
   margin-top: 2rem;
+  margin-bottom: 60px;
 }
 
 .recipe-grid {
@@ -1748,6 +1752,7 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
+  margin-bottom: 60px;
 }
 
 .tabs-container {
@@ -1758,21 +1763,20 @@ export default {
 
 .tabs {
   display: flex;
-  background-color: #f5f5f5;
+  background-color: transparent;
   border-radius: 12px;
   padding: 5px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  width: 100%;
-  max-width: 400px;
+  box-shadow: none;
+  width: auto;
+  gap: 10px;
 }
 
-.tabs button {
-  flex: 1;
-  padding: 12px 20px;
+.tab-button {
+  padding: 8px;
   font-size: 16px;
   font-weight: 600;
   color: #555;
-  background: none;
+  background: linear-gradient(to right, #e5e5e5, #f5f5f5);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -1780,16 +1784,24 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 40px;
+  height: 40px;
 }
 
-.tabs button.active {
-  background-color: #0c0636;
-  color: white;
+.tab-button:hover {
+  background: linear-gradient(to right, #d5d5d5, #e5e5e5);
+  transform: translateY(-2px);
 }
 
-.tab-icon {
-  margin-right: 8px;
-  font-size: 18px;
+.tab-button.active {
+  background: linear-gradient(to right, #22c55e, #a3e635);
+  color: #166534;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.tab-button svg {
+  width: 20px;
+  height: 20px;
 }
 
 .loading-container {
@@ -1964,25 +1976,28 @@ export default {
 .create-folder-btn {
   display: flex;
   align-items: center;
-  background-color: #0c0636;
-  color: white;
+  justify-content: center;
+  background: linear-gradient(to right, #22c55e, #a3e635);
+  color: #166534;
   border: none;
   border-radius: 8px;
-  padding: 12px 24px;
+  padding: 12px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  width: 48px;
+  height: 48px;
 }
 
 .create-folder-btn:hover {
-  background-color: #1a1464;
   transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.plus-icon {
-  margin-right: 8px;
-  font-size: 18px;
+.create-folder-btn svg {
+  width: 24px;
+  height: 24px;
 }
 
 .create-folder-input {
@@ -2166,5 +2181,13 @@ export default {
   .create-folder-input {
     padding: 15px;
   }
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0c0636;
+  margin-bottom: 30px;
+  text-align: center;
 }
 </style>
