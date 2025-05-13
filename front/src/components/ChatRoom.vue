@@ -130,19 +130,46 @@
           </div>
 
           <div class="mb-6">
-            <div class="relative aspect-video bg-gray-900 rounded-xl overflow-hidden mb-4">
-              <video ref="chefPreviewVideo" autoplay muted playsinline class="w-full h-full object-cover"
-                :class="{ 'opacity-50': !isCameraOn }">
+            <div v-if="showVideo || isChef" class="relative aspect-video bg-black">
+              <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" 
+                     autoplay 
+                     :muted="isChef" 
+                     playsinline
+                     class="w-full h-full object-cover" 
+                     :class="{ 'opacity-50': !isStreamActive }"
+                     @loadedmetadata="handleVideoPlayback($event.target)">
               </video>
-              <div v-if="!isCameraOn"
-                class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white">
-                <p>Cámara apagada</p>
+
+              <!-- Overlay para el botón de play -->
+              <div v-if="showPlayButton" 
+                   class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                <button @click="handlePlayClick" 
+                        class="bg-lime-500 hover:bg-lime-600 text-white px-6 py-3 rounded-full flex items-center space-x-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Reproducir Video</span>
+                </button>
+              </div>
+
+              <!-- Overlay para el botón de unmute -->
+              <div v-if="showUnmuteButton" 
+                   class="absolute bottom-4 right-4">
+                <button @click="handleUnmuteClick" 
+                        class="bg-black bg-opacity-50 hover:bg-opacity-70 text-white px-4 py-2 rounded-full flex items-center space-x-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                  </svg>
+                  <span>Activar Sonido</span>
+                </button>
               </div>
             </div>
 
             <div class="flex justify-center gap-4">
               <button @click="toggleCamera" class="flex items-center px-6 py-3 rounded-full transition-all duration-300"
-                :class="isCameraOn ? 'bg-lime-500 hover:bg-lime-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'">
+                :class="isCameraOn ? 'bg-lime-500 hover:bg-lime-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
                   stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -180,8 +207,13 @@
       <div v-else-if="isLiveStarted" class="min-h-screen flex flex-col">
         <!-- Video container -->
         <div v-if="showVideo || isChef" class="relative aspect-video bg-black">
-          <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" autoplay :muted="isChef" playsinline
-            class="w-full h-full object-cover" :class="{ 'opacity-50': !isStreamActive }">
+          <video :ref="isChef ? 'chefLiveVideo' : 'userVideo'" 
+                 autoplay 
+                 :muted="isChef" 
+                 playsinline
+                 class="w-full h-full object-cover" 
+                 :class="{ 'opacity-50': !isStreamActive }"
+                 @loadedmetadata="handleVideoPlayback($event.target)">
           </video>
 
           <div v-if="!isStreamActive && !isChef"
@@ -384,6 +416,8 @@ export default {
     const isMuted = ref(false);
     const isAudioOn = ref(false);
     const showEndMessage = ref(false);
+    const showPlayButton = ref(false);
+    const showUnmuteButton = ref(false);
 
     const configuration = {
       iceServers: [
@@ -393,71 +427,32 @@ export default {
         { urls: 'stun:stun2.l.google.com:19302' },
         { urls: 'stun:stun3.l.google.com:19302' },
         { urls: 'stun:stun4.l.google.com:19302' },
-        { urls: 'stun:stun.voipbuster.com' },
-        { urls: 'stun:stun.voipstunt.com' },
-        { urls: 'stun:stun.voxgratia.org' },
-        { urls: 'stun:stun.xten.com' },
         
-        // TURN servers gratuitos
+        // TURN servers gratuitos (prioridad alta)
         {
-          urls: 'turn:openrelay.metered.ca:80',
+          urls: [
+            'turn:openrelay.metered.ca:80',
+            'turn:openrelay.metered.ca:443',
+            'turn:openrelay.metered.ca:443?transport=tcp'
+          ],
           username: 'openrelayproject',
-          credential: 'openrelayproject'
+          credential: 'openrelayproject',
+          credentialType: 'password'
         },
         {
-          urls: 'turn:openrelay.metered.ca:443',
-          username: 'openrelayproject',
-          credential: 'openrelayproject'
-        },
-        {
-          urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-          username: 'openrelayproject',
-          credential: 'openrelayproject'
-        },
-        {
-          urls: 'turn:numb.viagenie.ca',
+          urls: [
+            'turn:numb.viagenie.ca:3478',
+            'turn:numb.viagenie.ca:443'
+          ],
           username: 'webrtc@live.com',
-          credential: 'muazkh'
-        },
-        {
-          urls: 'turn:turn.anyfirewall.com:443?transport=tcp',
-          username: 'webrtc',
-          credential: 'webrtc'
-        },
-        
-        // TURN servers de Twilio (requieren cuenta)
-        {
-          urls: 'turn:global.turn.twilio.com:3478?transport=udp',
-          username: 'YOUR_TWILIO_USERNAME',
-          credential: 'YOUR_TWILIO_CREDENTIAL'
-        },
-        {
-          urls: 'turn:global.turn.twilio.com:3478?transport=tcp',
-          username: 'YOUR_TWILIO_USERNAME',
-          credential: 'YOUR_TWILIO_CREDENTIAL'
-        },
-        {
-          urls: 'turn:global.turn.twilio.com:443?transport=tcp',
-          username: 'YOUR_TWILIO_USERNAME',
-          credential: 'YOUR_TWILIO_CREDENTIAL'
+          credential: 'muazkh',
+          credentialType: 'password'
         }
       ],
       iceCandidatePoolSize: 10,
       bundlePolicy: 'max-bundle',
       rtcpMuxPolicy: 'require',
-      iceTransportPolicy: 'all',
-      // Configuración adicional para mejorar la conectividad
-      sdpSemantics: 'unified-plan',
-      iceServersPolicy: 'all',
-      // Configuración para manejar múltiples conexiones
-      maxBitrate: 2500000, // 2.5 Mbps
-      maxFramerate: 30,
-      // Configuración de QoS
-      qos: {
-        enabled: true,
-        maxBitrate: 2500000,
-        maxFramerate: 30
-      }
+      iceTransportPolicy: 'all'
     };
 
     const toggleMute = () => {
@@ -656,7 +651,30 @@ export default {
       });
     };
 
-    /// Crea una nueva conexión peer-to-peer
+    /// Función para verificar la conectividad TURN
+    const checkTURNConnectivity = async () => {
+      try {
+        const pc = new RTCPeerConnection(configuration);
+        const dataChannel = pc.createDataChannel('test');
+        
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        
+        // Esperar a que se recojan los candidatos ICE
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const hasTURNCandidate = pc.localDescription.sdp.includes('relay');
+        console.log('¿Tiene candidatos TURN?:', hasTURNCandidate);
+        
+        pc.close();
+        return hasTURNCandidate;
+      } catch (error) {
+        console.error('Error al verificar TURN:', error);
+        return false;
+      }
+    };
+
+    /// Modificar createPeerConnection para incluir manejo de errores TURN
     const createPeerConnection = (socketId) => {
       if (peerConnections.value[socketId]) {
         peerConnections.value[socketId].close();
@@ -666,10 +684,18 @@ export default {
       peerConnections.value[socketId] = pc;
 
       // Manejo de errores ICE
-      pc.oniceconnectionstatechange = () => {
+      pc.oniceconnectionstatechange = async () => {
         console.log(`ICE Connection State para ${socketId}:`, pc.iceConnectionState);
+        
         if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
           console.log(`Reintentando conexión ICE para ${socketId}`);
+          
+          // Verificar si tenemos candidatos TURN
+          const hasTURN = await checkTURNConnectivity();
+          if (!hasTURN) {
+            console.warn('No se detectaron candidatos TURN, la conexión podría fallar');
+          }
+          
           pc.restartIce();
         }
       };
@@ -706,18 +732,8 @@ export default {
           console.log('Recibiendo tracks:', event.streams);
           if (userVideo.value && event.streams && event.streams[0]) {
             userVideo.value.srcObject = event.streams[0];
-            userVideo.value.muted = false;
-
-            const playPromise = userVideo.value.play();
-            if (playPromise !== undefined) {
-              playPromise
-                .then(() => {
-                  console.log('Reproducción iniciada');
-                })
-                .catch(error => {
-                  console.warn('Autoplay bloqueado, solicitando interacción del usuario');
-                });
-            }
+            userVideo.value.muted = true; // Inicialmente muteado
+            handleVideoPlayback(userVideo.value);
           }
         };
       }
@@ -952,6 +968,10 @@ export default {
 
       if (!userError.value) {
         console.log(`Inicializando chat como ${isChef.value ? 'CHEF' : 'USUARIO'} para sala ${liveId.value}`);
+
+        // Verificar conectividad TURN
+        const hasTURN = await checkTURNConnectivity();
+        console.log('Estado de conectividad TURN:', hasTURN ? 'Disponible' : 'No disponible');
 
         socket.value = io('https://delishare.cat', {
           path: '/socket.io',
@@ -1238,6 +1258,50 @@ export default {
       }
     };
 
+    const handleVideoPlayback = async (videoElement) => {
+      try {
+        // Intentar reproducir con sonido
+        await videoElement.play();
+        console.log('Reproducción iniciada con sonido');
+      } catch (error) {
+        console.log('No se pudo reproducir con sonido, intentando sin sonido');
+        try {
+          // Intentar reproducir sin sonido
+          videoElement.muted = true;
+          await videoElement.play();
+          console.log('Reproducción iniciada sin sonido');
+          
+          // Mostrar botón para activar sonido
+          showUnmuteButton.value = true;
+        } catch (error) {
+          console.warn('No se pudo reproducir el video:', error);
+          showPlayButton.value = true;
+        }
+      }
+    };
+
+    const handlePlayClick = async () => {
+      const videoElement = isChef.value ? chefLiveVideo.value : userVideo.value;
+      if (videoElement) {
+        showPlayButton.value = false;
+        await handleVideoPlayback(videoElement);
+      }
+    };
+
+    const handleUnmuteClick = async () => {
+      const videoElement = isChef.value ? chefLiveVideo.value : userVideo.value;
+      if (videoElement) {
+        try {
+          videoElement.muted = false;
+          await videoElement.play();
+          showUnmuteButton.value = false;
+          console.log('Sonido activado');
+        } catch (error) {
+          console.error('Error al activar el sonido:', error);
+        }
+      }
+    };
+
     return {
       username, activeUsers, waitingUsers, messages, newMessage,
       isConnected, isLiveStarted, isChef, chefName, messagesContainer,
@@ -1247,7 +1311,11 @@ export default {
       toggleAudio, isStreamActive, isMuted,
       toggleMute, showVideo, toggleCamera,
       requestChefVideo, leaveLive, endLiveForAll,
-      showEndMessage, goToLiveList
+      showEndMessage, goToLiveList,
+      showPlayButton,
+      showUnmuteButton,
+      handlePlayClick,
+      handleUnmuteClick
     };
   }
 };
