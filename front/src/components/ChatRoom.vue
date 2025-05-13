@@ -387,12 +387,77 @@ export default {
 
     const configuration = {
       iceServers: [
+        // STUN servers gratuitos
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
         { urls: 'stun:stun2.l.google.com:19302' },
         { urls: 'stun:stun3.l.google.com:19302' },
-        { urls: 'stun:stun4.l.google.com:19302' }
-      ]
+        { urls: 'stun:stun4.l.google.com:19302' },
+        { urls: 'stun:stun.voipbuster.com' },
+        { urls: 'stun:stun.voipstunt.com' },
+        { urls: 'stun:stun.voxgratia.org' },
+        { urls: 'stun:stun.xten.com' },
+        
+        // TURN servers gratuitos
+        {
+          urls: 'turn:openrelay.metered.ca:80',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:numb.viagenie.ca',
+          username: 'webrtc@live.com',
+          credential: 'muazkh'
+        },
+        {
+          urls: 'turn:turn.anyfirewall.com:443?transport=tcp',
+          username: 'webrtc',
+          credential: 'webrtc'
+        },
+        
+        // TURN servers de Twilio (requieren cuenta)
+        {
+          urls: 'turn:global.turn.twilio.com:3478?transport=udp',
+          username: 'YOUR_TWILIO_USERNAME',
+          credential: 'YOUR_TWILIO_CREDENTIAL'
+        },
+        {
+          urls: 'turn:global.turn.twilio.com:3478?transport=tcp',
+          username: 'YOUR_TWILIO_USERNAME',
+          credential: 'YOUR_TWILIO_CREDENTIAL'
+        },
+        {
+          urls: 'turn:global.turn.twilio.com:443?transport=tcp',
+          username: 'YOUR_TWILIO_USERNAME',
+          credential: 'YOUR_TWILIO_CREDENTIAL'
+        }
+      ],
+      iceCandidatePoolSize: 10,
+      bundlePolicy: 'max-bundle',
+      rtcpMuxPolicy: 'require',
+      iceTransportPolicy: 'all',
+      // Configuración adicional para mejorar la conectividad
+      sdpSemantics: 'unified-plan',
+      iceServersPolicy: 'all',
+      // Configuración para manejar múltiples conexiones
+      maxBitrate: 2500000, // 2.5 Mbps
+      maxFramerate: 30,
+      // Configuración de QoS
+      qos: {
+        enabled: true,
+        maxBitrate: 2500000,
+        maxFramerate: 30
+      }
     };
 
     const toggleMute = () => {
@@ -599,6 +664,24 @@ export default {
 
       const pc = new RTCPeerConnection(configuration);
       peerConnections.value[socketId] = pc;
+
+      // Manejo de errores ICE
+      pc.oniceconnectionstatechange = () => {
+        console.log(`ICE Connection State para ${socketId}:`, pc.iceConnectionState);
+        if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+          console.log(`Reintentando conexión ICE para ${socketId}`);
+          pc.restartIce();
+        }
+      };
+
+      // Manejo de errores de conexión
+      pc.onconnectionstatechange = () => {
+        console.log(`Connection State para ${socketId}:`, pc.connectionState);
+        if (pc.connectionState === 'failed') {
+          console.log(`Reintentando conexión WebRTC para ${socketId}`);
+          reconnectPeerConnection(socketId);
+        }
+      };
 
       pc.onicecandidate = (event) => {
         if (event.candidate) {
@@ -1075,11 +1158,13 @@ export default {
 
     // Hook de ciclo de vida: se ejecuta cuando el componente se monta
     onMounted(() => {
+      window.addEventListener('online', handleNetworkReconnection);
       initializeChat();
     });
 
     // Hook de ciclo de vida: se ejecuta cuando el componente se desmonta
     onUnmounted(() => {
+      window.removeEventListener('online', handleNetworkReconnection);
       if (socket.value) {
         socket.value.emit('leaveRoom', {
           liveId: liveId.value,
@@ -1121,6 +1206,36 @@ export default {
         timestamp: new Date(),
         isSystem: true
       });
+    };
+
+    // Función para reconectar una conexión peer
+    const reconnectPeerConnection = async (socketId) => {
+      try {
+        console.log(`Intentando reconectar con ${socketId}`);
+        
+        if (isChef.value) {
+          // Si es el chef, reinicia la llamada
+          await startCall(socketId);
+        } else {
+          // Si es un viewer, solicita el stream nuevamente
+          socket.value.emit('requestVideoStream', { liveId: liveId.value });
+        }
+      } catch (error) {
+        console.error(`Error al reconectar con ${socketId}:`, error);
+      }
+    };
+
+    // Función para manejar reconexiones de red
+    const handleNetworkReconnection = () => {
+      if (isChef.value && isLiveStarted.value && isCameraOn.value) {
+        // Reiniciar todas las conexiones peer
+        Object.keys(peerConnections.value).forEach(socketId => {
+          reconnectPeerConnection(socketId);
+        });
+      } else if (!isChef.value && isLiveStarted.value && showVideo.value) {
+        // Solicitar el stream nuevamente
+        socket.value.emit('requestVideoStream', { liveId: liveId.value });
+      }
     };
 
     return {
