@@ -68,19 +68,19 @@
 
       <template v-else>
         <!-- Create Category Form -->
-        <div class="mb-8 bg-white rounded-2xl shadow-lg p-6 max-w-3xl mx-auto">
-          <h3 class="text-lg font-semibold text-lime-900 mb-4">Afegir Nova Categoria</h3>
-          <div class="flex gap-4">
+        <div class="mb-4 bg-white rounded-xl shadow-lg p-4 max-w-xl mx-auto">
+          <h3 class="text-base font-semibold text-lime-900 mb-2">Afegir Nova Categoria</h3>
+          <div class="flex gap-3">
             <input 
               v-model="newCategory.name" 
               type="text" 
               placeholder="Nom de la categoria" 
-              class="flex-1 px-4 py-2 text-sm text-lime-900 border-2 border-lime-300 rounded-lg focus:outline-none focus:ring-4 focus:ring-lime-300/50 focus:border-lime-400"
+              class="flex-1 px-3 py-1.5 text-sm text-lime-900 border-2 border-lime-300 rounded-lg focus:outline-none focus:ring-4 focus:ring-lime-300/50 focus:border-lime-400"
             />
             <button 
               @click="createCategory" 
               :disabled="!newCategory.name"
-              class="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-lime-500 to-green-500 rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed"
+              class="px-4 py-1.5 text-sm font-medium text-white bg-gradient-to-r from-lime-500 to-green-500 rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed"
             >
               Crear Categoria
             </button>
@@ -88,31 +88,31 @@
         </div>
 
         <!-- No Results State -->
-        <div v-if="filteredCategories.length === 0" class="text-center py-12">
-          <p class="text-lime-700 text-xl">No s'han trobat categories.</p>
+        <div v-if="filteredCategories.length === 0" class="text-center py-4">
+          <p class="text-lime-700 text-base">No s'han trobat categories.</p>
         </div>
 
         <!-- Categories Table -->
-        <div v-else class="bg-white rounded-2xl shadow-lg overflow-hidden max-w-3xl mx-auto">
+        <div v-else class="bg-white rounded-xl shadow-lg overflow-hidden max-w-xl mx-auto">
           <div class="overflow-x-auto">
             <table class="w-full">
               <thead>
                 <tr class="bg-gradient-to-r from-lime-50 to-green-50">
-                  <th class="px-6 py-3 text-left text-xs font-semibold text-lime-900">Nom</th>
-                  <th class="px-6 py-3 text-center text-xs font-semibold text-lime-900">Accions</th>
+                  <th class="px-3 py-2 text-left text-xs font-semibold text-lime-900">Nom</th>
+                  <th class="px-3 py-2 text-center text-xs font-semibold text-lime-900">Accions</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-lime-100">
                 <tr v-for="category in filteredCategories" :key="category.id" class="hover:bg-lime-50/50 transition-colors duration-200">
-                  <td class="px-6 py-4">
+                  <td class="px-3 py-2">
                     <div class="text-sm font-medium text-lime-900">{{ category.name }}</div>
                   </td>
-                  <td class="px-6 py-4 text-center">
+                  <td class="px-3 py-2 text-center">
                     <button 
                       @click="mostrarModalEliminar(category.id)" 
-                      class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-600 hover:text-red-800 transition-colors duration-200"
+                      class="inline-flex items-center px-2 py-1 text-xs font-medium text-red-600 hover:text-red-800 transition-colors duration-200"
                     >
-                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                       Eliminar
