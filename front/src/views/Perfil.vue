@@ -192,7 +192,7 @@
       </div>
 
       <!-- Botones para ver secciones -->
-      <div v-if="isChef && !showLiveForm && !settingsMenuOpen && activeTab === ''" class="toggle-buttons">
+      <div v-if="!showLiveForm && !settingsMenuOpen && activeTab === ''" class="toggle-buttons">
         <button @click="toggleSection('recipes')" :class="{ active: showRecipes && !showLivesSection }">
           <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path
@@ -210,7 +210,7 @@
           </svg>
         </button>
 
-        <button @click="toggleSection('lives')" :class="{ active: showLivesSection }">
+        <button v-if="isChef" @click="toggleSection('lives')" :class="{ active: showLivesSection }">
           <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
             <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -235,13 +235,12 @@
           </svg>
         </button>
 
-       <!-- En la sección de toggle buttons, reemplaza el botón duplicado de saved por el de liked -->
-<button @click="toggleSection('liked')" :class="{ active: showLikedSection }">
-  <svg width="25" height="25" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" 
-          stroke="#000000" stroke-width="2" stroke-linejoin="round"/>
-  </svg>
-</button>
+        <button @click="toggleSection('liked')" :class="{ active: showLikedSection }">
+          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" 
+                  stroke="#000000" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+        </button>
       </div>
 
       <!-- Sección de guardadas -->
@@ -300,7 +299,7 @@
               <div class="recipe-cards" v-if="selectedFolderRecipes.length > 0">
                 <div v-for="recipe in selectedFolderRecipes" :key="recipe.id" class="recipe-item">
                   <div class="recipe-card-wrapper">
-                    <RecipeCard :recipe-id="recipe.id" :title="recipe.title" :image="recipe.image"
+                    <RecipeCard :recipe-id="recipe.id" :title="recipe.title" :image="recipe.image_url"
                       :description="recipe.description" />
                     <button @click="removeRecipeFromFolder(recipe.id, selectedFolder.id)" class="delete-btn-overlay">
                       <img :src="binIcon" alt="Eliminar" class="delete-icon" />
