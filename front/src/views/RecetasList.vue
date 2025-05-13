@@ -27,7 +27,7 @@
     </section>
 
     <!-- Search Section -->
-    <div class="w-full px-6 -mt-4 relative z-20 flex justify-center items-center gap-4">
+    <div class="w-full px-6 -mt-12 sm:-mt-8 md:-mt-6 relative z-20 flex justify-center items-center gap-4">
       <div class="w-full sm:w-2/3 md:w-1/2 lg:w-1/3 transform hover:scale-105 transition-transform duration-300">
         <div class="relative">
           <input 
@@ -43,7 +43,9 @@
           </div>
         </div>
       </div>
-      <BotonesCrud />
+      <div class="-mt-2 sm:mt-0">
+        <BotonesCrud />
+      </div>
     </div>
 
     <!-- Main Content -->
