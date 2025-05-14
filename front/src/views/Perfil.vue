@@ -1,5 +1,5 @@
 <template>
-  <div class="profile-container">
+  <div class="profile-container pb-24">
     <div v-if="authStore.isAuthenticated">
       <!-- Popup de notificación -->
       <div v-if="popupMessage" class="popup-notification">
