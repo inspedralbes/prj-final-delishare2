@@ -205,6 +205,15 @@ getRecipeSteps(recipeId) {
       });
   },
 
+  updateRecipe(recipeId, recipeData) {
+    return apiClient.put(`/recipes/${recipeId}`, recipeData)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error updating recipe:', error);
+        throw error;
+      });
+  },
+
   register(userData) {
     return apiClient.post('/register', userData)
       .then(response => response.data)
