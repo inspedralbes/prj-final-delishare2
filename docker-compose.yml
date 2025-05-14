@@ -1,32 +1,12 @@
-# Resumen:
-# 
-# Este proyecto está compuesto por varios servicios: una base de datos MySQL, un frontend en Vue.js, un backend en Laravel.
-# Cada servicio está definido en su respectiva sección de Docker Compose.
-# 
-# Para ejecutar el proyecto:
-#
-# 1. Asegúrate de tener Docker y Docker Compose instalados en tu máquina.
-# 2. Una vez que los contenedores estén en ejecución, sigue estos pasos:
-#
-#   - Para instalar las dependencias de Laravel:
-#
-#     1. Navega a la carpeta `back/laravel` y ejecuta `composer install`.
-#
-#    - Para iniciar la aplicación, escribe en la terminal `docker-compose up`.
-# 
-# Los servicios estarán disponibles en los siguientes puertos:
-# - Frontend (Vue.js): http://localhost:5173
-# - Backend (Laravel): http://localhost:8000
-# - Adminer (gestor de base de datos MySQL): http://localhost:9092
+version: '3.8'  # Aunque es opcional, ayuda a evitar confusiones
 
 services:
   db:
-    image: mysql:8.2.0  
-    restart: always 
+    image: mysql:8.2.0
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root  # Solo esta línea para el usuario root
+      MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: delidelishare
-      # Eliminé MYSQL_USER y MYSQL_PASSWORD ya que causan conflicto con root
     ports:
       - "3306:3306"
     volumes:
@@ -37,24 +17,25 @@ services:
       retries: 10
 
   adminer:
-    image: adminer  
-    restart: always 
+    image: adminer
+    restart: always
     depends_on:
       db:
         condition: service_healthy
     ports:
-      - 9094:8080  
+      - "9094:8080"
 
   vue-app:
     build: ./front
-    working_dir: /app  
+    working_dir: /app
     volumes:
-      - ./front:/app  
-      - /app/node_modules   
+      - ./front:/app
+      - /app/node_modules
     ports:
-      - "5173:5173" 
+      - "5173:5173"
     environment:
-      - NODE_ENV=development
+      NODE_ENV: development
+      VITE_API_URL: "http://node-api:3000/api"
     depends_on:
       db:
         condition: service_healthy
@@ -62,20 +43,53 @@ services:
   laravel:
     build: ./back
     volumes:
-      - ./back:/var/www/html  
-    working_dir: /var/www/html  
+      - ./back:/var/www/html
+    working_dir: /var/www/html
     environment:
-      - DB_HOST=db
-      - DB_PORT=3306
-      - DB_DATABASE=delidelishare
-      - DB_USERNAME=root
-      - DB_PASSWORD=root
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: delidelishare
+      DB_USERNAME: root
+      DB_PASSWORD: root
     ports:
-      - "8000:8000"  
+      - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
-    command: sh -c "composer install && php artisan key:generate && php artisan migrate:fresh --seed && php artisan serve --host=0.0.0.0 --port=8000"
+    command: >
+      sh -c "composer install &&
+      php artisan key:generate &&
+      php artisan migrate:fresh --seed &&
+      php artisan serve --host=0.0.0.0 --port=8000"
+
+  node-api:  # Cambiado de node-app a node-api para mejor semántica
+    build: ./node
+    working_dir: /app
+    volumes:
+      - ./node:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: delidelishare
+      DB_USER: root
+      DB_PASSWORD: root
+      PORT: 4000
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "npm install &&
+      (npm run dev || npm run start)"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   mysql_data:
+    driver: local
