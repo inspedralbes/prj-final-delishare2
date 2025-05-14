@@ -6,10 +6,53 @@
         {{ popupMessage }}
       </div>
 
+      <!-- Crear nueva carpeta -->
+      <div v-if="showCreateFolderInput" class="live-form-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" @click="showCreateFolderInput = false">
+        <div class="live-form-container w-full max-w-[95%] sm:max-w-sm" @click.stop>
+          <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 w-full">
+            <h3 class="text-lg sm:text-xl font-bold text-lime-900 mb-3 sm:mb-4 text-center">Crear Nueva Carpeta</h3>
+            <div class="space-y-3 sm:space-y-4">
+              <div class="form-group">
+                <label for="folder-name" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Nombre de la carpeta:</label>
+                <input type="text" id="folder-name" v-model="newFolderName" placeholder="Nombre de la carpeta" @keyup.enter="createFolder"
+                  ref="folderNameInput" autofocus class="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 bg-white border-2 border-lime-200 rounded-lg focus:outline-none focus:border-lime-400 focus:ring-2 focus:ring-lime-200 transition-all duration-300" />
+              </div>
+              <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-2 sm:pt-3">
+                <button @click="createFolder" 
+                  class="w-full sm:flex-1 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-lime-400 to-green-500 text-white font-medium rounded-lg shadow-md hover:from-lime-500 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-lime-300 focus:ring-opacity-50 transition-all duration-300 transform hover:scale-105 text-xs sm:text-sm">
+                  <span class="flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Crear Carpeta
+                  </span>
+                </button>
+                <button @click="showCreateFolderInput = false" 
+                  class="w-full sm:flex-1 px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 text-gray-700 font-medium rounded-lg shadow-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50 transition-all duration-300 text-xs sm:text-sm">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Header de perfil -->
       <div class="relative mb-10 rounded-2xl bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 p-8 shadow-lg">
         <button @click="toggleSettingsMenu" class="absolute right-2.5 top-2.5 z-10 rounded-full p-2.5 transition-all hover:bg-white/30">
           <img :src="settingsIcon" alt="Ajustes" class="h-6 w-6" />
+        </button>
+
+        <!-- Botón de crear carpeta -->
+        <button v-if="!showCreateFolderInput" @click="handleCreateFolderClick" 
+          class="absolute right-2.5 top-16 z-10 rounded-full p-2.5 transition-all hover:bg-white/30">
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path d="M9 13H15M12 10V16M12.0627 6.06274L11.9373 5.93726C11.5914 5.59135 11.4184 5.4184 11.2166 5.29472C11.0376 5.18506 10.8425 5.10425 10.6385 5.05526C10.4083 5 10.1637 5 9.67452 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V15.8C3 16.9201 3 17.4802 3.21799 17.908C3.40973 18.2843 3.71569 18.5903 4.09202 18.782C4.51984 19 5.07989 19 6.2 19H17.8C18.9201 19 19.4802 19 19.908 18.782C20.2843 18.5903 20.5903 18.2843 20.782 17.908C21 17.4802 21 16.9201 21 15.8V10.2C21 9.0799 21 8.51984 20.782 8.09202C20.5903 7.71569 20.2843 7.40973 19.908 7.21799C19.4802 7 18.9201 7 17.8 7H14.3255C13.8363 7 13.5917 7 13.3615 6.94474C13.1575 6.89575 12.9624 6.81494 12.7834 6.70528C12.5816 6.5816 12.4086 6.40865 12.0627 6.06274Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </g>
+          </svg>
         </button>
 
         <!-- Icono SVG para crear nuevo live -->
@@ -176,27 +219,59 @@
       </div>
 
       <!-- Crear nuevo live -->
-      <div v-if="showLiveForm" class="live-form-overlay" @click="toggleLiveForm">
-        <div class="live-form-container" @click.stop>
-          <h3>Programar Nuevo Live</h3>
-          <div class="form-group">
-            <label for="recipe">Receta:</label>
-            <select id="recipe" v-model="newLive.recipe_id" required>
-              <option value="">Selecciona una receta</option>
-              <option v-for="recipe in recipes" :key="recipe.id" :value="recipe.id">{{ recipe.title }}</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="date">Fecha:</label>
-            <input type="date" id="date" v-model="newLive.dia" :min="minDate" required>
-          </div>
-          <div class="form-group">
-            <label for="time">Hora:</label>
-            <input type="time" id="time" v-model="newLive.hora" required>
-          </div>
-          <div class="form-actions">
-            <button @click="createLive" class="submit-btn">Programar Live</button>
-            <button @click="toggleLiveForm" class="cancel-btn">Cancelar</button>
+      <div v-if="showLiveForm" class="live-form-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" @click="toggleLiveForm">
+        <div class="live-form-container w-full max-w-[95%] sm:max-w-sm" @click.stop>
+          <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 w-full">
+            <h3 class="text-lg sm:text-xl font-bold text-lime-900 mb-3 sm:mb-4 text-center">Programar Nuevo Live</h3>
+            <div class="space-y-3 sm:space-y-4">
+              <div class="form-group">
+                <label for="recipe" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Receta:</label>
+                <select id="recipe" v-model="newLive.recipe_id" required
+                  class="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 bg-white border-2 border-lime-200 rounded-lg focus:outline-none focus:border-lime-400 focus:ring-2 focus:ring-lime-200 transition-all duration-300">
+                  <option value="">Selecciona una receta</option>
+                  <option v-for="recipe in recipes" :key="recipe.id" :value="recipe.id" class="py-1">{{ recipe.title }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="date" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Fecha:</label>
+                <div class="relative">
+                  <input type="date" id="date" v-model="newLive.dia" :min="minDate" required
+                    class="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 bg-white border-2 border-lime-200 rounded-lg focus:outline-none focus:border-lime-400 focus:ring-2 focus:ring-lime-200 transition-all duration-300" />
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="time" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Hora:</label>
+                <div class="relative">
+                  <input type="time" id="time" v-model="newLive.hora" required
+                    class="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 bg-white border-2 border-lime-200 rounded-lg focus:outline-none focus:border-lime-400 focus:ring-2 focus:ring-lime-200 transition-all duration-300" />
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-2 sm:pt-3">
+                <button @click="createLive" 
+                  class="w-full sm:flex-1 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-lime-400 to-green-500 text-white font-medium rounded-lg shadow-md hover:from-lime-500 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-lime-300 focus:ring-opacity-50 transition-all duration-300 transform hover:scale-105 text-xs sm:text-sm">
+                  <span class="flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Programar Live
+                  </span>
+                </button>
+                <button @click="toggleLiveForm" 
+                  class="w-full sm:flex-1 px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 text-gray-700 font-medium rounded-lg shadow-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50 transition-all duration-300 text-xs sm:text-sm">
+                  Cancelar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -258,6 +333,17 @@
           </svg>
         </button>
 
+        <button @click="toggleSection('folders')" :class="[
+          'flex-1 py-2 px-2 text-sm rounded-full font-semibold transition-all duration-300',
+          'md:py-4 md:px-4 md:text-base',
+          showFoldersSection ? 'bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 shadow-lg hover:shadow-xl hover:brightness-110' : 'bg-gradient-to-r from-green-100 via-lime-50 to-lime-100 text-lime-700 hover:from-green-200 hover:via-lime-100 hover:to-lime-200 hover:shadow-md'
+        ]">
+          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="inline-block">
+            <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" 
+                  stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
         <button @click="toggleSection('liked')" :class="[
           'flex-1 py-2 px-2 text-sm rounded-full font-semibold transition-all duration-300',
           'md:py-4 md:px-4 md:text-base',
@@ -277,167 +363,202 @@
         </div>
 
         <div class="guardades-container">
-          <!-- Botones de navegación mejorados -->
-          <div class="tabs-container">
-            <div class="tabs">
-              <button :class="{ active: savedActiveTab === 'guardades' }" @click="savedActiveTab = 'guardades'" class="tab-button">
-                <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M5 6.2C5 5.07989 5 4.51984 5.21799 4.09202C5.40973 3.71569 5.71569 3.40973 6.09202 3.21799C6.51984 3 7.07989 3 8.2 3H15.8C16.9201 3 17.4802 3 17.908 3.21799C18.2843 3.40973 18.5903 3.71569 18.782 4.09202C19 4.51984 19 5.07989 19 6.2V21L12 16L5 21V6.2Z"
-                    stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-                </svg>
-              </button>
-              <button :class="{ active: savedActiveTab === 'carpetes' }" @click="savedActiveTab = 'carpetes'" class="tab-button">
-                <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" 
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+          <div class="bg-white rounded-xl p-6 shadow-lg mb-8">
+            <h3 class="text-2xl font-bold text-lime-900 mb-4">Mis Recetas Guardadas</h3>
+            <p class="text-gray-600 mb-4">Aquí encontrarás todas las recetas que has guardado para ti. Estas recetas son privadas y solo tú puedes verlas.</p>
+          </div>
+          <div v-if="loadingGuardades" class="loading-container">
+            <div class="loading-spinner"></div>
+            <p>Cargando...</p>
+          </div>
+          <div v-else>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div v-for="recipe in savedRecipes" :key="recipe.id" class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <div class="relative">
+                  <img :src="recipe.image" :alt="recipe.title" class="w-full h-48 object-cover" />
+                  <button @click="removeSavedRecipe(recipe.id)" class="absolute top-3 right-3 bg-white/90 p-2 rounded-full shadow-md hover:bg-red-100 transition-all duration-300">
+                    <img :src="binIcon" alt="Eliminar" class="w-5 h-5" />
+                  </button>
+                </div>
+                <div class="p-6">
+                  <h4 class="text-xl font-semibold text-lime-900 mb-2 truncate">{{ recipe.title }}</h4>
+                  <p class="text-gray-600 text-sm line-clamp-2">{{ recipe.description }}</p>
+                </div>
+              </div>
+            </div>
+            <div v-if="savedRecipes.length === 0" class="bg-white rounded-xl p-8 text-center shadow-lg max-w-2xl mx-auto">
+              <p class="text-gray-600 text-lg mb-4">No tienes recetas guardadas todavía.</p>
+              <button @click="goToExplore" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-lime-400 to-green-500 text-white font-medium rounded-lg shadow-md hover:from-lime-500 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-lime-300 focus:ring-opacity-50 transition-all duration-300 transform hover:scale-105">
+                Explorar recetas
               </button>
             </div>
           </div>
-          <!-- Sección de receptes guardades -->
-          <div v-if="savedActiveTab === 'guardades'" class="guardades">
-            <h3 class="section-title">📌 Receptes guardades</h3>
-            <div v-if="loadingGuardades" class="loading-container">
-              <div class="loading-spinner"></div>
-              <p>Carregant...</p>
-            </div>
-            <div v-else>
-              <div class="recipe-cards">
-                <div v-for="recipe in savedRecipes" :key="recipe.id" class="recipe-item">
-                  <div class="recipe-card-wrapper">
-                    <RecipeCard :recipe-id="recipe.id" :title="recipe.title" :image="recipe.image"
-                      :description="recipe.description" />
-                    <button @click="removeSavedRecipe(recipe.id)" class="delete-btn-overlay">
-                      <img :src="binIcon" alt="Eliminar" class="delete-icon" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div v-if="savedRecipes.length === 0" class="no-recipes-container">
-                <p class="no-recipes">No tens receptes guardades.</p>
-                <button @click="goToExplore" class="explore-btn">Explorar receptes</button>
-              </div>
-            </div>
+        </div>
+      </div>
+
+      <!-- Sección de carpetas -->
+      <div v-if="showFoldersSection" class="user-recipes">
+        <div v-if="selectedFolder" class="selected-folder-view">
+          <h3 class="text-2xl font-bold text-lime-900 mb-8 text-center">{{ selectedFolder.name }}</h3>
+          
+          <div v-if="selectedFolderRecipes.length === 0" class="bg-white rounded-xl p-8 text-center shadow-lg max-w-2xl mx-auto">
+            <p class="text-gray-600 text-lg mb-4">No hay recetas en esta carpeta.</p>
           </div>
-          <!-- Sección de carpetes -->
-          <div v-if="savedActiveTab === 'carpetes'" class="carpetes">
-            <h3 class="section-title">🗂️ Les meves carpetes</h3>
-
-            <!-- Vista de carpeta única -->
-            <div v-if="selectedFolder" class="selected-folder-view">
-              <button @click="goBackFromFolder" class="back-btn">
-                <span class="back-icon">←</span> Tornar enrere
-              </button>
-              <h4 class="folder-title">"{{ selectedFolder.name }}"</h4>
-              <div class="recipe-cards" v-if="selectedFolderRecipes.length > 0">
-                <div v-for="recipe in selectedFolderRecipes" :key="recipe.id" class="recipe-item">
-                  <div class="recipe-card-wrapper">
-                    <RecipeCard :recipe-id="recipe.id" :title="recipe.title" :image="recipe.image_url"
-                      :description="recipe.description" />
-                    <button @click="removeRecipeFromFolder(recipe.id, selectedFolder.id)" class="delete-btn-overlay">
-                      <img :src="binIcon" alt="Eliminar" class="delete-icon" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div v-else class="no-recipes-container">
-                <p class="no-recipes">No hi ha receptes en aquesta carpeta.</p>
-              </div>
-            </div>
-
-
-
-            <div v-else class="folders-view">
-              <div class="create-folder-section">
-                <button v-if="!showCreateFolderInput" @click="showCreateFolderInput = true" class="create-folder-btn">
-                  <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
+          
+          <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
+            <div v-for="recipe in selectedFolderRecipes" :key="recipe.id" class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              <div class="relative">
+                <img :src="recipe.image_url || recipe.image" :alt="recipe.title" class="w-full h-48 object-cover" />
+                <button @click="removeRecipeFromFolder(recipe.id, selectedFolder.id)" class="absolute top-3 right-3 bg-white/90 p-2 rounded-full shadow-md hover:bg-red-100 transition-all duration-300">
+                  <img :src="binIcon" alt="Eliminar" class="w-5 h-5" />
                 </button>
-                <div v-if="showCreateFolderInput" class="create-folder-input">
-                  <input type="text" v-model="newFolderName" placeholder="Nom de la carpeta" @keyup.enter="createFolder"
-                    ref="folderNameInput" autofocus />
-                  <div class="button-group">
-                    <button @click="createFolder" class="submit-btn">Guardar</button>
-                    <button @click="showCreateFolderInput = false" class="cancel-btn">Cancelar</button>
-                  </div>
-                </div>
               </div>
-              <div v-if="folders.length > 0" class="folders-grid">
-                <div class="folder-card" v-for="folder in folders" :key="folder.id"
-                  @click="fetchFolderRecipes(folder.id)">
-                  <div class="folder-image-container">
-                    <img src="@/assets/images/folder2.png" alt="Folder" class="folder-icon" />
-                    <div class="folder-overlay">
-                      <span class="folder-name">{{ folder.name }}</span>
-                      <button @click.stop="deleteFolder(folder.id)" class="delete-folder-btn">
-                        <img :src="binIcon" alt="Delete" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div v-if="folders.length === 0" class="no-folders-container">
-                <p class="no-folders">No tens cap carpeta.</p>
-                <p class="folder-hint">Crea carpetes per organitzar les teves receptes favorites!</p>
+              <div class="p-6">
+                <h4 class="text-xl font-semibold text-lime-900 mb-2 truncate">{{ recipe.title }}</h4>
+                <p class="text-gray-600 text-sm line-clamp-2">{{ recipe.description }}</p>
               </div>
             </div>
           </div>
         </div>
-      
+
+        <div v-else>
+          <div class="bg-white rounded-xl p-6 shadow-lg mb-8">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-2xl font-bold text-lime-900">Mis Carpetas Públicas</h3>
+            </div>
+            <p class="text-gray-600">Crea carpetas públicas para organizar y compartir tus recetas favoritas con otros usuarios. Estas carpetas serán visibles para todos.</p>
+          </div>
+
+          <div v-if="folders.length > 0" class="grid grid-cols-2 gap-3 max-w-md mx-auto">
+            <div v-for="folder in folders" :key="folder.id" 
+              @click="fetchFolderRecipes(folder.id)"
+              class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer aspect-square">
+              <div class="relative h-full bg-gradient-to-br from-lime-100 to-green-100 flex items-center justify-center">
+                <svg class="w-12 h-12 text-lime-500 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                </svg>
+                <button @click.stop="deleteFolder(folder.id)" class="absolute top-1 right-1 bg-white/90 p-1 rounded-full shadow-md hover:bg-red-100 transition-all duration-300">
+                  <img :src="binIcon" alt="Eliminar" class="w-3 h-3" />
+                </button>
+                <div class="absolute bottom-0 left-0 right-0 p-2 bg-white/90">
+                  <h4 class="text-xs font-semibold text-lime-900 mb-0.5 truncate">{{ folder.name }}</h4>
+                  <p class="text-gray-600 text-[10px]">Carpeta pública</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="folders.length === 0" class="bg-white rounded-xl p-8 text-center shadow-lg max-w-2xl mx-auto">
+            <p class="text-gray-600 text-lg mb-4">No tienes carpetas creadas.</p>
+            <p class="text-gray-500 text-sm mb-6">Crea carpetas para organizar y compartir tus recetas favoritas.</p>
+          </div>
+        </div>
       </div>
-<!-- Sección de recetas que me gustan -->
-<div v-if="showLikedSection" class="user-recipes liked-section">
-  <h3 class="section-title">🍽️ Receptes que m'agraden</h3>
-  <div v-if="likedRecipes.length === 0" class="no-liked-recipes">
-    <p>No has donat like a cap recepta encara.</p>
-    <button @click="goToExplore" class="explore-btn">Explorar receptes</button>
-  </div>
-  <div v-else class="recipe-cards">
-    <div v-for="recipe in likedRecipes" :key="recipe.id" class="liked-recipe-card">
-      <RecipeCard 
-        :recipe-id="recipe.id" 
-        :title="recipe.title" 
-        :description="recipe.description"
-        :image="recipe.image" 
-      />
-    </div>
-  </div>
-  <div class="button-container">
-    <button @click="cancelEdit" class="cancel-btn">🔙 Tornar</button>
-  </div>
-</div>
+
+      <!-- Sección de recetas que me gustan -->
+      <div v-if="showLikedSection" class="user-recipes liked-section">
+        <h3 class="section-title">🍽️ Receptes que m'agraden</h3>
+        <div v-if="likedRecipes.length === 0" class="no-liked-recipes">
+          <p>No has donat like a cap recepta encara.</p>
+          <button @click="goToExplore" class="explore-btn">Explorar receptes</button>
+        </div>
+        <div v-else class="recipe-cards">
+          <div v-for="recipe in likedRecipes" :key="recipe.id" class="liked-recipe-card">
+            <RecipeCard 
+              :recipe-id="recipe.id" 
+              :title="recipe.title" 
+              :description="recipe.description"
+              :image="recipe.image" 
+            />
+          </div>
+        </div>
+        <div class="button-container">
+          <button @click="cancelEdit" class="cancel-btn">🔙 Tornar</button>
+        </div>
+      </div>
+
       <!-- Lives programados -->
       <div v-if="showLivesSection && !showLiveForm" class="user-recipes">
-        <h3 class="section-title">📅 Mis lives programados</h3>
-        <div v-if="scheduledLives.length === 0" class="no-lives">
-          <p>No tienes ningún live programado todavía.</p>
+        <h3 class="text-2xl font-bold text-lime-900 mb-8 text-center"> Mis lives programados</h3>
+        <div v-if="scheduledLives.length === 0" class="bg-white rounded-xl p-8 text-center shadow-lg max-w-2xl mx-auto">
+          <p class="text-gray-600 text-lg mb-4">No tienes ningún live programado todavía.</p>
+          <button @click="toggleLiveForm" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-lime-400 to-green-500 text-white font-medium rounded-lg shadow-md hover:from-lime-500 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-lime-300 focus:ring-opacity-50 transition-all duration-300 transform hover:scale-105">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Programar nuevo live
+          </button>
         </div>
-        <div v-else class="live-cards">
-          <div v-for="live in scheduledLives" :key="live.id" class="live-card">
-            <div class="live-info">
-              <h4>{{ live.recipe.title }}</h4>
-              <p>📅 {{ formatDate(live.dia) }} 🕒 {{ live.hora }}</p>
-              <div class="live-actions">
-                <button @click="editLive(live)" class="edit-btn">✏️ Editar</button>
-                <button @click="deleteLive(live.id)" class="delete-btn">🗑️ Eliminar</button>
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
+          <div v-for="live in scheduledLives" :key="live.id" class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div class="p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h4 class="text-xl font-semibold text-lime-900 truncate">{{ live.recipe.title }}</h4>
+                <span class="px-3 py-1 bg-lime-100 text-lime-800 rounded-full text-sm font-medium">Live</span>
+              </div>
+              <div class="space-y-3">
+                <div class="flex items-center text-gray-600">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  <span>{{ formatDate(live.dia) }}</span>
+                </div>
+                <div class="flex items-center text-gray-600">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>{{ live.hora }}</span>
+                </div>
+              </div>
+              <div class="mt-6 flex space-x-3">
+                <button @click="editLive(live)" class="flex-1 px-4 py-2 bg-gradient-to-r from-lime-400 to-green-500 text-white font-medium rounded-lg shadow-sm hover:from-lime-500 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-lime-300 focus:ring-opacity-50 transition-all duration-300">
+                  <span class="flex items-center justify-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Editar
+                  </span>
+                </button>
+                <button @click="deleteLive(live.id)" class="flex-1 px-4 py-2 bg-red-100 text-red-600 font-medium rounded-lg shadow-sm hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-opacity-50 transition-all duration-300">
+                  <span class="flex items-center justify-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    Eliminar
+                  </span>
+                </button>
               </div>
             </div>
           </div>
+        </div>
+        <div class="mt-8 text-center">
+          <button @click="toggleLiveForm" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-lime-400 to-green-500 text-white font-medium rounded-lg shadow-md hover:from-lime-500 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-lime-300 focus:ring-opacity-50 transition-all duration-300 transform hover:scale-105">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Programar nuevo live
+          </button>
         </div>
       </div>
 
       <!-- Recetas propias -->
       <div v-if="showRecipes && !showLiveForm && !showLivesSection" class="user-recipes">
-        <h3>Les meves publicacions</h3>
-        <div class="recipe-cards">
-          <div v-for="recipe in recipes" :key="recipe.id">
-            <RecipeCard :recipe-id="recipe.id" :title="recipe.title" :description="recipe.description"
-              :image="recipe.image" />
-            <button @click="deleteRecipe(recipe.id)" class="delete-btn">
-              <img :src="binIcon" alt="Eliminar" class="delete-icon" />
-            </button>
+        <h3 class="text-2xl font-bold text-lime-900 mb-8 text-center"> Mis Publicaciones</h3>
+        <div v-if="recipes.length === 0" class="bg-white rounded-xl p-8 text-center shadow-lg max-w-2xl mx-auto">
+          <p class="text-gray-600 text-lg mb-4">No tienes ninguna publicación todavía.</p>
+        </div>
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
+          <div v-for="recipe in recipes" :key="recipe.id" class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div class="relative">
+              <img :src="recipe.image" :alt="recipe.title" class="w-full h-48 object-cover" />
+              <button @click="deleteRecipe(recipe.id)" class="absolute top-3 right-3 bg-white/90 p-2 rounded-full shadow-md hover:bg-red-100 transition-all duration-300">
+                <img :src="binIcon" alt="Eliminar" class="w-5 h-5" />
+              </button>
+            </div>
+            <div class="p-6">
+              <h4 class="text-xl font-semibold text-lime-900 mb-2 truncate">{{ recipe.title }}</h4>
+              <p class="text-gray-600 text-sm line-clamp-2">{{ recipe.description }}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -475,14 +596,14 @@ export default {
 
     // Saved section variables
     const showSavedSection = ref(false);
-    const savedActiveTab = ref('guardades');
+    const showFoldersSection = ref(false);
     const loadingGuardades = ref(true);
     const savedRecipes = ref([]);
     const folders = ref([]);
-    const selectedFolder = ref(null);
-    const selectedFolderRecipes = ref([]);
     const showCreateFolderInput = ref(false);
     const newFolderName = ref('');
+    const selectedFolder = ref(null);
+    const selectedFolderRecipes = ref([]);
 
     // Profile variables
     const minDate = computed(() => {
@@ -599,6 +720,7 @@ export default {
         showCreateFolderInput.value = false;
         newFolderName.value = '';
         await fetchUserFolders();
+        showFoldersSection.value = true; // Mostrar la sección de carpetas después de crear
       } catch (error) {
         console.error('Error creant la carpeta', error);
         popupMessage.value = "Error en crear la carpeta";
@@ -643,26 +765,47 @@ export default {
       selectedFolderRecipes.value = [];
     };
     const toggleSection = (section) => {
-  // Resetear todas las secciones
-  showRecipes.value = false;
-  showLivesSection.value = false;
-  showSavedSection.value = false;
-  showLikedSection.value = false;
+      // Resetear todas las secciones
+      showRecipes.value = false;
+      showLivesSection.value = false;
+      showSavedSection.value = false;
+      showLikedSection.value = false;
+      showFoldersSection.value = false;
 
-  // Activar solo la sección seleccionada
-  if (section === 'recipes') showRecipes.value = true;
-  else if (section === 'lives') showLivesSection.value = true;
-  else if (section === 'saved') showSavedSection.value = true;
-  else if (section === 'liked') showLikedSection.value = true;
+      // Resetear la carpeta seleccionada si se hace clic en el botón de carpetas
+      if (section === 'folders') {
+        selectedFolder.value = null;
+        selectedFolderRecipes.value = [];
+      }
 
-  // Cargar datos si es necesario
-  if (section === 'lives') loadScheduledLives();
-  if (section === 'saved') {
-    fetchSavedRecipes();
-    fetchUserFolders();
-  }
-  if (section === 'liked') loadLikedRecipes();
-};
+      // Activar solo la sección seleccionada
+      if (section === 'recipes') showRecipes.value = true;
+      else if (section === 'lives') showLivesSection.value = true;
+      else if (section === 'saved') showSavedSection.value = true;
+      else if (section === 'liked') showLikedSection.value = true;
+      else if (section === 'folders') showFoldersSection.value = true;
+
+      // Cargar datos si es necesario
+      if (section === 'lives') loadScheduledLives();
+      if (section === 'saved') {
+        fetchSavedRecipes();
+      }
+      if (section === 'folders') {
+        fetchUserFolders();
+      }
+      if (section === 'liked') loadLikedRecipes();
+    };
+
+    // Modificar el botón de crear carpeta para que oculte las demás secciones
+    const handleCreateFolderClick = () => {
+      showCreateFolderInput.value = true;
+      showRecipes.value = false;
+      showLivesSection.value = false;
+      showSavedSection.value = false;
+      showLikedSection.value = false;
+      showFoldersSection.value = false;
+    };
+
     const handleLiveButtonClick = () => {
       showLivesSection.value = false;
       showRecipes.value = false;
@@ -951,6 +1094,13 @@ export default {
       router.push('/recetas');
     };
 
+    const goToRecipe = (recipeId) => {
+      router.push({
+        name: 'inforeceta',
+        params: { id: recipeId }
+      });
+    };
+
     onMounted(async () => {
       try {
         const userData = await communicationManager.getUser();
@@ -976,21 +1126,21 @@ export default {
     return {
       // Saved section
       showSavedSection,
-      savedActiveTab,
+      showFoldersSection,
       loadingGuardades,
       savedRecipes,
       folders,
-      selectedFolder,
-      selectedFolderRecipes,
       showCreateFolderInput,
       newFolderName,
       removeSavedRecipe,
-      fetchFolderRecipes,
       createFolder,
       deleteFolder,
-      removeRecipeFromFolder,
-      goBackFromFolder,
       showLikedSection,
+      selectedFolder,
+      selectedFolderRecipes,
+      fetchFolderRecipes,
+      goBackFromFolder,
+      removeRecipeFromFolder,
       // Profile
       authStore,
       toggleSection,
@@ -1052,8 +1202,10 @@ export default {
       showLivesSection,
       showScheduledLives,
       hideLivesSection,
-      goToExplore ,
-      goToVerification
+      goToExplore,
+      goToVerification,
+      goToRecipe,
+      handleCreateFolderClick
     };
   }
 };
