@@ -959,13 +959,19 @@
       </div>
     </div>
 
-    <!-- No autenticado -->
-    <div v-else class="auth-required-container">
-      <div class="auth-required-message">
-        <p>Per accedir al teu perfil, has d'iniciar sessió</p>
-        <button @click="goToLogin" class="login-button">Iniciar Sessió</button>
-      </div>
-    </div>
+  
+
+    <!-- Modal de autenticación requerida si no hay token -->
+    <teleport to="body">
+      <transition name="modal">
+        <div v-if="!authStore.isAuthenticated" class="pointer-events-none fixed left-0 right-0 top-0 bottom-20 flex items-center justify-center z-50">
+          <div class="pointer-events-auto bg-white rounded-2xl shadow-lg p-8 text-center w-full max-w-xs md:max-w-md">
+            <p class="text-lime-900 text-lg font-semibold mb-6">Per veure el teu perfil, has d'iniciar sessió</p>
+            <button @click="goToLogin" class="w-full py-3 bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 rounded-xl font-semibold shadow hover:from-green-600 hover:via-lime-500 hover:to-lime-400 hover:brightness-110 transition-all duration-200 text-base">Iniciar Sessió</button>
+          </div>
+        </div>
+      </transition>
+    </teleport>
   </div>
 </template>
 

@@ -27,7 +27,7 @@
     </section>
 
     <!-- Search Section with floating elements -->
-    <div class="w-full px-6 -mt-12 sm:-mt-8 relative z-20 flex justify-center">
+    <div v-if="authStore.isAuthenticated" class="w-full px-6 -mt-12 sm:-mt-8 relative z-20 flex justify-center">
       <div class="w-full sm:w-5/6 md:w-4/5 lg:w-3/4 xl:w-2/3 2xl:w-1/2 transform hover:scale-105 transition-transform duration-300">
         <div class="relative flex items-center gap-3">
           <div class="relative flex-1">
@@ -104,13 +104,17 @@
       </transition>
     </div>
 
-    <!-- Mostrar mensaje de autenticación requerida si no hay token -->
-    <div v-else class="flex justify-center items-center h-[50vh]">
-      <div class="text-center p-8 bg-[#f8f9fa] rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.1)] max-w-[400px] w-full">
-        <p class="mb-6 text-lg text-[#343a40]">Per veure i buscar receptes, has d'iniciar sessió</p>
-        <button @click="goToLogin" class="px-6 py-3 bg-[#4CAF50] text-white border-none rounded text-base cursor-pointer transition-colors duration-300 hover:bg-[#45a049]">Iniciar Sessió</button>
-      </div>
-    </div>
+    <!-- Modal de autenticación requerida si no hay token -->
+    <teleport to="body">
+      <transition name="modal">
+        <div v-if="!authStore.isAuthenticated" class="pointer-events-none fixed left-0 right-0 top-0 bottom-20 flex items-center justify-center z-50">
+          <div class="pointer-events-auto bg-white rounded-2xl shadow-lg p-8 text-center w-full max-w-xs md:max-w-md">
+            <p class="text-lime-900 text-lg font-semibold mb-6">Per veure i buscar receptes, has d'iniciar sessió</p>
+            <button @click="goToLogin" class="w-full py-3 bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 rounded-xl font-semibold shadow hover:from-green-600 hover:via-lime-500 hover:to-lime-400 hover:brightness-110 transition-all duration-200 text-base">Iniciar Sessió</button>
+          </div>
+        </div>
+      </transition>
+    </teleport>
   </div>
 </template>
 
