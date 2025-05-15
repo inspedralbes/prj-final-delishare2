@@ -1,46 +1,10 @@
 <template>
   <div id="app">
-    <Navbar /><div class="
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    <Navbar />
+    <div class="
     ..
     .."></div>
-    <router-view></router-view> 
+    <router-view></router-view>
   </div>
 </template>
 
@@ -55,5 +19,4 @@ export default {
 };
 </script>
 
-<style>
-</style>
+<style></style>
