@@ -8,22 +8,27 @@ use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
+    // Devuelve todos los usuarios
     public function index()
     {
         return User::all();
     }
 
+    // Devuelve un usuario específico por id
     public function show($id)
     {
         return User::findOrFail($id);
     }
 
+    // Actualiza un usuario con los datos recibidos
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
         $user->update($request->all());
         return $user;
     }
+
+    // Valida y crea un nuevo usuario
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -36,6 +41,8 @@ class UserController extends Controller
         
         return User::create($validated);
     }
+
+    // Elimina un usuario por id
     public function destroy($id)
     {
         $user = User::findOrFail($id);
@@ -43,39 +50,40 @@ class UserController extends Controller
         return response()->json(['message' => 'User deleted successfully']);
     }
 
+    // Devuelve el usuario autenticado
     public function getAuthenticatedUser(Request $request)
-{
-    $user = Auth::user();
+    {
+        $user = Auth::user();
 
-    if (!$user) {
-        return response()->json(['message' => 'No autorizado'], 401);
+        if (!$user) {
+            return response()->json(['message' => 'No autorizado'], 401);
+        }
+
+        return response()->json([
+            'email' => $user->email,
+            'name' => $user->name,
+        ]);
     }
 
-    return response()->json([
-        'email' => $user->email,
-        'name' => $user->name,
-    ]);
-}
-public function sendVerificationEmail(Request $request)
-{
-    $user = Auth::user();
+    // Envía un email de verificación
+    public function sendVerificationEmail(Request $request)
+    {
+        $user = Auth::user();
 
-    if (!$user) {
-        return response()->json(['message' => 'No autorizado'], 401);
+        if (!$user) {
+            return response()->json(['message' => 'No autorizado'], 401);
+        }
+
+        $request->validate([
+            'message' => 'required|string',
+        ]);
+
+        $email = $user->email;
+        $username = $user->name;
+        $messageContent = $request->input('message');
+
+        Mail::to('midelishare@gmail.com')->send(new VerificationMail($email, $username, $messageContent));
+
+        return response()->json(['message' => 'Correo enviado correctamente']);
     }
-
-    $request->validate([
-        'message' => 'required|string',
-    ]);
-
-    $email = $user->email;
-    $username = $user->name;
-    $messageContent = $request->input('message');
-
-    // Enviar correo a midelishare@gmail.com
-    Mail::to('midelishare@gmail.com')->send(new VerificationMail($email, $username, $messageContent));
-
-    return response()->json(['message' => 'Correo enviado correctamente']);
-}
-
 }

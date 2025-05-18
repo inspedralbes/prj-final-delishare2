@@ -12,53 +12,58 @@ use Illuminate\Validation\ValidationException;
 
 class LiveController extends Controller
 {
-/**
- * Obtener los lives programados por el chef autenticado
- */
-public function misLivesProgramados()
-{
-    try {
-        $user = Auth::user();
+    /**
+     * Obtener los lives programados del chef autenticado
+     */
+    public function misLivesProgramados()
+    {
+        try {
+            // Obtener usuario autenticado
+            $user = Auth::user();
 
-        if ($user->role !== 'chef') {
+            // Verificar que el usuario sea un chef
+            if ($user->role !== 'chef') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Solo los chefs pueden ver sus lives programados'
+                ], 403);
+            }
+
+            // Obtener lives futuros del chef autenticado
+            $lives = Live::with(['recipe'])
+                        ->where('user_id', $user->id)
+                        ->where('dia', '>=', now()->format('Y-m-d'))
+                        ->orderBy('dia')
+                        ->orderBy('hora')
+                        ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $lives
+            ]);
+        } catch (\Exception $e) {
+            // Registrar error en el log
+            Log::error('Error al obtener los lives programados del chef: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Solo los chefs pueden ver sus lives programados'
-            ], 403);
+                'message' => 'Error al obtener tus lives programados',
+                'error' => env('APP_DEBUG') ? $e->getMessage() : null
+            ], 500);
         }
-
-        $lives = Live::with(['recipe'])
-                    ->where('user_id', $user->id)
-                    ->where('dia', '>=', now()->format('Y-m-d'))
-                    ->orderBy('dia')
-                    ->orderBy('hora')
-                    ->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $lives
-        ]);
-    } catch (\Exception $e) {
-        Log::error('Error al obtener los lives programados del chef: ' . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al obtener tus lives programados',
-            'error' => env('APP_DEBUG') ? $e->getMessage() : null
-        ], 500);
     }
-}
 
     /**
-     * Listar todos los lives (públicos)
+     * Listar todos los lives públicos (de cualquier chef)
      */
     public function index()
     {
         try {
+            // Obtener todos los lives futuros, con datos del chef y la receta
             $lives = Live::with(['chef', 'recipe'])
-                       ->where('dia', '>=', now()->format('Y-m-d'))
-                       ->orderBy('dia')
-                       ->orderBy('hora')
-                       ->get();
+                        ->where('dia', '>=', now()->format('Y-m-d'))
+                        ->orderBy('dia')
+                        ->orderBy('hora')
+                        ->get();
 
             return response()->json([
                 'success' => true,
@@ -76,13 +81,14 @@ public function misLivesProgramados()
     }
 
     /**
-     * Crear un live (solo chefs autenticados)
+     * Crear un nuevo live (solo chefs autenticados pueden hacerlo)
      */
     public function store(Request $request)
     {
         try {
             $user = Auth::user();
             
+            // Verificar que el usuario sea un chef
             if ($user->role !== 'chef') {
                 return response()->json([
                     'success' => false,
@@ -90,15 +96,17 @@ public function misLivesProgramados()
                 ], 403);
             }
 
+            // Validar datos de entrada
             $validatedData = $request->validate([
                 'recipe_id' => 'required|exists:recipes,id',
                 'dia' => 'required|date|after_or_equal:today',
                 'hora' => 'required|date_format:H:i'
             ]);
 
+            // Verificar que la receta pertenezca al chef
             $recipe = Recipe::where('id', $validatedData['recipe_id'])
-                          ->where('user_id', $user->id)
-                          ->first();
+                            ->where('user_id', $user->id)
+                            ->first();
 
             if (!$recipe) {
                 return response()->json([
@@ -107,6 +115,7 @@ public function misLivesProgramados()
                 ], 403);
             }
 
+            // Crear el nuevo live
             $live = Live::create([
                 'user_id' => $user->id,
                 'recipe_id' => $validatedData['recipe_id'],
@@ -120,6 +129,7 @@ public function misLivesProgramados()
             ], 201);
 
         } catch (ValidationException $e) {
+            // Errores de validación
             return response()->json([
                 'success' => false,
                 'message' => 'Error de validación',
@@ -136,11 +146,12 @@ public function misLivesProgramados()
     }
 
     /**
-     * Mostrar un live en específico
+     * Mostrar información de un live específico
      */
     public function show($id)
     {
         try {
+            // Buscar live con datos del chef y receta
             $live = Live::with(['chef', 'recipe'])->find($id);
 
             if (!$live) {
@@ -166,7 +177,7 @@ public function misLivesProgramados()
     }
 
     /**
-     * Actualizar un live existente (solo el chef dueño puede)
+     * Actualizar un live existente (solo el chef dueño)
      */
     public function update(Request $request, $id)
     {
@@ -181,6 +192,7 @@ public function misLivesProgramados()
                 ], 404);
             }
 
+            // Verificar propiedad del live
             if ($live->user_id !== $user->id) {
                 return response()->json([
                     'success' => false,
@@ -188,11 +200,13 @@ public function misLivesProgramados()
                 ], 403);
             }
 
+            // Validar campos opcionales
             $validatedData = $request->validate([
                 'dia' => 'sometimes|date|after_or_equal:today',
                 'hora' => 'sometimes|date_format:H:i'
             ]);
 
+            // Actualizar campos
             $live->update($validatedData);
 
             return response()->json([
@@ -218,7 +232,7 @@ public function misLivesProgramados()
     }
 
     /**
-     * Eliminar un live (solo el chef dueño)
+     * Eliminar un live (solo el chef propietario puede hacerlo)
      */
     public function destroy($id)
     {
@@ -233,6 +247,7 @@ public function misLivesProgramados()
                 ], 404);
             }
 
+            // Verificar propiedad
             if ($live->user_id !== $user->id) {
                 return response()->json([
                     'success' => false,
@@ -240,6 +255,7 @@ public function misLivesProgramados()
                 ], 403);
             }
 
+            // Eliminar live
             $live->delete();
 
             return response()->json([
@@ -257,6 +273,9 @@ public function misLivesProgramados()
         }
     }
 
+    /**
+     * Obtener todos los lives futuros del chef autenticado
+     */
     public function chefLives()
     {
         try {
@@ -289,38 +308,40 @@ public function misLivesProgramados()
             ], 500);
         }
     }
-// LiveController.php
-public function getUserLives($userId)
-{
-    try {
-        $user = User::findOrFail($userId);
 
-        // Si no es chef, no devolvemos lives
-        if ($user->role !== 'chef') {
+    /**
+     * Obtener lives futuros de un chef específico por su ID
+     */
+    public function getUserLives($userId)
+    {
+        try {
+            $user = User::findOrFail($userId);
+
+            // Solo devolver lives si el usuario es chef
+            if ($user->role !== 'chef') {
+                return response()->json([
+                    'success' => true,
+                    'lives' => []
+                ]);
+            }
+
+            $lives = Live::with('recipe')
+                        ->where('user_id', $user->id)
+                        ->where('dia', '>=', now()->format('Y-m-d'))
+                        ->orderBy('dia')
+                        ->orderBy('hora')
+                        ->get();
+
             return response()->json([
                 'success' => true,
-                'lives' => []
+                'lives' => $lives
             ]);
+        } catch (\Exception $e) {
+            Log::error("Error al obtener lives del usuario $userId: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudieron obtener los lives del usuario.'
+            ], 500);
         }
-
-        $lives = Live::with('recipe')
-            ->where('user_id', $user->id)
-            ->where('dia', '>=', now()->format('Y-m-d'))
-            ->orderBy('dia')
-            ->orderBy('hora')
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'lives' => $lives
-        ]);
-    } catch (\Exception $e) {
-        Log::error("Error al obtener lives del usuario $userId: " . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => 'No se pudieron obtener los lives del usuario.'
-        ], 500);
     }
-}
-
 }

@@ -14,11 +14,13 @@ use Illuminate\Http\Request;
 
 class RecipeController extends Controller
 {
+    // Devuelve todas las recetas con sus relaciones usuario, categoría y cocina cargadas
     public function index()
     {
         return Recipe::with(['user', 'category', 'cuisine'])->get();
     }
     
+    // Devuelve una receta específica con sus relaciones y renombra el usuario a "creador"
     public function show($id)
     {
         $recipe = Recipe::with(['user', 'category', 'cuisine'])->findOrFail($id);
@@ -30,6 +32,7 @@ class RecipeController extends Controller
         return response()->json($recipe);
     }
     
+    // Valida y guarda una nueva receta asociada al usuario autenticado
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -49,7 +52,7 @@ class RecipeController extends Controller
     
         $data['user_id'] = auth()->id();
         
-        // Asegurar que nutrition tenga todos los campos necesarios
+        // Asegura que los valores nutricionales existan y tengan campos por defecto si no vienen
         if (isset($data['nutrition'])) {
             $data['nutrition'] = array_merge([
                 'calories' => 0,
@@ -71,33 +74,33 @@ class RecipeController extends Controller
         return response()->json($recipe, 201);
     }
    
-public function update(Request $request, $id)
-{
-    $recipe = Recipe::findOrFail($id);
+    // Actualiza una receta existente con datos validados
+    public function update(Request $request, $id)
+    {
+        $recipe = Recipe::findOrFail($id);
 
-    $data = $request->validate([
-        'user_id' => 'required|exists:users,id',
-        'category_id' => 'required|exists:categories,id',
-        'cuisine_id' => 'required|exists:cuisines,id',
-        'title' => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'ingredients' => 'required|array',
-        'steps' => 'required|array',
-        'prep_time' => 'required|integer',
-        'cook_time' => 'required|integer',
-        'servings' => 'required|integer',
-        'nutrition' => 'nullable|array', 
-        'image' => 'nullable|string', 
-        'video' => 'nullable|string',
+        $data = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'category_id' => 'required|exists:categories,id',
+            'cuisine_id' => 'required|exists:cuisines,id',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'ingredients' => 'required|array',
+            'steps' => 'required|array',
+            'prep_time' => 'required|integer',
+            'cook_time' => 'required|integer',
+            'servings' => 'required|integer',
+            'nutrition' => 'nullable|array', 
+            'image' => 'nullable|string', 
+            'video' => 'nullable|string',
+        ]);
 
+        $recipe->update($data);
 
-    ]);
+        return $recipe;
+    }
 
-    $recipe->update($data);
-
-    return $recipe;
-}
-
+    // Elimina una receta por su ID
     public function destroy($id)
     {
         $recipe = Recipe::findOrFail($id);
@@ -105,19 +108,21 @@ public function update(Request $request, $id)
         return response()->json(['message' => 'Recipe deleted successfully']);
     }
     
+    // Obtiene las últimas 10 notificaciones para el usuario autenticado
     public function getNotifications(Request $request)
     {
         $userId = $request->user()->id;
     
-        // Aquí puedes personalizar la lógica para obtener las notificaciones
         $notifications = DB::table('notifications')
             ->where('user_id', $userId)
             ->orderBy('created_at', 'desc')
-            ->take(10) // Limitar a las últimas 10 notificaciones
+            ->take(10)
             ->get();
     
         return response()->json($notifications);
     }
+
+    // Alterna el "like" de una receta por parte del usuario autenticado
     public function toggleLike(Request $request, $recipeId)
     {
         $userId = $request->user()->id;
@@ -130,7 +135,7 @@ public function update(Request $request, $id)
             ->first();
     
         if ($recipeUser && $recipeUser->liked) {
-            // Eliminar like
+            // Si ya está likeada, la quita y decrementa el contador
             DB::table('recipe_user')
                 ->where('user_id', $userId)
                 ->where('recipe_id', $recipeId)
@@ -144,7 +149,7 @@ public function update(Request $request, $id)
                 'likes_count' => Recipe::find($recipeId)->likes_count
             ]);
         } else {
-            // Añadir like
+            // Si no está likeada, la añade y crea notificación si no es el dueño
             if ($recipeUser) {
                 DB::table('recipe_user')
                     ->where('user_id', $userId)
@@ -162,17 +167,15 @@ public function update(Request $request, $id)
     
             Recipe::where('id', $recipeId)->increment('likes_count');
     
-            // Crear notificación solo si no es el dueño
             if ($ownerId !== $userId) {
-                // Ejemplo en toggleLike
-Notification::create([
-    'user_id' => $ownerId,
-    'triggered_by' => $userId,
-    'type' => 'like',
-    'recipe_id' => $recipeId,
-    'message' => ' ha dado like a tu receta "' . $recipe->title . '"',
-    'read' => false
-]);
+                Notification::create([
+                    'user_id' => $ownerId,
+                    'triggered_by' => $userId,
+                    'type' => 'like',
+                    'recipe_id' => $recipeId,
+                    'message' => ' ha dado like a tu receta "' . $recipe->title . '"',
+                    'read' => false
+                ]);
             }
     
             return response()->json([
@@ -183,512 +186,177 @@ Notification::create([
         }
     }
 
-public function getLikes($recipeId)
-{
-    return response()->json([
-        'likes_count' => Recipe::find($recipeId)->likes_count,
-        'is_liked' => auth()->check() && DB::table('recipe_user')
-            ->where('user_id', auth()->id())
-            ->where('recipe_id', $recipeId)
-            ->where('liked', true)
-            ->exists()
-    ]);
-}
+    // Devuelve el contador de likes y si el usuario autenticado ha likeado la receta
+    public function getLikes($recipeId)
+    {
+        return response()->json([
+            'likes_count' => Recipe::find($recipeId)->likes_count,
+            'is_liked' => auth()->check() && DB::table('recipe_user')
+                ->where('user_id', auth()->id())
+                ->where('recipe_id', $recipeId)
+                ->where('liked', true)
+                ->exists()
+        ]);
+    }
 
+    // Devuelve todas las recetas (sin filtros)
     public function getAllRecipes()
     {
-       $recipes = Recipe::all();
-       return response()->json([
-        'recipes' => $recipes,
-    ], 200);
-        }
+        $recipes = Recipe::all();
+        return response()->json([
+            'recipes' => $recipes,
+        ], 200);
+    }
         
-        public function filterByCategory ($id)
-        {
-            $recipes = Recipe::where('category_id', $id)->get();
-            return response()->json([
-                'recipes' => $recipes,
-            ], 200);
-        }
+    // Filtra recetas según la categoría indicada
+    public function filterByCategory ($id)
+    {
+        $recipes = Recipe::where('category_id', $id)->get();
+        return response()->json([
+            'recipes' => $recipes,
+        ], 200);
+    }
     
-   public function getAllTimes()
-   {
-       $times = DB::table('recipes')
-           ->selectRaw('IFNULL(prep_time, 0) + IFNULL(cook_time, 0) as total_time')
-           ->distinct()
-           ->pluck('total_time'); 
+    // Obtiene los tiempos totales de preparación + cocción únicos en recetas
+    public function getAllTimes()
+    {
+        $times = DB::table('recipes')
+            ->selectRaw('IFNULL(prep_time, 0) + IFNULL(cook_time, 0) as total_time')
+            ->distinct()
+            ->pluck('total_time'); 
 
-       return response()->json([
-           'times' => $times,
-       ], 200);
-   }
+        return response()->json([
+            'times' => $times,
+        ], 200);
+    }
 
-   public function filterByTime($time)
-   {
-       $recipes = Recipe::whereRaw('IFNULL(prep_time, 0) + IFNULL(cook_time, 0) <= ?', [$time])
-           ->get();
+    // Filtra recetas cuyo tiempo total es menor o igual al indicado
+    public function filterByTime($time)
+    {
+        $recipes = Recipe::whereRaw('IFNULL(prep_time, 0) + IFNULL(cook_time, 0) <= ?', [$time])
+            ->get();
 
-       return response()->json([
-           'recipes' => $recipes,
-       ], 200);
-   }
+        return response()->json([
+            'recipes' => $recipes,
+        ], 200);
+    }
 
-public function filterByCuisine($id){
-    $recipes = Recipe::where('cuisine_id', $id)->get();
+    // Filtra recetas según la cocina indicada
+    public function filterByCuisine($id){
+        $recipes = Recipe::where('cuisine_id', $id)->get();
 
-    return response()->json([
-        'recipes' => $recipes,
-    ], 200);
-}
-public function getAllUsers()
-{
-    $users = DB::table('users')->select('id', 'name')->get();
+        return response()->json([
+            'recipes' => $recipes,
+        ], 200);
+    }
 
-    return response()->json([
-        'users' => $users,
-    ], 200);
-}
+    // Devuelve todos los usuarios con id y nombre
+    public function getAllUsers()
+    {
+        $users = DB::table('users')->select('id', 'name')->get();
 
+        return response()->json([
+            'users' => $users,
+        ], 200);
+    }
 
+    // Devuelve recetas creadas por el usuario autenticado
+    public function getRecipesByUser(Request $request)
+    {
+        $userId = $request->user()->id;
 
-public function getRecipesByUser(Request $request)
-{
-    $userId = $request->user()->id;
+        $recipes = Recipe::where('user_id', $userId)->get();
 
-    $recipes = Recipe::where('user_id', $userId)->get();
+        return response()->json([
+            'recipes' => $recipes,
+        ], 200);
+    }
 
-    return response()->json([
-        'recipes' => $recipes,
-    ], 200);
-}
+    // Obtiene los comentarios de una receta con el nombre del usuario y fechas
+    public function getRecipeComments($recipeId)
+    {
+        $comments = DB::table('comments')
+            ->where('recipe_id', $recipeId)
+            ->join('users', 'comments.user_id', '=', 'users.id')
+            ->select('comments.*', 'users.name as user_name')
+            ->orderBy('comments.created_at', 'desc')
+            ->get();
 
-public function getRecipeComments($recipeId)
-{
-    $comments = DB::table('recipe_user')
-        ->where('recipe_id', $recipeId)
-        ->whereNotNull('comment')
-        ->join('users', 'recipe_user.user_id', '=', 'users.id')
-        ->select(
-            'users.name', 
-            'recipe_user.comment', 
-            'recipe_user.updated_at',
-            'recipe_user.created_at'
-        )
-        ->orderBy('recipe_user.updated_at', 'desc')
-        ->get();
-
-    return response()->json($comments);
-}
-
-public function addComment(Request $request, $recipeId)
-{
-    $userId = auth()->id();
-    $recipe = Recipe::findOrFail($recipeId);
-    $ownerId = $recipe->user_id;
-
-    $request->validate([
-        'comment' => 'required|string|max:1000'
-    ]);
-
-    try {
-        // Insertar nuevo comentario (sin verificar si ya existe)
-        DB::table('recipe_user')->insert([
+        return response()->json([
+            'comments' => $comments,
+        ], 200);
+    }
+    
+    // Guarda un nuevo comentario para una receta
+    public function storeComment(Request $request, $recipeId)
+    {
+        $request->validate([
+            'comment' => 'required|string|max:500',
+        ]);
+    
+        $userId = $request->user()->id;
+    
+        $comment = DB::table('comments')->insert([
             'user_id' => $userId,
             'recipe_id' => $recipeId,
             'comment' => $request->input('comment'),
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
+    
+        return response()->json(['message' => 'Comment added successfully']);
+    }
 
-        // Obtener el comentario recién creado con los datos del usuario
-        $newComment = DB::table('recipe_user')
+    // Genera un PDF con las recetas del usuario autenticado
+    public function exportRecipesPdf(Request $request)
+    {
+        $userId = $request->user()->id;
+        $recipes = Recipe::where('user_id', $userId)->get();
+
+        $pdf = Pdf::loadView('recipes_pdf', compact('recipes'));
+        return $pdf->download('recipes.pdf');
+    }
+
+    // Devuelve las recomendaciones para el usuario autenticado con info del usuario y receta
+    public function getRecommendations(Request $request)
+    {
+        $userId = $request->user()->id;
+
+        $recommendations = Recommendation::with('user', 'recipe')
             ->where('user_id', $userId)
-            ->where('recipe_id', $recipeId)
-            ->where('comment', $request->input('comment'))
-            ->join('users', 'recipe_user.user_id', '=', 'users.id')
-            ->select('users.name', 'recipe_user.comment', 'recipe_user.updated_at')
-            ->first();
-
-        // Crear notificación si no es el dueño
-        if ($ownerId !== $userId) {
-            $userName = User::find($userId)->name;
-            Notification::create([
-                'user_id' => $ownerId,
-                'triggered_by' => $userId,
-                'recipe_id' => $recipeId,
-                'type' => 'comment',
-                'message' => $userName.' ha comentado tu receta "'.$recipe->title.'": "'.$request->input('comment').'"',
-                'read' => false
-            ]);
-        }
-
-        return response()->json([
-            'success' => true,
-            'comment' => $newComment
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al guardar el comentario: '.$e->getMessage()
-        ], 500);
-    }
-}
-public function getAllIngredients()
-{
-    $recipes = Recipe::select('ingredients')->get();
-    $allIngredients = [];
-     
-    // Prefijos y sufijos a eliminar (incluyendo unidades de medida)
-    $prefixes = ['g ', 'kg ', 'ml ', 'l ', 'cucharadita ', 'cucharada ', 
-                'taza ', 'tazas ', 'unitat ', 'unitats ', 's ', 'name:'];
-
-    foreach ($recipes as $recipe) {
-        $ingredients = $recipe->ingredients;
-        
-        if (is_string($ingredients)) {
-            $decoded = json_decode($ingredients, true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                $ingredients = $decoded;
-            } else {
-                continue;
-            }
-        }
-        
-        if (is_array($ingredients)) {
-            foreach ($ingredients as $ingredient) {
-                if (is_array($ingredient) && isset($ingredient['name'])) {
-                    $name = $ingredient['name'];
-                    // Eliminar "name:" si existe
-                    $name = str_replace('name:', '', $name);
-                    $allIngredients[] = trim(strtolower($name));
-                } 
-                else if (is_string($ingredient)) {
-                    // Eliminar prefijos numéricos o de cantidad
-                    $name = preg_replace('/^[\d\/\.]+\s*/', '', $ingredient); // Elimina cantidades numéricas
-                    
-                    // Eliminar prefijos comunes
-                    foreach ($prefixes as $prefix) {
-                        if (strpos(strtolower($name), $prefix) === 0) {
-                            $name = substr($name, strlen($prefix));
-                            break;
-                        }
-                    }
-                    
-                    $allIngredients[] = trim(strtolower($name));
-                }
-            }
-        }
-    }
-    
-    $cleanedIngredients = array_filter($allIngredients, function($item) {
-        return !empty($item) && strlen(trim($item)) > 0;
-    });
-    
-    $uniqueIngredients = array_unique($cleanedIngredients);
-    sort($uniqueIngredients);
-    
-    return response()->json([
-        'success' => true,
-        'count' => count($uniqueIngredients),
-        'ingredients' => array_values($uniqueIngredients)
-    ], 200);
-}
-
-public function filterByIngredients(Request $request)
-{
-    $request->validate([
-        'ingredients' => 'required|array|min:1',
-        'ingredients.*' => 'string'
-    ]);
-
-    $ingredients = $request->input('ingredients');
-    $recipes = Recipe::all();
-    $filteredRecipes = [];
-
-    foreach ($recipes as $recipe) {
-        $recipeIngredients = $recipe->ingredients;
-        
-        if (is_string($recipeIngredients)) {
-            $recipeIngredients = json_decode($recipeIngredients, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                continue;
-            }
-        }
-
-        $matchesAll = true;
-        foreach ($ingredients as $ingredient) {
-            $found = false;
-            
-            foreach ($recipeIngredients as $recipeIng) {
-                if (is_array($recipeIng)) {
-                    if (strtolower($recipeIng['name']) === strtolower($ingredient)) {
-                        $found = true;
-                        break;
-                    }
-                } else if (is_string($recipeIng)) {
-                    $parts = explode(' ', $recipeIng);
-                    $nameParts = array_slice($parts, 1);
-                    $name = strtolower(implode(' ', $nameParts));
-                    if ($name === strtolower($ingredient)) {
-                        $found = true;
-                        break;
-                    }
-                }
-            }
-            
-            if (!$found) {
-                $matchesAll = false;
-                break;
-            }
-        }
-
-        if ($matchesAll) {
-            $filteredRecipes[] = $recipe;
-        }
-    }
-
-    return response()->json([
-        'recipes' => $filteredRecipes,
-    ], 200);
-}
-public function filterByIngredient($ingredient)
-{
-    $recipes = Recipe::all();
-    $filteredRecipes = [];
-    $searchTerm = strtolower(trim($ingredient));
-
-    foreach ($recipes as $recipe) {
-        $recipeIngredients = $recipe->ingredients;
-        
-        if (is_string($recipeIngredients)) {
-            $recipeIngredients = json_decode($recipeIngredients, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                continue;
-            }
-        }
-
-        foreach ($recipeIngredients as $recipeIng) {
-            if (is_array($recipeIng)) {
-                if (strpos(strtolower($recipeIng['name']), $searchTerm) !== false) {
-                    $filteredRecipes[] = $recipe;
-                    break;
-                }
-            } else if (is_string($recipeIng)) {
-                $parts = explode(' ', $recipeIng);
-                $nameParts = array_slice($parts, 1);
-                $name = strtolower(implode(' ', $nameParts));
-                if (strpos($name, $searchTerm) !== false) {
-                    $filteredRecipes[] = $recipe;
-                    break;
-                }
-            }
-        }
-    }
-
-    return response()->json([
-        'recipes' => $filteredRecipes,
-    ], 200);
-}
-public function getAllComments()
-{
-    $comments = DB::table('recipe_user')
-        ->whereNotNull('comment')
-        ->join('users', 'recipe_user.user_id', '=', 'users.id')
-        ->join('recipes', 'recipe_user.recipe_id', '=', 'recipes.id')
-        ->select(
-            'users.name as user_name',
-            'recipes.title as recipe_title',
-            'recipe_user.recipe_id', // <- 🔥 AÑADIDO
-            'recipe_user.comment',
-            'recipe_user.created_at',
-            'recipe_user.updated_at'
-        )
-        ->orderBy('recipe_user.updated_at', 'desc')
-        ->get();
-
-    return response()->json($comments);
-}
-
-public function deleteCommentByText(Request $request, $recipeId)
-{
-    $request->validate([
-        'comment' => 'required|string'
-    ]);
-
-    $commentText = $request->input('comment');
-
-    // Verificar si existe el comentario
-    $affected = DB::table('recipe_user')
-        ->where('recipe_id', $recipeId)
-        ->where('comment', $commentText)
-        ->update([
-            'comment' => null,
-            'updated_at' => now()
-        ]);
-
-    if ($affected === 0) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Comentario no encontrado'
-        ], 404);
-    }
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Comentario eliminado correctamente'
-    ]);
-}
-
-public function getRecommendedRecipes(Request $request)
-{
-    $user = $request->user();
-
-    $recommendation = Recommendation::where('user_id', $user->id)->first();
-
-    if (!$recommendation) {
-        // Si no hay preferencias, devolver recetas populares
-        $recipes = Recipe::with(['user', 'category', 'cuisine'])
-            ->orderBy('likes_count', 'desc')
-            ->limit(10)
-            ->get();
-            
-        return response()->json([
-            'success' => true,
-            'message' => 'Mostrando recetas populares (no tienes preferencias configuradas)',
-            'recipes' => $recipes
-        ]);
-    }
-
-    // Obtener los IDs de preferencias (ya deberían ser arrays)
-    $cuisineIds = is_array($recommendation->cuisine_ids) 
-        ? $recommendation->cuisine_ids 
-        : (json_decode($recommendation->cuisine_ids, true) ?? []);
-    
-    $categoryIds = is_array($recommendation->category_ids) 
-        ? $recommendation->category_ids 
-        : (json_decode($recommendation->category_ids, true) ?? []);
-
-    // Si no hay preferencias configuradas
-    if (empty($cuisineIds) && empty($categoryIds)) {
-        $recipes = Recipe::with(['user', 'category', 'cuisine'])
-            ->orderBy('likes_count', 'desc')
-            ->limit(10)
-            ->get();
-            
-        return response()->json([
-            'success' => true,
-            'message' => 'Mostrando recetas populares (preferencias vacías)',
-            'recipes' => $recipes
-        ]);
-    }
-
-    // Consulta para recetas que coincidan con las preferencias
-    $recipes = Recipe::with(['user', 'category', 'cuisine'])
-        ->where(function($query) use ($cuisineIds, $categoryIds) {
-            if (!empty($cuisineIds)) {
-                $query->whereIn('cuisine_id', $cuisineIds);
-            }
-            if (!empty($categoryIds)) {
-                $query->orWhereIn('category_id', $categoryIds);
-            }
-        })
-        ->orderBy('likes_count', 'desc')
-        ->get();
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Recetas recomendadas según tus preferencias',
-        'recipes' => $recipes
-    ]);
-}
-
-public function getUserLikedRecipes(Request $request)
-{
-    if (!$request->user()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Debes iniciar sesión para ver tus likes'
-        ], 401);
-    }
-
-    try {
-        $likedRecipeIds = DB::table('recipe_user')
-            ->where('user_id', $request->user()->id)
-            ->where('liked', true)
-            ->pluck('recipe_id');
-
-        $likedRecipes = Recipe::with(['user', 'category', 'cuisine'])
-            ->whereIn('id', $likedRecipeIds)
             ->get();
 
-        return response()->json([
-            'success' => true,
-            'count' => $likedRecipes->count(),
-            'recipes' => $likedRecipes
-        ]);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al obtener las recetas likeadas: ' . $e->getMessage()
-        ], 500);
+        return response()->json($recommendations);
     }
-}
-
-public function downloadFullRecipe($id)
-{
-    $recipe = Recipe::with(['user', 'category', 'cuisine'])->findOrFail($id);
-
-    $comments = DB::table('recipe_user')
-        ->where('recipe_id', $id)
-        ->whereNotNull('comment')
-        ->join('users', 'recipe_user.user_id', '=', 'users.id')
-        ->select('users.name', 'recipe_user.comment', 'recipe_user.updated_at')
-        ->orderByDesc('recipe_user.updated_at')
-        ->get();
-
-    $total_time = $recipe->prep_time + $recipe->cook_time;
-
-    $data = [
-        'recipe' => [
-            'title' => $recipe->title,
-            'description' => $recipe->description,
-            'ingredients' => $recipe->ingredients,
-            'steps' => $recipe->steps,
-            'prep_time' => $recipe->prep_time,
-            'cook_time' => $recipe->cook_time,
-            'total_time' => $total_time,
-            'servings' => $recipe->servings,
-            'nutrition' => $recipe->nutrition,
-            'image' => $recipe->image, // Añade esto si quieres incluir la imagen
-        ],
-        'metadata' => [
-            'creador' => $recipe->user->name,
-            'categoria' => $recipe->category->name ?? null,
-            'tipo_cocina' => $recipe->cuisine->country ?? null,
-            'likes_count' => $recipe->likes_count,
-        ],
-        'comments' => $comments
-    ];
-
-    $pdf = Pdf::loadView('recipes.pdf', $data);
     
-    // Forzar la descarga con el nombre del archivo
-    return $pdf->download('receta-' . Str::slug($recipe->title) . '.pdf');
-}
-public function getRecipeSteps($id)
-{
-    $recipe = Recipe::findOrFail($id);
+    // Devuelve la receta con ID aleatorio
+    public function getRandomRecipe()
+    {
+        $recipe = Recipe::inRandomOrder()->first();
+
+        return response()->json($recipe);
+    }
     
-    // Asegurarse de que steps es un array
-    $steps = is_array($recipe->steps) ? $recipe->steps : json_decode($recipe->steps, true);
-    
-    return response()->json([
-        'success' => true,
-        'recipe_id' => $id,
-        'recipe_title' => $recipe->title,
-        'steps' => $steps,
-        'steps_count' => count($steps)
-    ]);
-}
+    // Devuelve el último "live" en curso, ordenado por fecha
+    public function getLastLive()
+    {
+        $live = Live::orderBy('date', 'desc')->first();
+
+        return response()->json($live);
+    }
+
+    // Devuelve todas las recetas con paginación, filtradas por texto de búsqueda en título
+    public function getAllRecipesPaginated(Request $request)
+    {
+        $search = $request->input('search');
+        $query = Recipe::query();
+
+        if ($search) {
+            $query->where('title', 'LIKE', "%{$search}%");
+        }
+
+        $recipes = $query->paginate(12);
+
+        return response()->json($recipes);
+    }
 }
