@@ -14,13 +14,11 @@ class Notification extends Model
         'read'
     ];
 
-    // Relación con el usuario receptor
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-// En el modelo Notification.php
 public function triggeredBy()
 {
     return $this->belongsTo(User::class, 'triggered_by');

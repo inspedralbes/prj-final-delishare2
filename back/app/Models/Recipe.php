@@ -41,7 +41,6 @@ class Recipe extends Model
         return $this->belongsTo(Cuisine::class);
     }
 
-    // Usuarios que han interactuado con la receta
     public function users()
     {
         return $this->belongsToMany(User::class, 'recipe_user')

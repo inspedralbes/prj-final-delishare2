@@ -29,7 +29,6 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    // Recetas creadas por el usuario
     public function recipes()
     {
         return $this->hasMany(Recipe::class);
@@ -40,7 +39,6 @@ class User extends Authenticatable
         return $this->hasMany(Live::class);
     }
 
-    // Recetas guardadas por el usuario
     public function savedRecipes()
     {
         return $this->belongsToMany(Recipe::class, 'recipe_user')
@@ -58,21 +56,19 @@ class User extends Authenticatable
         return $this->hasMany(Recommendation::class);
     }
 
-    // Comprueba si el usuario es chef
     public function isChef()
     {
         return $this->role === 'chef';
     }
-    // En app/Models/User.php
 public function recipesInFolders()
 {
     return $this->hasManyThrough(
         Recipe::class,
         Folder::class,
-        'user_id', // Foreign key on folders table
-        'id', // Foreign key on recipes table
-        'id', // Local key on users table
-        'id' // Local key on folders table
+        'user_id', 
+        'id', 
+        'id', 
+        'id' 
     );
 }
 }

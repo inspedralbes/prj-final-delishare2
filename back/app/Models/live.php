@@ -9,7 +9,7 @@ class Live extends Model
 {
     use HasFactory;
 
-    protected $table = 'live'; // Nombre de la tabla en singular
+    protected $table = 'live'; 
 
     protected $fillable = [
         'user_id',
