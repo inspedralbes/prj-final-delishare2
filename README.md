@@ -96,8 +96,7 @@ El proyecto se encuentra en fase de desarrollo activo. Las funcionalidades imple
 * ✅ Chat en tiempo real
 * ✅ Transmisiones en vivo
 * ✅ Sistema de notificaciones
-* 🔄 Mejoras de rendimiento en curso
-* 📝 Documentación en progreso
+* ✅ Documentación 
 
 ## 🤝 Contribución
 Para contribuir al proyecto:
@@ -108,8 +107,8 @@ Para contribuir al proyecto:
 5. Abre un Pull Request
 
 ## 📝 Licencia
-Este proyecto está bajo la Licencia [TIPO_DE_LICENCIA]
+Este proyecto está bajo la Licencia.
 
 ## 📧 Contacto
-* Simran - [EMAIL]
+* Simran - [k94simran@gmail.com]
 * Ishaa - [EMAIL]
