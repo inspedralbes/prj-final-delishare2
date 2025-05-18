@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // receptor
-            $table->foreignId('triggered_by')->constrained('users')->onDelete('cascade'); // quien activó la notificación
-            $table->string('type'); // like, comment, save
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); 
+            $table->foreignId('triggered_by')->constrained('users')->onDelete('cascade');
+            $table->string('type'); 
             $table->unsignedBigInteger('recipe_id');
             $table->text('message');
             $table->boolean('read')->default(false);

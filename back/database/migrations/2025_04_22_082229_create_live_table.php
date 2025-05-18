@@ -15,13 +15,12 @@ class CreateLiveTable extends Migration
             $table->date('dia');
             $table->timestamps();
             
-            // Restricción única compuesta
             $table->unique(['user_id', 'recipe_id', 'dia', 'hora']);
         });
     }
 
     public function down()
     {
-        Schema::dropIfExists('live'); // Debe coincidir con el nombre en up()
+        Schema::dropIfExists('live'); 
     }
 }
