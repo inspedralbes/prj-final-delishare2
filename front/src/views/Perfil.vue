@@ -2,7 +2,7 @@
   <div class="profile-container pb-24">
     <div v-if="authStore.isAuthenticated">
       <!-- Popup de notificación -->
-      <div v-if="popupMessage" class="popup-notification">
+      <div v-if="popupMessage" class="fixed top-5 right-5 bg-gradient-to-r from-lime-500 to-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
         {{ popupMessage }}
       </div>
 
@@ -22,28 +22,21 @@
                 </svg>
               </button>
             </div>
-            <div class="space-y-4">
-              <div class="form-group">
-                <label for="folder-name" class="block text-sm font-medium text-gray-700 mb-1">Nom de la carpeta:</label>
-                <input type="text" id="folder-name" v-model="newFolderName" placeholder="Nom de la carpeta"
-                  @keyup.enter="createFolder" ref="folderNameInput" autofocus
-                  class="w-full px-3 py-2 text-sm text-gray-700 bg-white border-2 border-lime-200 rounded-lg focus:outline-none focus:border-lime-400 focus:ring-2 focus:ring-lime-200 transition-all duration-300" />
-              </div>
-              <div class="flex space-x-4 pt-4">
-                <button @click="createFolder"
-                  class="flex-1 px-4 py-2 bg-gradient-to-r from-lime-400 to-green-500 text-white font-medium rounded-lg shadow-md hover:from-lime-500 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-lime-300 focus:ring-opacity-50 transition-all duration-300 transform hover:scale-105">
-                  <span class="flex items-center justify-center">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    Crear Carpeta
-                  </span>
-                </button>
-                <button @click="showCreateFolderInput = false"
-                  class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg shadow-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50 transition-all duration-300">
-                  Cancelar
-                </button>
-              </div>
+            <div class="mb-6">
+              <label for="folderName" class="block text-sm font-medium text-gray-700 mb-2">Nom de la carpeta</label>
+              <input type="text" id="folderName" v-model="newFolderName"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-lime-500 transition-colors"
+                placeholder="Introdueix el nom de la carpeta">
+            </div>
+            <div class="flex justify-end gap-4">
+              <button @click="showCreateFolderInput = false"
+                class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
+                Cancel·lar
+              </button>
+              <button @click="createFolder"
+                class="px-6 py-2 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg">
+                Crear Carpeta
+              </button>
             </div>
           </div>
         </div>
@@ -236,16 +229,16 @@
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
               </path>
             </svg>
-            <h3 class="text-xl font-bold text-gray-900 mb-2">¿Estás seguro?</h3>
-            <p class="text-gray-600 mb-6">¿Estàs segur que vols tancar la sessió?</p>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Estàs segur?</h3>
+            <p class="text-gray-600 mb-6">Estàs segur que vols tancar la sessió?</p>
             <div class="flex space-x-4">
               <button @click="logout"
                 class="flex-1 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white font-medium rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-300">
-                Sí, cerrar sesión
+                Sí, tancar sessió
               </button>
               <button @click="cancelLogout"
                 class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-all duration-300">
-                Cancelar
+                Cancel·lar
               </button>
             </div>
           </div>
@@ -882,39 +875,46 @@
       <div v-if="showLiveForm" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 transform transition-all duration-300">
           <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold text-lime-900">Programar nou live</h3>
-            <button @click="toggleLiveForm" class="text-gray-500 hover:text-gray-700 transition-colors">
+            <h3 class="text-2xl font-bold text-lime-900">Programar Nou Live</h3>
+            <button @click="toggleLiveForm"
+              class="text-gray-500 hover:text-gray-700 transition-colors">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
             </button>
           </div>
-          <form @submit.prevent="createLive" class="space-y-6">
+          <div class="space-y-4">
             <div>
-              <label for="recipe" class="block text-sm font-medium text-gray-700 mb-1">Recepta:</label>
-              <select v-model="newLive.recipe_id" id="recipe" required
-                class="w-full px-3 py-2 border-2 border-lime-200 rounded-lg focus:outline-none focus:border-lime-400 focus:ring-2 focus:ring-lime-200 transition-all duration-300">
-                <option value="" disabled selected>Selecciona una recepta</option>
-                <option v-for="recipe in recipes" :key="recipe.id" :value="recipe.id">{{ recipe.title }}</option>
+              <label for="recipe" class="block text-sm font-medium text-gray-700 mb-2">Recepta</label>
+              <select id="recipe" v-model="newLive.recipe_id"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-lime-500 transition-colors">
+                <option value="">Selecciona una recepta</option>
+                <option v-for="recipe in recipes" :key="recipe.id" :value="recipe.id">
+                  {{ recipe.title }}
+                </option>
               </select>
             </div>
             <div>
-              <label for="dia" class="block text-sm font-medium text-gray-700 mb-1">Dia:</label>
-              <input type="date" id="dia" v-model="newLive.dia" :min="minDate" required
-                class="w-full px-3 py-2 border-2 border-lime-200 rounded-lg focus:outline-none focus:border-lime-400 focus:ring-2 focus:ring-lime-200 transition-all duration-300" />
+              <label for="date" class="block text-sm font-medium text-gray-700 mb-2">Data</label>
+              <input type="date" id="date" v-model="newLive.dia" :min="minDate"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-lime-500 transition-colors">
             </div>
             <div>
-              <label for="hora" class="block text-sm font-medium text-gray-700 mb-1">Hora:</label>
-              <input type="time" id="hora" v-model="newLive.hora" required
-                class="w-full px-3 py-2 border-2 border-lime-200 rounded-lg focus:outline-none focus:border-lime-400 focus:ring-2 focus:ring-lime-200 transition-all duration-300" />
+              <label for="time" class="block text-sm font-medium text-gray-700 mb-2">Hora</label>
+              <input type="time" id="time" v-model="newLive.hora"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-lime-500 transition-colors">
             </div>
-            <div class="flex justify-end pt-4">
-              <button type="submit"
-                class="px-6 py-2 bg-gradient-to-r from-lime-400 to-green-500 text-white font-medium rounded-lg shadow-md hover:from-lime-500 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-lime-300 focus:ring-opacity-50 transition-all duration-300">
-                Guardar live
-              </button>
-            </div>
-          </form>
+          </div>
+          <div class="flex justify-end gap-4 mt-6">
+            <button @click="toggleLiveForm"
+              class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
+              Cancel·lar
+            </button>
+            <button @click="createLive"
+              class="px-6 py-2 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg">
+              Programar Live
+            </button>
+          </div>
         </div>
       </div>
 

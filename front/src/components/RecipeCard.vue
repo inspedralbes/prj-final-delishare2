@@ -25,7 +25,7 @@
           @click.self="closeModal"
         >
           <div class="bg-white rounded-2xl shadow-lg p-8 text-center w-full max-w-xs md:max-w-md">
-            <p class="text-lime-900 text-lg font-semibold mb-6">Debes iniciar sesión para ver esta receta</p>
+            <p class="text-lime-900 text-lg font-semibold mb-6">Has d'iniciar sessió per veure aquesta recepta</p>
             <div class="flex justify-center gap-4">
               <button 
                 class="flex-1 py-2 bg-gradient-to-r from-red-400 to-red-600 text-white rounded-xl font-semibold shadow hover:from-red-500 hover:to-red-700 transition-all duration-200"
