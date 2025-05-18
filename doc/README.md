@@ -48,6 +48,67 @@ DeliShare és una xarxa social centrada en compartir i descobrir receptes. Els o
 * Git
 
 ### Configuració
+1. Clonar el repositori:
+```bash
+git clone [URL_DEL_REPOSITORIO]
+cd delishare
+```
+
+2. Configurar variables d'entorn:
+```bash
+# Frontend
+cp front/.env.example front/.env
+
+# Backend
+cp back/.env.example back/.env
+
+# Node.js
+cp node/.env.example node/.env
+```
+
+3. Iniciar els serveis:
+```bash
+docker-compose up
+```
+
+### Tecnologies utilitzades
+* **Frontend:**
+  * Vue.js 3 amb Vite
+  * Tailwind CSS per estils
+  * Pinia per gestió d'estat
+  * Socket.IO Client per funcionalitats en temps real
+  * Groq (IA) per generació de receptes
+
+* **Backend:**
+  * Laravel (PHP) per API REST
+  * MySQL 8.2 per base de dades
+  * Node.js amb Socket.IO per API en temps real
+
+### Interrelació entre components
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Frontend  │     │   Backend   │     │    Node.js  │
+│   (Vue.js)  │◄───►│  (Laravel)  │◄───►│  (Socket.IO)│
+└─────────────┘     └─────────────┘     └─────────────┘
+       ▲                   ▲                   ▲
+       │                   │                   │
+       ▼                   ▼                   ▼
+┌─────────────────────────────────────────────────────┐
+│                   Base de Dades                     │
+│                     (MySQL)                         │
+└─────────────────────────────────────────────────────┘
+```
+
+## Entorn de desenvolupament
+
+### Requisits previs
+* Docker i Docker Compose
+* Node.js 18+
+* PHP 8.2+
+* Composer
+* Git
+
+### Configuració
 1. Clonar el repositorio:
 ```bash
 git clone [URL_DEL_REPOSITORIO]
@@ -464,6 +525,142 @@ CREATE TABLE user_preferences (
 * Els emails d'usuari són únics
 * Els noms de categories i cuisines són únics
 * Els passos de les receptes tenen un número d'ordre únic per recepta
+
+## Estructura Frontend
+
+### Pàgines Principals
+
+1. **Pàgina Landing**
+   - Pantalla principal amb la millor experiència d'usuari
+   - Integració amb notificacions en temps real
+   - Components:
+     - Hero Section (Benvinguda i presentació)
+     - Featured Recipes (Receptes destacades)
+     - User Stats (Estadístiques de l'usuari)
+     - Notification Center (Centro de notificacions)
+
+2. **Pàgina de Búsqueda**
+   - Motor de cerca avançat amb múltiples criteris
+   - Filtres dinàmics en temps real
+   - Resultats amb paginació infinita
+   - Components:
+     - Barra de cerca intel·ligent
+     - Barra lateral de filtres
+     - Targetes de receptes
+     - Sistema de paginació
+
+3. **Pàgina de Creació de Recepta**
+   - Formulari complet per crear una nova recepta
+   - Components:
+     - Camps bàsics (títol, descripció, temps de preparació)
+     - Gestió d'ingredients (afegir, eliminar, quantitats)
+     - Pasos de preparació (ordre, descripció)
+     - Gestió de imatge i video (carregar, previsualitzar)
+     - Selecció de categories i cuisines
+     - Informació nutricional 
+
+4. **Pàgina Live**
+   - Transmissions en directe de cuina
+   - Chat integrat amb emojis
+   - Interacció en temps real amb els cuiners
+   - Components:
+     - Reproductor de vídeo en directe
+     - Sala de xat amb emojis
+     - Controls d'usuari
+     - Estadístiques en directe
+
+5. **Pàgina de Perfil**
+   - Gestió completa del perfil d'usuari
+   - Sistema CRUD per les receptes
+   - Estadístiques personalitzades
+   - Components:
+     - Capçalera del perfil
+     - Gestió de receptes
+     - Estadístiques d'usuari
+     - Configuració del compte
+
+6. **Detalls de Recepta**
+   - Visualització completa d'una recepta
+   - Components:
+     - Header de la recepta
+     - Llista d'ingredients
+     - Pasos de preparació
+     - Informació nutricional
+     - Comentaris d'usuaris
+     - Botons d'interacció (like, guardar, compartir)
+
+### Fluxos de Comunicació
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                   Frontend                                   │
+├───────────────────────────┬─────────────────────────┬─────────────────────────┤
+│                           │                         │                         │
+│  ┌─────────────┐          │     ┌─────────────┐     │    ┌─────────────┐    │
+│  │  Landing    │◄─────────┼─────┤  Notificacions  │◄───┼─────┤  Perfil    │    │
+│  └─────────────┘          │     └─────────────┘     │    └─────────────┘    │
+│                           │                         │                         │
+│  ┌─────────────┐          │     ┌─────────────┐     │    ┌─────────────┐    │
+│  │  Búsqueda   │◄─────────┼─────┤  Gestió     │◄───┼─────┤  Live       │    │
+│  └─────────────┘          │     │  Receptes   │     │    └─────────────┘    │
+│                           │     └─────────────┘     │                         │
+│  ┌─────────────┐          │                         │                         │
+│  │  Chat       │◄─────────┼─────────────────────────┼─────────────────────────┘
+│  └─────────────┘          │                         │
+└───────────────────────────┴─────────────────────────┘
+```
+
+### Fluxos d'Interacció
+
+1. **Flux de Notificacions**
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                   Landing                                    │
+│                                                                              │
+│  ┌────────────────┐    ┌────────────────┐    ┌────────────────┐    ┌─────────┐│
+│  │ Nova notificació│───►│ Notificacions  │───►│ Actualització  │───►│ Alerta  ││
+│  │    rebuda      │    │    en temps    │    │    de UI      │    │  visual ││
+│  └────────────────┘    │     real       │    └────────────────┘    └─────────┘│
+│                        └────────────────┘                                    │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+2. **Flux de Gestió de Receptes**
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                   Perfil                                     │
+│                                                                              │
+│  ┌────────────────┐    ┌────────────────┐    ┌────────────────┐    ┌─────────┐│
+│  │ Nova recepta    │───►│ Gestió de      │───►│ Actualització  │───►│ UI      ││
+│  │    creada      │    │  receptes      │    │    de UI      │    │  actual. ││
+│  └────────────────┘    │    (CRUD)      │    └────────────────┘    └─────────┘│
+│                        └────────────────┘                                    │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+3. **Flux de Búsqueda**
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                   Búsqueda                                   │
+│                                                                              │
+│  ┌────────────────┐    ┌────────────────┐    ┌────────────────┐    ┌─────────┐│
+│  │ Criteris de    │───►│ Filtratge en    │───►│ Resultats en    │───►│ Paginació││
+│  │    cerca       │    │     temps real │    │     temps real │    │ infinita││
+│  └────────────────┘    └────────────────┘    └────────────────┘    └─────────┘│
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+4. **Flux de Transmissió en Directe**
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                   Live                                       │
+│                                                                              │
+│  ┌────────────────┐    ┌────────────────┐    ┌────────────────┐    ┌─────────┐│
+│  │ Inici de trans.│───►│ Streaming en    │───►│ Xat en temps    │───►│ Controls││
+│  │    missió      │    │     temps real │    │     real       │    │  d'usuari││
+│  └────────────────┘    └────────────────┘    └────────────────┘    └─────────┘│
+└──────────────────────────────────────────────────────────────────────────────┘
+```
 
 ## Funcionalitats principals
 
