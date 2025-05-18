@@ -111,4 +111,4 @@ Este proyecto está bajo la Licencia.
 
 ## 📧 Contacto
 * Simran - [k94simran@gmail.com]
-* Ishaa - [EMAIL]
+* Ishaa - [ishaaamin22@gmail.com]
