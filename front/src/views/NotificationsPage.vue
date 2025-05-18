@@ -135,18 +135,36 @@ import communicationManager from '@/services/communicationManager';
 export default {
   data() {
     return {
+      // Lista de notificaciones del usuario
       notifications: [],
+      // Intervalo para polling de notificaciones
       pollingInterval: null,
+      // Término de búsqueda para filtrar notificaciones
       searchQuery: '',
+      // Pestaña activa (todas/no leídas)
       activeTab: 'all',
+      // Página actual de la paginación
       currentPage: 1,
+      // Número de items por página
       itemsPerPage: 5
     };
   },
   computed: {
+    /**
+     * Calcula el número de notificaciones no leídas
+     * @returns {number} Número de notificaciones sin leer
+     */
     unreadCount() {
       return this.notifications.filter(notification => !notification.read).length;
     },
+
+    /**
+     * Filtra y pagina las notificaciones según:
+     * - Término de búsqueda
+     * - Estado de lectura
+     * - Paginación actual
+     * @returns {Array} Lista de notificaciones filtradas y paginadas
+     */
     filteredNotifications() {
       let result = [...this.notifications];
       
@@ -169,6 +187,11 @@ export default {
       
       return result.slice(startIndex, endIndex);
     },
+
+    /**
+     * Calcula el número total de páginas según los filtros aplicados
+     * @returns {number} Número total de páginas
+     */
     totalPages() {
       let filteredItems = [...this.notifications];
       
@@ -187,23 +210,35 @@ export default {
     }
   },
   watch: {
+    /**
+     * Resetea la página actual al cambiar de pestaña
+     */
     activeTab() {
       this.currentPage = 1;
     },
+    /**
+     * Resetea la página actual al realizar una búsqueda
+     */
     searchQuery() {
       this.currentPage = 1;
     }
   },
   async mounted() {
     await this.loadNotifications();
+    // Configurar polling cada 10 segundos
     this.pollingInterval = setInterval(() => {
       this.loadNotifications();
     }, 10000);
   },
   beforeDestroy() {
+    // Limpiar intervalo al destruir el componente
     clearInterval(this.pollingInterval);
   },
   methods: {
+    /**
+     * Carga las notificaciones del usuario desde el servidor
+     * Añade timestamps si no existen
+     */
     async loadNotifications() {
       try {
         this.notifications = await communicationManager.getUserNotifications();
@@ -218,6 +253,11 @@ export default {
         console.error('Error fetching notifications:', error);
       }
     },
+
+    /**
+     * Marca una notificación como leída
+     * @param {number} id - ID de la notificación a marcar como leída
+     */
     async markAsRead(id) {
       try {
         await communicationManager.markNotificationAsRead(id);
@@ -229,6 +269,13 @@ export default {
         console.error('Error marking notification as read:', error);
       }
     },
+
+    /**
+     * Formatea la fecha de una notificación en un formato legible
+     * Muestra "Hoy", "Ayer", "Hace X días" o la fecha completa
+     * @param {Date|string} date - Fecha a formatear
+     * @returns {string} Fecha formateada
+     */
     formatTime(date) {
       if (!date) return '';
       

@@ -156,7 +156,7 @@
 
             <div class="flex justify-center gap-4">
               <button @click="toggleCamera" class="flex items-center px-6 py-3 rounded-full transition-all duration-300"
-                :class="isCameraOn ? 'bg-lime-500 hover:bg-lime-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'">
+                :class="isCameraOn ? 'bg-lime-500 hover:bg-lime-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
                   stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -401,8 +401,6 @@ export default {
       }
     };
 
-
-    /// Alterna el estado del audio del chef
     const toggleAudio = () => {
       if (localStream.value) {
         const audioTracks = localStream.value.getAudioTracks();
@@ -465,6 +463,7 @@ export default {
         alert('Error al finalizar el live. Inténtalo de nuevo.');
       }
     };
+
     const leaveLive = () => {
       if (!confirm('¿Estás seguro de que quieres salir del live?')) {
         return;
@@ -495,7 +494,7 @@ export default {
       // Redirigir a /live
       router.push('/live');
     };
-    /// Alterna el estado de la cámara del chef
+
     const toggleCamera = async () => {
       try {
         if (isCameraOn.value) {
@@ -563,7 +562,6 @@ export default {
       }
     };
 
-    /// Cierra todas las conexiones peer-to-peer
     const closeAllPeerConnections = () => {
       Object.keys(peerConnections.value).forEach(socketId => {
         if (peerConnections.value[socketId]) {
@@ -573,7 +571,6 @@ export default {
       });
     };
 
-    /// Inicializa conexiones WebRTC con los espectadores existentes
     const initializeConnectionsWithViewers = () => {
       if (!isChef.value || !localStream.value || !socket.value) return;
 
@@ -589,7 +586,6 @@ export default {
       });
     };
 
-    /// Crea una nueva conexión peer-to-peer
     const createPeerConnection = (socketId) => {
       if (peerConnections.value[socketId]) {
         peerConnections.value[socketId].close();
@@ -640,7 +636,6 @@ export default {
       return pc;
     };
 
-    /// Inicia una llamada WebRTC con un espectador específico
     const startCall = async (socketId) => {
       if (!isChef.value || !localStream.value || !socket.value) {
         console.log('No se puede iniciar llamada: condiciones no cumplidas');
@@ -677,7 +672,6 @@ export default {
       }
     };
 
-    /// Maneja una oferta WebRTC entrante
     const handleOffer = async (data) => {
       if (!socket.value) return;
 
@@ -702,7 +696,6 @@ export default {
       }
     };
 
-    /// Maneja una respuesta WebRTC entrante
     const handleAnswer = async (data) => {
       const pc = peerConnections.value[data.from];
       if (!pc) {
@@ -719,7 +712,6 @@ export default {
       }
     };
 
-    /// Maneja candidatos ICE para conexiones WebRTC
     const handleIceCandidate = async (data) => {
       const pc = peerConnections.value[data.from];
       if (!pc || !data.candidate) {
@@ -734,7 +726,6 @@ export default {
       }
     };
 
-    /// Obtiene los datos del usuario desde el backend
     const fetchUserData = async () => {
       try {
         loadingUser.value = true;
@@ -763,7 +754,6 @@ export default {
       }
     };
 
-    /// Inicia la transmisión en vivo (solo para chef)
     const startLiveChat = () => {
       if (!isChef.value || !isConnected.value || !socket.value) return;
 
@@ -801,7 +791,6 @@ export default {
       });
     };
 
-    // Watcher para cambios en el estado de isLiveStarted
     watch(isLiveStarted, (newValue) => {
       if (newValue && isChef.value && isCameraOn.value && localStream.value) {
         nextTick(() => {
@@ -813,7 +802,6 @@ export default {
       }
     });
 
-    /// Envía un mensaje de chat
     const sendMessage = () => {
       if (!newMessage.value.trim() || !isConnected.value || !socket.value) return;
 
@@ -837,14 +825,12 @@ export default {
       scrollToBottom();
     };
 
-    /// Formatea la hora para mostrar en los mensajes
     const formatTime = (timestamp) => {
       if (!timestamp) return '';
       const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
-    /// Desplaza el contenedor de mensajes al final
     const scrollToBottom = () => {
       nextTick(() => {
         if (messagesContainer.value) {
@@ -853,7 +839,6 @@ export default {
       });
     };
 
-    /// Solicita el stream de video del chef
     const requestChefVideo = () => {
       if (!isChef.value && socket.value && isLiveStarted.value && showVideo.value && !videoInitialized.value) {
         console.log('Usuario solicitando video del chef...');
@@ -861,7 +846,6 @@ export default {
       }
     };
 
-    /// Inicializa la conexión del chat y configura los listeners de socket
     const initializeChat = async () => {
       await fetchUserData();
 
@@ -1066,17 +1050,14 @@ export default {
           console.log('Desconectado del servidor');
         });
 
-        // Agregar el listener para el evento liveEnded
         socket.value.on('liveEnded', handleLiveEnded);
       }
     };
 
-    // Hook de ciclo de vida: se ejecuta cuando el componente se monta
     onMounted(() => {
       initializeChat();
     });
 
-    // Hook de ciclo de vida: se ejecuta cuando el componente se desmonta
     onUnmounted(() => {
       if (socket.value) {
         socket.value.emit('leaveRoom', {
@@ -1093,7 +1074,6 @@ export default {
       }
     });
 
-    // Computed property para verificar si se pueden enviar mensajes
     const canSendMessages = computed(() => {
       return isConnected.value && (isLiveStarted.value || isChef.value);
     });
@@ -1101,18 +1081,15 @@ export default {
     const handleLiveEnded = (data) => {
       console.log('Live finalizado:', data);
 
-      // Limpiar recursos
       if (userVideo.value) {
         userVideo.value.srcObject = null;
       }
       closeAllPeerConnections();
 
-      // Actualizar estado
       isLiveStarted.value = false;
       isStreamActive.value = false;
       showEndMessage.value = true;
 
-      // Agregar mensaje al chat
       messages.value.push({
         username: 'Sistema',
         message: data.message || 'El chef ha finalizado la transmisión en vivo.',
@@ -1168,7 +1145,6 @@ export default {
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     opacity: 1;
@@ -1186,7 +1162,6 @@ export default {
 }
 
 @keyframes bounce {
-
   0%,
   100% {
     transform: translateY(0);
@@ -1202,7 +1177,6 @@ export default {
 }
 
 @keyframes ping {
-
   75%,
   100% {
     transform: scale(2);

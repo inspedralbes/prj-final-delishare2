@@ -1,16 +1,19 @@
 <template>
   <div class="min-h-screen bg-lime-50 flex flex-col">
-    <!-- Hero Section with animated background -->
+    <!-- Sección Hero con fondo animado y título -->
     <section class="relative overflow-hidden">
       <div class="bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 py-16 relative">
+        <!-- Overlay con efecto blur -->
         <div class="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
-        <!-- Animated circles decoration -->
+        <!-- Decoración de círculos animados -->
         <div class="absolute inset-0 overflow-hidden">
+          <!-- Círculos decorativos con animación -->
           <div class="absolute -left-10 -top-10 w-40 h-40 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 motion-safe:animate-[blob_7s_infinite]"></div>
           <div class="absolute -right-10 -top-10 w-40 h-40 bg-lime-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 motion-safe:animate-[blob_7s_infinite_2s]"></div>
           <div class="absolute -bottom-10 left-20 w-40 h-40 bg-green-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 motion-safe:animate-[blob_7s_infinite_4s]"></div>
         </div>
 
+        <!-- Contenedor del título -->
         <div class="max-w-7xl mx-auto px-6 relative z-10">
           <div class="text-center">
             <h1 class="text-4xl tracking-tight font-extrabold text-lime-900 sm:text-5xl md:text-6xl">
@@ -26,8 +29,9 @@
       </div>
     </section>
 
-    <!-- Search Section -->
+    <!-- Sección de búsqueda y botones CRUD -->
     <div class="w-full px-6 -mt-12 sm:-mt-8 relative z-20 flex justify-center items-center gap-4">
+      <!-- Contenedor del buscador -->
       <div class="w-full sm:w-2/3 md:w-1/2 lg:w-1/3 transform hover:scale-105 transition-transform duration-300">
         <div class="relative">
           <input 
@@ -36,6 +40,7 @@
             placeholder="Cerca comentaris..." 
             class="w-full pl-10 pr-6 py-2.5 text-sm text-lime-900 border-2 border-lime-300 rounded-full focus:outline-none focus:ring-4 focus:ring-lime-300/50 focus:border-lime-400 bg-white/80 backdrop-blur-sm shadow-lg" 
           />
+          <!-- Icono de búsqueda -->
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg class="w-4 h-4 text-lime-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -43,15 +48,17 @@
           </div>
         </div>
       </div>
+      <!-- Botones CRUD -->
       <div class="-mt-2 sm:mt-0">
         <BotonesCrud />
       </div>
     </div>
 
-    <!-- Main Content -->
+    <!-- Contenido principal -->
     <div class="max-w-7xl mx-auto px-6 py-3 sm:py-6">
-      <!-- Loading State -->
+      <!-- Estado de carga -->
       <div v-if="loading" class="flex flex-col items-center justify-center py-12">
+        <!-- Spinner de carga -->
         <div class="relative">
           <div class="w-16 h-16 border-4 border-lime-300 border-dashed rounded-full animate-spin"></div>
           <span class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl">💬</span>
@@ -59,7 +66,7 @@
         <p class="mt-4 text-lime-700 font-medium animate-pulse">Carregant comentaris...</p>
       </div>
 
-      <!-- Error State -->
+      <!-- Estado de error -->
       <div v-else-if="error" class="bg-red-50 rounded-xl p-8 text-center border border-red-200 shadow-lg hover:shadow-xl transition-all duration-300 motion-safe:animate-[shake_0.5s_ease-in-out]">
         <div class="text-4xl mb-4">😕</div>
         <p class="text-red-600 mb-4 font-medium">{{ error }}</p>
@@ -68,16 +75,17 @@
         </button>
       </div>
 
-      <!-- No Results State -->
+      <!-- Estado sin resultados -->
       <div v-else-if="filteredComments.length === 0" class="text-center py-12">
         <div class="text-6xl mb-4">🔍</div>
         <p class="text-lime-700 text-xl">No s'han trobat comentaris.</p>
       </div>
 
-      <!-- Comments Table -->
+      <!-- Tabla de comentarios -->
       <div v-else class="bg-white rounded-2xl shadow-lg overflow-hidden max-w-4xl mx-auto">
         <div class="overflow-x-auto">
           <table class="w-full">
+            <!-- Encabezados de la tabla -->
             <thead>
               <tr class="bg-gradient-to-r from-lime-50 to-green-50">
                 <th class="px-4 py-2 text-left text-xs font-semibold text-lime-900">Usuari</th>
@@ -86,6 +94,7 @@
                 <th class="px-4 py-2 text-center text-xs font-semibold text-lime-900">Accions</th>
               </tr>
             </thead>
+            <!-- Cuerpo de la tabla -->
             <tbody class="divide-y divide-lime-100">
               <tr v-for="comment in filteredComments" :key="comment.id" class="hover:bg-lime-50/50 transition-colors duration-200">
                 <td class="px-4 py-3">
@@ -114,7 +123,7 @@
       </div>
     </div>
 
-    <!-- Confirmation Modal -->
+    <!-- Modal de confirmación -->
     <div v-if="showConfirmModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 transform transition-all">
         <h3 class="text-xl font-bold text-lime-900 mb-4">Confirmar eliminació</h3>
@@ -136,7 +145,7 @@
       </div>
     </div>
 
-    <!-- Success Modal -->
+    <!-- Modal de éxito -->
     <div v-if="showResultModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 transform transition-all">
         <div class="text-center">
@@ -164,18 +173,22 @@ export default {
   },
   data() {
     return {
-      comments: [],
-      loading: true,
-      error: null,
-      showConfirmModal: false,
-      showResultModal: false,
-      currentComment: null,
-      resultMessage: '',
-      resultError: false,
-      searchTerm: ''
+      comments: [], // Lista de comentarios
+      loading: true, // Estado de carga
+      error: null, // Mensaje de error
+      showConfirmModal: false, // Control de visibilidad del modal de confirmación
+      showResultModal: false, // Control de visibilidad del modal de resultado
+      currentComment: null, // Comentario seleccionado para eliminar
+      resultMessage: '', // Mensaje de resultado
+      resultError: false, // Estado de error en la operación
+      searchTerm: '' // Término de búsqueda
     }
   },
   computed: {
+    /**
+     * Filtra los comentarios según el término de búsqueda
+     * @returns {Array} Lista de comentarios filtrados
+     */
     filteredComments() {
       if (!this.searchTerm) return this.comments;
       const searchLower = this.searchTerm.toLowerCase();
@@ -190,6 +203,10 @@ export default {
     this.fetchComments();
   },
   methods: {
+    /**
+     * Obtiene todos los comentarios del servidor
+     * Maneja estados de carga y errores
+     */
     async fetchComments() {
       try {
         this.loading = true;
@@ -204,17 +221,30 @@ export default {
       }
     },
     
+    /**
+     * Formatea una fecha a formato local
+     * @param {string} dateString - Fecha a formatear
+     * @returns {string} Fecha formateada
+     */
     formatDate(dateString) {
       if (!dateString) return '';
       const date = new Date(dateString);
       return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     },
  
+    /**
+     * Muestra el modal de confirmación para eliminar un comentario
+     * @param {Object} comment - Comentario a eliminar
+     */
     confirmDelete(comment) {
       this.currentComment = comment;
       this.showConfirmModal = true;
     },
 
+    /**
+     * Ejecuta la eliminación del comentario
+     * Maneja estados de carga, errores y mensajes de éxito
+     */
     async executeDelete() {
       this.showConfirmModal = false;
       
@@ -258,197 +288,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.comments-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  position: relative;
-}
-
-.title {
-  text-align: center;
-  margin-bottom: 30px;
-  color: #333;
-}
-
-.loading, .error, .no-comments {
-  text-align: center;
-  padding: 20px;
-  font-size: 18px;
-}
-
-.error {
-  color: #d32f2f;
-}
-
-.comments-table-container {
-  overflow-x: auto;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-}
-
-.comments-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  background: white;
-}
-
-.comments-table th, .comments-table td {
-  padding: 12px 15px;
-  text-align: left;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.comments-table th {
-  background-color: #f5f5f5;
-  font-weight: 600;
-  color: #333;
-}
-
-.comments-table tr:hover {
-  background-color: #f9f9f9;
-}
-
-.delete-btn {
-  background-color: #f44336;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.delete-btn:hover {
-  background-color: #d32f2f;
-}
-
-/* Estilos para los modales */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal {
-  background-color: white;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-  animation: modalFadeIn 0.3s ease-out;
-}
-
-.modal-header {
-  padding: 16px 20px;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-header.success {
-  background-color: #4caf50;
-  color: white;
-}
-
-.modal-header.error {
-  background-color: #f44336;
-  color: white;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: inherit;
-}
-
-.modal-body {
-  padding: 20px;
-}
-
-.modal-footer {
-  padding: 16px 20px;
-  border-top: 1px solid #e0e0e0;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-.btn {
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
-  border: none;
-}
-
-.btn-primary {
-  background-color: #2196f3;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #0d8bf2;
-}
-
-.btn-secondary {
-  background-color: #e0e0e0;
-  color: #333;
-}
-
-.btn-secondary:hover {
-  background-color: #d0d0d0;
-}
-
-.btn-danger {
-  background-color: #f44336;
-  color: white;
-}
-
-.btn-danger:hover {
-  background-color: #d32f2f;
-}
-
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (max-width: 768px) {
-  .comments-table th, .comments-table td {
-    padding: 8px 10px;
-    font-size: 14px;
-  }
-  
-  .delete-btn {
-    padding: 4px 8px;
-    font-size: 12px;
-  }
-  
-  .modal {
-    width: 95%;
-  }
-}
-</style>

@@ -91,19 +91,29 @@ export default {
   },
   data() {
     return {
+      // Lista de todas las recetas cargadas
       recipes: [],
+      // Recetas recomendadas para el usuario
       recommendedRecipes: [],
+      // Recetas ordenadas por popularidad
       sortedPopularRecipes: [],
+      // Recetas ordenadas por fecha
       sortedRecentRecipes: [],
+      // Recetas populares mostradas actualmente
       displayedPopularRecipes: [],
+      // Recetas recientes mostradas actualmente
       displayedRecentRecipes: [],
+      // Pestaña activa actualmente
       activeTab: 'popular',
-      viewType: 'grid', // Default view type
+      // Tipo de vista (grid/list)
+      viewType: 'grid',
+      // Configuración de las pestañas disponibles
       tabs: [
         { id: 'popular', label: 'Més populars' },
         { id: 'recent', label: 'Més recents' },
         { id: 'recommended', label: 'Per a tu' }
       ],
+      // Imágenes para el carrusel
       carouselImages: [
         new URL('@/assets/images/carrusel/image1.jpg', import.meta.url).href,
         new URL('@/assets/images/carrusel/image2.jpg', import.meta.url).href,
@@ -111,7 +121,9 @@ export default {
         new URL('@/assets/images/carrusel/image4.jpg', import.meta.url).href,
         new URL('@/assets/images/carrusel/image5.jpg', import.meta.url).href
       ],
+      // Índice de la imagen actual del carrusel
       currentImage: 0,
+      // Mensaje para el popup de notificaciones
       popupMessage: ''
     };
   },
@@ -121,16 +133,27 @@ export default {
     this.fetchRecommendedRecipes(); 
   },
   methods: {
+    /**
+     * Inicia el carrusel automático
+     * Cambia la imagen cada 5 segundos
+     */
     startCarousel() {
       setInterval(() => {
         this.currentImage = (this.currentImage + 1) % this.carouselImages.length;
       }, 5000);
     },
+
+    /**
+     * Obtiene todas las recetas y las ordena
+     * Maneja errores y muestra notificaciones
+     */
     async fetchAllRecipes() {
       try {
         const data = await communicationManager.fetchRecipes();
         this.recipes = data;
+        // Ordenar por likes
         this.sortedPopularRecipes = [...this.recipes].sort((a, b) => b.likes_count - a.likes_count);
+        // Ordenar por fecha
         this.sortedRecentRecipes = [...this.recipes].sort(
           (a, b) => new Date(b.created_at) - new Date(a.created_at)
         );
@@ -144,6 +167,11 @@ export default {
         }, 3000);
       }
     },
+
+    /**
+     * Obtiene las recetas recomendadas para el usuario
+     * Maneja errores y muestra notificaciones
+     */
     async fetchRecommendedRecipes() {
       try {
         const response = await communicationManager.getRecommendedRecipes();
@@ -157,12 +185,25 @@ export default {
         this.recommendedRecipes = [];
       }
     },
+
+    /**
+     * Cambia a la vista de recetas populares
+     */
     showPopularRecipes() {
       this.activeTab = 'popular';
     },
+
+    /**
+     * Cambia a la vista de recetas recientes
+     */
     showRecentRecipes() {
       this.activeTab = 'recent';
     },
+
+    /**
+     * Cambia a la vista de recetas recomendadas
+     * Carga las recomendaciones si no están disponibles
+     */
     async showRecommendedRecipes() {
       this.activeTab = 'recommended';
       if (this.recommendedRecipes.length === 0) {

@@ -6,15 +6,22 @@
         <div class="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
         <!-- Animated circles decoration -->
         <div class="absolute inset-0 overflow-hidden">
-          <div class="absolute -left-10 -top-10 w-20 h-20 sm:w-40 sm:h-40 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-          <div class="absolute -right-10 -top-10 w-20 h-20 sm:w-40 sm:h-40 bg-lime-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-          <div class="absolute -bottom-10 left-20 w-20 h-20 sm:w-40 sm:h-40 bg-green-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+          <div
+            class="absolute -left-10 -top-10 w-20 h-20 sm:w-40 sm:h-40 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob">
+          </div>
+          <div
+            class="absolute -right-10 -top-10 w-20 h-20 sm:w-40 sm:h-40 bg-lime-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000">
+          </div>
+          <div
+            class="absolute -bottom-10 left-20 w-20 h-20 sm:w-40 sm:h-40 bg-green-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000">
+          </div>
         </div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
           <div class="text-center">
             <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight font-extrabold text-lime-900">
-              <span class="block bg-gradient-to-r from-lime-900 via-lime-700 to-green-800 bg-clip-text text-transparent">
+              <span
+                class="block bg-gradient-to-r from-lime-900 via-lime-700 to-green-800 bg-clip-text text-transparent">
                 Crear Nova Recepta
               </span>
               <span class="block text-xl sm:text-2xl mt-2 sm:mt-3 text-lime-700 font-medium">
@@ -27,8 +34,10 @@
     </section>
 
     <!-- Main Form Section -->
-    <div v-if="authStore.isAuthenticated" class="max-w-4xl mx-auto px-4 sm:px-6 -mt-4 sm:-mt-8 relative z-20 pb-32 sm:pb-40">
-      <div class="bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 transform hover:scale-[1.01] transition-transform duration-300">
+    <div v-if="authStore.isAuthenticated"
+      class="max-w-4xl mx-auto px-4 sm:px-6 -mt-4 sm:-mt-8 relative z-20 pb-32 sm:pb-40">
+      <div
+        class="bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 transform hover:scale-[1.01] transition-transform duration-300">
         <form @submit.prevent="submitRecipe" class="space-y-4 sm:space-y-6">
           <input type="hidden" v-model="recipe.user_id" />
 
@@ -37,7 +46,7 @@
             <div>
               <label for="category" class="block text-sm font-medium text-lime-900 mb-1">Categoria:</label>
               <div class="relative">
-                <select v-model="recipe.category_id" required 
+                <select v-model="recipe.category_id" required
                   class="w-full rounded-lg sm:rounded-xl border-lime-300 shadow-sm focus:ring-2 focus:ring-lime-400 focus:border-lime-400 bg-white/80 backdrop-blur-sm outline-none appearance-none pl-3 pr-8 py-2 sm:py-2.5 cursor-pointer hover:bg-lime-50 transition-colors duration-200 text-sm sm:text-base">
                   <option value="" disabled selected class="text-lime-500">Selecciona una categoria</option>
                   <option v-for="category in categories" :key="category.id" :value="category.id"
@@ -46,7 +55,8 @@
                   </option>
                 </select>
                 <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                  <svg class="w-4 h-4 sm:w-5 sm:h-5 text-lime-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-4 h-4 sm:w-5 sm:h-5 text-lime-500" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
@@ -55,7 +65,7 @@
             <div>
               <label for="cuisine" class="block text-sm font-medium text-lime-900 mb-1">Cuina:</label>
               <div class="relative">
-                <select v-model="recipe.cuisine_id" required 
+                <select v-model="recipe.cuisine_id" required
                   class="w-full rounded-lg sm:rounded-xl border-lime-300 shadow-sm focus:ring-2 focus:ring-lime-400 focus:border-lime-400 bg-white/80 backdrop-blur-sm outline-none appearance-none pl-3 pr-8 py-2 sm:py-2.5 cursor-pointer hover:bg-lime-50 transition-colors duration-200 text-sm sm:text-base">
                   <option value="" disabled selected class="text-lime-500">Selecciona una cuina</option>
                   <option v-for="cuisine in cuisines" :key="cuisine.id" :value="cuisine.id"
@@ -64,7 +74,8 @@
                   </option>
                 </select>
                 <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                  <svg class="w-4 h-4 sm:w-5 sm:h-5 text-lime-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-4 h-4 sm:w-5 sm:h-5 text-lime-500" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
@@ -75,7 +86,7 @@
           <!-- Title -->
           <div>
             <label for="title" class="block text-sm font-medium text-lime-900 mb-1">Títol:</label>
-            <input type="text" id="title" v-model="recipe.title" required 
+            <input type="text" id="title" v-model="recipe.title" required
               class="w-full rounded-lg sm:rounded-xl border-lime-300 shadow-sm focus:ring-2 focus:ring-lime-400 focus:border-lime-400 bg-white/80 backdrop-blur-sm outline-none text-sm sm:text-base py-2 sm:py-2.5 px-3" />
           </div>
 
@@ -97,7 +108,7 @@
           </div>
 
           <!-- Auto-fill Button -->
-          <button type="button" @click="autofillRecipe" 
+          <button type="button" @click="autofillRecipe"
             class="w-full py-2.5 sm:py-3 px-4 bg-gradient-to-r from-lime-400 to-lime-300 text-lime-900 rounded-lg sm:rounded-xl hover:shadow-lg hover:bg-lime-300 hover:scale-105 transition-all duration-300 font-medium text-sm sm:text-base">
             Omplir automàticament
           </button>
@@ -115,7 +126,8 @@
             <draggable v-model="recipe.steps" handle=".drag-handle" group="steps" item-key="index"
               class="space-y-2 sm:space-y-3">
               <template #item="{ element, index }">
-                <div class="flex items-start gap-2 sm:gap-3 bg-lime-50 p-3 sm:p-4 rounded-lg sm:rounded-xl group hover:bg-lime-100 transition-colors duration-300">
+                <div
+                  class="flex items-start gap-2 sm:gap-3 bg-lime-50 p-3 sm:p-4 rounded-lg sm:rounded-xl group hover:bg-lime-100 transition-colors duration-300">
                   <span class="drag-handle cursor-move text-lime-400 group-hover:text-lime-600 text-lg">☰</span>
                   <div class="flex-1">
                     <label class="text-sm text-lime-700">Pas {{ index + 1 }}:</label>
@@ -228,7 +240,8 @@
                 messageClass === 'error' && !recipe.image ? 'border-red-500 bg-red-50' : 'border-lime-300 hover:border-lime-400 hover:bg-lime-50'
               ]" @click="$refs.imageInput.click()">
                 <input type="file" ref="imageInput" @change="onImageChange" accept="image/*" class="hidden" />
-                <p class="text-sm sm:text-base text-lime-700">Arrossega i deixa anar una imatge o fes clic per seleccionar-la.</p>
+                <p class="text-sm sm:text-base text-lime-700">Arrossega i deixa anar una imatge o fes clic per
+                  seleccionar-la.</p>
                 <img v-if="recipe.image" :src="recipe.image" alt="Imatge pujada"
                   class="mt-3 sm:mt-4 max-h-32 sm:max-h-48 mx-auto rounded-lg sm:rounded-xl shadow-md" />
               </div>
@@ -242,8 +255,10 @@
                 messageClass === 'error' && !recipe.video ? 'border-red-500 bg-red-50' : 'border-lime-300 hover:border-lime-400 hover:bg-lime-50'
               ]" @click="$refs.videoInput.click()">
                 <input type="file" ref="videoInput" @change="onVideoChange" accept="video/*" class="hidden" />
-                <p class="text-sm sm:text-base text-lime-700">Arrossega i deixa anar un vídeo o fes clic per seleccionar-lo.</p>
-                <video v-if="recipe.video" controls class="mt-3 sm:mt-4 max-h-32 sm:max-h-48 mx-auto rounded-lg sm:rounded-xl shadow-md">
+                <p class="text-sm sm:text-base text-lime-700">Arrossega i deixa anar un vídeo o fes clic per
+                  seleccionar-lo.</p>
+                <video v-if="recipe.video" controls
+                  class="mt-3 sm:mt-4 max-h-32 sm:max-h-48 mx-auto rounded-lg sm:rounded-xl shadow-md">
                   <source :src="recipe.video" type="video/mp4">
                   El teu navegador no suporta l'element de vídeo.
                 </video>
@@ -279,7 +294,8 @@
         'text-white'
       ]">
         <p class="text-sm sm:text-base">{{ message }}</p>
-        <button @click="closePopup" class="mt-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white text-gray-800 rounded-lg hover:bg-gray-100 text-sm sm:text-base">
+        <button @click="closePopup"
+          class="mt-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white text-gray-800 rounded-lg hover:bg-gray-100 text-sm sm:text-base">
           Cerrar
         </button>
       </div>
@@ -346,21 +362,35 @@ export default {
       return !bannedWords.some(word => lowerText.includes(word));
     };
 
+    /**
+     * Muestra un mensaje de error en el popup
+     * @param {string} msg - Mensaje de error a mostrar
+     */
     const showErrorPopup = (msg) => {
       message.value = msg;
       messageClass.value = "error";
     };
 
+    /**
+     * Muestra un mensaje de éxito en el popup
+     * @param {string} msg - Mensaje de éxito a mostrar
+     */
     const showSuccessPopup = (msg) => {
       message.value = msg;
       messageClass.value = "success";
     };
 
+    /**
+     * Cierra el popup de mensajes
+     */
     const closePopup = () => {
       message.value = "";
       messageClass.value = "";
     };
 
+    /**
+     * Redirige al usuario a la página de login
+     */
     const goToLogin = () => {
       router.push({
         name: 'login',
@@ -368,14 +398,16 @@ export default {
       });
     };
 
-    // Función para actualizar la nutrición con IA
+    /**
+     * Actualiza la información nutricional de la receta usando IA
+     * Se ejecuta con debounce para evitar demasiadas llamadas
+     */
     const updateNutritionWithAI = debounce(async () => {
       if (recipe.value.ingredients.length === 0) {
         resetNutrition();
         return;
       }
 
-      // Evitar llamadas duplicadas con los mismos ingredientes
       const currentIngredients = JSON.stringify(recipe.value.ingredients);
       if (lastNutritionUpdate.value === currentIngredients) return;
 
@@ -426,8 +458,11 @@ export default {
       } finally {
         isUpdatingNutrition.value = false;
       }
-    }, 1500); // Debounce de 1.5 segundos
+    }, 1500);
 
+    /**
+     * Reinicia los valores nutricionales a cero
+     */
     const resetNutrition = () => {
       recipe.value.calories = 0;
       recipe.value.protein = 0;
@@ -435,7 +470,6 @@ export default {
       recipe.value.carbs = 0;
     };
 
-    // Watcher para ingredientes y raciones
     watch(() => [...recipe.value.ingredients, recipe.value.servings], () => {
       updateNutritionWithAI();
     }, { deep: true });
@@ -452,6 +486,10 @@ export default {
       }
     });
 
+    /**
+     * Rellena automáticamente la receta usando IA
+     * Genera título, descripción, ingredientes, pasos y valores nutricionales
+     */
     const autofillRecipe = async () => {
       if (!isInputValid(recipe.value.title)) {
         showErrorPopup("El títol conté paraules inapropiades. Si us plau, revisa-ho.");
@@ -533,12 +571,10 @@ NORMES ESTRICTES:
         const aiData = response.choices[0].message.content;
         const parsedData = JSON.parse(aiData);
 
-        // Validar que la respuesta sea sobre comida
         if (!parsedData.ingredients || !parsedData.steps) {
           throw new Error("La resposta no és una recepta vàlida");
         }
 
-        // Asignar los valores a la receta
         recipe.value.title = parsedData.title || "Recepta sense títol";
         recipe.value.description = parsedData.description || "Sense descripció.";
         recipe.value.ingredients = parsedData.ingredients || [];
@@ -558,6 +594,9 @@ NORMES ESTRICTES:
       }
     };
 
+    /**
+     * Añade un nuevo ingrediente vacío a la lista
+     */
     const addIngredient = () => {
       recipe.value.ingredients.push({
         quantity: "",
@@ -566,21 +605,36 @@ NORMES ESTRICTES:
       });
     };
 
+    /**
+     * Elimina un ingrediente de la lista por su índice
+     * @param {number} index - Índice del ingrediente a eliminar
+     */
     const removeIngredient = (index) => {
       recipe.value.ingredients.splice(index, 1);
     };
 
+    /**
+     * Añade un nuevo paso vacío a la lista
+     */
     const addStep = () => recipe.value.steps.push("");
 
+    /**
+     * Elimina un paso de la lista por su índice
+     * @param {number} index - Índice del paso a eliminar
+     */
     const removeStep = (index) => {
       recipe.value.steps.splice(index, 1);
     };
 
+    /**
+     * Maneja el cambio de imagen
+     * Valida que sea una imagen de comida y la sube a Cloudinary
+     * @param {Event} e - Evento de cambio del input de imagen
+     */
     const onImageChange = async (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
-      // Validar que sea una imagen de comida
       message.value = "Validant la imatge...";
       messageClass.value = "info";
 
@@ -594,7 +648,6 @@ NORMES ESTRICTES:
           return;
         }
 
-        // Si es válida, proceder con la subida
         const formData = new FormData();
         formData.append("file", file);
         formData.append("upload_preset", uploadPreset);
@@ -613,6 +666,11 @@ NORMES ESTRICTES:
       }
     };
 
+    /**
+     * Maneja el cambio de video
+     * Valida que sea un video de comida y lo sube a Cloudinary
+     * @param {Event} e - Evento de cambio del input de video
+     */
     const onVideoChange = async (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -647,13 +705,17 @@ NORMES ESTRICTES:
         messageClass.value = "error";
       }
     };
+
+    /**
+     * Envía la receta al servidor
+     * Valida que el usuario esté autenticado y que haya subido una imagen o video
+     */
     const submitRecipe = async () => {
       if (!authStore.isAuthenticated || !user.value) {
         console.error("Usuario no autenticado");
         return;
       }
 
-      // Validar que se haya subido una imagen o un vídeo
       if (!recipe.value.image && !recipe.value.video) {
         message.value = "Has de pujar una imatge o un vídeo per a la recepta!";
         messageClass.value = "error";
@@ -661,7 +723,6 @@ NORMES ESTRICTES:
       }
 
       try {
-        // Preparar los datos para enviar en el formato correcto
         const recipeData = {
           ...recipe.value,
           user_id: user.value.id,
@@ -670,7 +731,7 @@ NORMES ESTRICTES:
             quantity: ing.quantity || "",
             unit: ing.unit || ""
           })),
-          nutrition: {  // Crear objeto nutrition con los valores
+          nutrition: {
             calories: recipe.value.calories || 0,
             protein: recipe.value.protein || 0,
             fats: recipe.value.fats || 0,
@@ -678,7 +739,6 @@ NORMES ESTRICTES:
           }
         };
 
-        // Eliminar los campos individuales para evitar confusión
         delete recipeData.calories;
         delete recipeData.protein;
         delete recipeData.fats;
@@ -727,12 +787,15 @@ NORMES ESTRICTES:
   0% {
     transform: translate(0px, 0px) scale(1);
   }
+
   33% {
     transform: translate(30px, -50px) scale(1.1);
   }
+
   66% {
     transform: translate(-20px, 20px) scale(0.9);
   }
+
   100% {
     transform: translate(0px, 0px) scale(1);
   }
@@ -780,10 +843,11 @@ select:focus {
 /* Media queries para pantallas pequeñas */
 @media (max-width: 640px) {
   select {
-    font-size: 16px; /* Previene el zoom en iOS */
+    font-size: 16px;
+    /* Previene el zoom en iOS */
     padding: 12px;
   }
-  
+
   .relative {
     margin-bottom: 1rem;
   }
@@ -810,7 +874,8 @@ select:focus {
   input[type="text"],
   input[type="number"],
   textarea {
-    font-size: 16px; /* Previene el zoom en iOS */
+    font-size: 16px;
+    /* Previene el zoom en iOS */
   }
 
   /* Ajustes para el contenedor de ingredientes */
@@ -818,7 +883,7 @@ select:focus {
     flex-direction: column;
   }
 
-  .ingredient-container > div {
+  .ingredient-container>div {
     width: 100%;
   }
 

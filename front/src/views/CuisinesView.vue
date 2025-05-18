@@ -1,6 +1,7 @@
 <template>
+  <!-- Contenedor principal del componente -->
   <div class="min-h-screen bg-lime-50 flex flex-col">
-    <!-- Hero Section with animated background -->
+    <!-- Sección Hero con fondo animado y título -->
     <section class="relative overflow-hidden">
       <div class="bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 py-16 relative">
         <div class="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
@@ -26,7 +27,7 @@
       </div>
     </section>
 
-    <!-- Search Section -->
+    <!-- Sección de búsqueda y botones CRUD -->
     <div class="w-full px-6 -mt-12 sm:-mt-8 relative z-20 flex justify-center items-center gap-4">
       <div class="w-full sm:w-2/3 md:w-1/2 lg:w-1/3 transform hover:scale-105 transition-transform duration-300">
         <div class="relative">
@@ -48,9 +49,9 @@
       </div>
     </div>
 
-    <!-- Main Content -->
+    <!-- Contenido principal -->
     <div class="max-w-7xl mx-auto px-6 py-3 sm:py-6 mb-24">
-      <!-- Loading State -->
+      <!-- Estado de carga -->
       <div v-if="loading" class="flex flex-col items-center justify-center py-12">
         <div class="relative">
           <div class="w-16 h-16 border-4 border-lime-300 border-dashed rounded-full animate-spin"></div>
@@ -58,7 +59,7 @@
         <p class="mt-4 text-lime-700 font-medium animate-pulse">Carregant cuines...</p>
       </div>
 
-      <!-- Error State -->
+      <!-- Estado de error -->
       <div v-else-if="error" class="bg-red-50 rounded-xl p-8 text-center border border-red-200 shadow-lg hover:shadow-xl transition-all duration-300 motion-safe:animate-[shake_0.5s_ease-in-out]">
         <p class="text-red-600 mb-4 font-medium">{{ error }}</p>
         <button @click="obtenerCuines" class="bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 px-8 py-3 rounded-full hover:from-green-600 hover:via-lime-500 hover:to-lime-400 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-medium">
@@ -67,7 +68,7 @@
       </div>
 
       <template v-else>
-        <!-- Create Cuisine Form -->
+        <!-- Formulario para crear nueva cocina -->
         <div class="mb-8 bg-white rounded-2xl shadow-lg p-4 max-w-xl mx-auto">
           <h3 class="text-base font-semibold text-lime-900 mb-3">Afegir Nova Cuina</h3>
           <div class="flex gap-3">
@@ -87,12 +88,12 @@
           </div>
         </div>
 
-        <!-- No Results State -->
+        <!-- Estado sin resultados -->
         <div v-if="filteredCuisines.length === 0" class="text-center py-12">
           <p class="text-lime-700 text-xl">No s'han trobat cuines.</p>
         </div>
 
-        <!-- Cuisines Table -->
+        <!-- Tabla de cocinas -->
         <div v-else class="bg-white rounded-2xl shadow-lg overflow-hidden max-w-3xl mx-auto">
           <div class="overflow-x-auto">
             <table class="w-full">
@@ -126,7 +127,7 @@
       </template>
     </div>
 
-    <!-- Confirmation Modal -->
+    <!-- Modal de confirmación para eliminar -->
     <div v-if="modalVisible" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 transform transition-all">
         <h3 class="text-xl font-bold text-lime-900 mb-4">Confirmar eliminació</h3>
@@ -148,7 +149,7 @@
       </div>
     </div>
 
-    <!-- Success Modal -->
+    <!-- Modal de éxito -->
     <div v-if="successMessage" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 transform transition-all">
         <div class="text-center">
@@ -176,17 +177,21 @@ export default {
   },
   data() {
     return {
-      cuisines: [],
-      loading: false,
-      error: null,
-      successMessage: '',
-      modalVisible: false,
-      cuisineToDelete: null,
-      newCuisineName: '',
-      searchTerm: ''
+      cuisines: [], // Lista de cocinas
+      loading: false, // Estado de carga
+      error: null, // Mensaje de error
+      successMessage: '', // Mensaje de éxito
+      modalVisible: false, // Control de visibilidad del modal
+      cuisineToDelete: null, // ID de la cocina a eliminar
+      newCuisineName: '', // Nombre de la nueva cocina
+      searchTerm: '' // Término de búsqueda
     };
   },
   computed: {
+    /**
+     * Filtra las cocinas según el término de búsqueda
+     * @returns {Array} Lista de cocinas filtradas
+     */
     filteredCuisines() {
       if (!this.searchTerm) return this.cuisines;
       const searchLower = this.searchTerm.toLowerCase();
@@ -199,6 +204,10 @@ export default {
     this.obtenerCuines();
   },
   methods: {
+    /**
+     * Obtiene todas las cocinas del servidor
+     * Maneja estados de carga y errores
+     */
     async obtenerCuines() {
       this.loading = true;
       this.error = null;
@@ -213,10 +222,20 @@ export default {
         this.loading = false;
       }
     },
+
+    /**
+     * Muestra el modal de confirmación para eliminar una cocina
+     * @param {number} id - ID de la cocina a eliminar
+     */
     mostrarModalEliminar(id) {
       this.cuisineToDelete = id;
       this.modalVisible = true;
     },
+
+    /**
+     * Ejecuta la eliminación de la cocina seleccionada
+     * Maneja estados de carga, errores y mensajes de éxito
+     */
     async confirmarEliminar() {
       this.loading = true;
       this.error = null;
@@ -237,6 +256,11 @@ export default {
         this.cuisineToDelete = null;
       }
     },
+
+    /**
+     * Crea una nueva cocina
+     * Valida el nombre y maneja estados de carga, errores y mensajes de éxito
+     */
     async crearCuina() {
       if (!this.newCuisineName.trim()) {
         this.error = 'El nom de la cuina no pot estar buit.';

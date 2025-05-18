@@ -1,6 +1,7 @@
 <template>
+  <!-- Main container with lime background -->
   <div class="min-h-screen bg-lime-50 flex flex-col pb-24">
-    <!-- Hero Section with animated background -->
+    <!-- Hero section with animated background and search title -->
     <section class="relative overflow-hidden">
       <div class="bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 py-16 relative">
         <div class="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
@@ -26,7 +27,7 @@
       </div>
     </section>
 
-    <!-- Search Section with floating elements -->
+    <!-- Search section with floating elements and filter button -->
     <div v-if="authStore.isAuthenticated" class="w-full px-6 -mt-12 sm:-mt-8 relative z-20 flex justify-center">
       <div class="w-full sm:w-5/6 md:w-4/5 lg:w-3/4 xl:w-2/3 2xl:w-1/2 transform hover:scale-105 transition-transform duration-300">
         <div class="relative flex items-center gap-3">
@@ -58,7 +59,7 @@
       </div>
     </div>
 
-    <!-- Mostrar contenido solo si está autenticado -->
+    <!-- Main content section - only visible when authenticated -->
     <div v-if="authStore.isAuthenticated" class="flex-1">
       
       <div v-if="loading" class="my-5 text-base text-gray-700">Carregant receptes...</div>
@@ -104,7 +105,7 @@
       </transition>
     </div>
 
-    <!-- Modal de autenticación requerida si no hay token -->
+    <!-- Authentication modal - shown when user is not logged in -->
     <teleport to="body">
       <transition name="modal">
         <div v-if="!authStore.isAuthenticated" class="pointer-events-none fixed left-0 right-0 top-0 bottom-20 flex items-center justify-center z-50">
@@ -146,17 +147,22 @@ export default {
     this.checkAuthAndLoadData();
   },
   methods: {
+    // Navigates to login page with current path as redirect
     goToLogin() {
       this.router.push({ 
         name: 'login',
         query: { redirect: this.$route.fullPath }
       });
     },
+
+    // Checks authentication status and loads recipe data if authenticated
     async checkAuthAndLoadData() {
       if (this.authStore.isAuthenticated) {
         await this.fetchRecipes();
       }
     },
+
+    // Fetches all recipes from the API
     async fetchRecipes() {
       try {
         this.loading = true;
@@ -175,30 +181,43 @@ export default {
         this.loading = false;
       }
     },
-    // Manejadores para los distintos filtros
+
+    // Handlers for different filter types
+    // Updates filtered recipes based on category filter
     handleFiltradoPorCategoria(filteredRecipes) {
       console.log('Recetas filtradas recibidas:', filteredRecipes); // Debug log
       this.filteredRecipes = filteredRecipes;
     },
+
+    // Updates filtered recipes based on cuisine filter
     handleFiltradoPorCuisine(filteredRecipes) {
       this.filteredRecipes = filteredRecipes;
     },
+
+    // Updates filtered recipes based on time filter
     handleFiltradoPorTiempo(filteredRecipes) {
       this.filteredRecipes = filteredRecipes;
     },
+
+    // Updates filtered recipes based on ingredient filter
     handleFiltradoPorIngrediente(filteredRecipes) {
       this.filteredRecipes = filteredRecipes;
     },
+
+    // Updates filtered recipes based on difficulty filter
     handleFiltradoPorDificultad(filteredRecipes) {
       this.filteredRecipes = filteredRecipes;
     },
   },
   watch: {
+    // Watches for authentication status changes
     'authStore.isAuthenticated'(newVal) {
       if (newVal) {
         this.checkAuthAndLoadData();
       }
     },
+
+    // Watches for search query changes and filters recipes accordingly
     searchQuery(newVal) {
       if (!newVal) {
         this.filteredRecipes = this.recipes;

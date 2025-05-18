@@ -2,94 +2,63 @@
   <div class="flex flex-col gap-6 p-6">
     <!-- Filtro por categoría -->
     <div class="flex flex-col gap-3">
-      <button 
-        @click="toggleFilterSection('category')"
-        class="text-xl font-bold text-[#166534] hover:text-[#22c55e] transition-colors text-left flex items-center justify-between bg-gradient-to-r from-[#f0fdf4] to-[#dcfce7] p-4 rounded-xl shadow-sm"
-      >
+      <button @click="toggleFilterSection('category')"
+        class="text-xl font-bold text-[#166534] hover:text-[#22c55e] transition-colors text-left flex items-center justify-between bg-gradient-to-r from-[#f0fdf4] to-[#dcfce7] p-4 rounded-xl shadow-sm">
         Filtrar per categoria
-        <svg 
-          class="w-6 h-6 transform transition-transform"
-          :class="{ 'rotate-180': activeSection === 'category' }"
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
+        <svg class="w-6 h-6 transform transition-transform" :class="{ 'rotate-180': activeSection === 'category' }"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       <div v-if="activeSection === 'category'" class="pl-4 border-l-2 border-[#22c55e] bg-white/50 p-4 rounded-lg">
         <div class="flex flex-wrap gap-2">
-      <button 
-        v-for="dato in categorias" 
-        :key="dato.id" 
-        class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
-        :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedCategories.includes(dato.id) }"
-        @click="toggleCategory(dato.id)"
-      >
-        {{ dato.name }}
-      </button>
+          <button v-for="dato in categorias" :key="dato.id"
+            class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
+            :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedCategories.includes(dato.id) }"
+            @click="toggleCategory(dato.id)">
+            {{ dato.name }}
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Filtro por cocina -->
     <div class="flex flex-col gap-3">
-      <button 
-        @click="toggleFilterSection('cuisine')"
-        class="text-xl font-bold text-[#166534] hover:text-[#22c55e] transition-colors text-left flex items-center justify-between bg-gradient-to-r from-[#f0fdf4] to-[#dcfce7] p-4 rounded-xl shadow-sm"
-      >
+      <button @click="toggleFilterSection('cuisine')"
+        class="text-xl font-bold text-[#166534] hover:text-[#22c55e] transition-colors text-left flex items-center justify-between bg-gradient-to-r from-[#f0fdf4] to-[#dcfce7] p-4 rounded-xl shadow-sm">
         Filtrar per cuina
-        <svg 
-          class="w-6 h-6 transform transition-transform"
-          :class="{ 'rotate-180': activeSection === 'cuisine' }"
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
+        <svg class="w-6 h-6 transform transition-transform" :class="{ 'rotate-180': activeSection === 'cuisine' }"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       <div v-if="activeSection === 'cuisine'" class="pl-4 border-l-2 border-[#22c55e] bg-white/50 p-4 rounded-lg">
         <div class="flex flex-wrap gap-2">
-      <button 
-        v-for="cuisine in cuisines" 
-        :key="cuisine.id" 
-        class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
-        :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedCuisines.includes(cuisine.id) }"
-        @click="toggleCuisine(cuisine.id)"
-      >
-        {{ cuisine.country }}
-      </button>
+          <button v-for="cuisine in cuisines" :key="cuisine.id"
+            class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
+            :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedCuisines.includes(cuisine.id) }"
+            @click="toggleCuisine(cuisine.id)">
+            {{ cuisine.country }}
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Filtro por tiempo -->
     <div class="flex flex-col gap-3">
-      <button 
-        @click="toggleFilterSection('time')"
-        class="text-xl font-bold text-[#166534] hover:text-[#22c55e] transition-colors text-left flex items-center justify-between bg-gradient-to-r from-[#f0fdf4] to-[#dcfce7] p-4 rounded-xl shadow-sm"
-      >
+      <button @click="toggleFilterSection('time')"
+        class="text-xl font-bold text-[#166534] hover:text-[#22c55e] transition-colors text-left flex items-center justify-between bg-gradient-to-r from-[#f0fdf4] to-[#dcfce7] p-4 rounded-xl shadow-sm">
         Filtrar per temps
-        <svg 
-          class="w-6 h-6 transform transition-transform"
-          :class="{ 'rotate-180': activeSection === 'time' }"
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
+        <svg class="w-6 h-6 transform transition-transform" :class="{ 'rotate-180': activeSection === 'time' }"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       <div v-if="activeSection === 'time'" class="pl-4 border-l-2 border-[#22c55e] bg-white/50 p-4 rounded-lg">
         <div class="flex flex-wrap gap-2">
-          <button 
-            v-for="time in times" 
-            :key="time"
+          <button v-for="time in times" :key="time"
             class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
-            :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedTimes.includes(time) }"
-            @click="toggleTime(time)"
-          >
+            :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedTimes.includes(time) }" @click="toggleTime(time)">
             {{ time }} minuts
           </button>
         </div>
@@ -98,62 +67,43 @@
 
     <!-- Filtro por ingredientes -->
     <div class="flex flex-col gap-3">
-      <button 
-        @click="toggleFilterSection('ingredients')"
-        class="text-xl font-bold text-[#166534] hover:text-[#22c55e] transition-colors text-left flex items-center justify-between bg-gradient-to-r from-[#f0fdf4] to-[#dcfce7] p-4 rounded-xl shadow-sm"
-      >
+      <button @click="toggleFilterSection('ingredients')"
+        class="text-xl font-bold text-[#166534] hover:text-[#22c55e] transition-colors text-left flex items-center justify-between bg-gradient-to-r from-[#f0fdf4] to-[#dcfce7] p-4 rounded-xl shadow-sm">
         Filtrar per ingredients
-        <svg 
-          class="w-6 h-6 transform transition-transform"
-          :class="{ 'rotate-180': activeSection === 'ingredients' }"
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
+        <svg class="w-6 h-6 transform transition-transform" :class="{ 'rotate-180': activeSection === 'ingredients' }"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       <div v-if="activeSection === 'ingredients'" class="pl-4 border-l-2 border-[#22c55e] bg-white/50 p-4 rounded-lg">
         <!-- Barra de búsqueda de ingredientes -->
         <div class="mb-4">
-          <input 
-            type="text" 
-            v-model="ingredientSearch" 
-            placeholder="Cerca ingredients..." 
-            class="w-full px-4 py-2 border border-[#22c55e] rounded-full focus:ring-2 focus:ring-[#22c55e] focus:border-transparent outline-none transition-all duration-200"
-          />
+          <input type="text" v-model="ingredientSearch" placeholder="Cerca ingredients..."
+            class="w-full px-4 py-2 border border-[#22c55e] rounded-full focus:ring-2 focus:ring-[#22c55e] focus:border-transparent outline-none transition-all duration-200" />
         </div>
         <div class="flex flex-wrap gap-2">
-          <button 
-            v-for="ingredient in displayedIngredients" 
-            :key="ingredient"
+          <button v-for="ingredient in displayedIngredients" :key="ingredient"
             class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
             :class="{ 'ring-2 ring-[#166534] ring-offset-2': isIngredientSelected(ingredient) }"
-            @click="toggleIngredient(ingredient)"
-          >
+            @click="toggleIngredient(ingredient)">
             {{ ingredient }}
           </button>
         </div>
         <!-- Botón de mostrar más -->
         <div v-if="hasMoreIngredients" class="mt-4 text-center">
-          <button 
-            @click="loadMoreIngredients" 
-            class="text-[#166534] hover:text-[#22c55e] font-medium text-sm flex items-center gap-1 mx-auto"
-          >
+          <button @click="loadMoreIngredients"
+            class="text-[#166534] hover:text-[#22c55e] font-medium text-sm flex items-center gap-1 mx-auto">
             Mostrar més ingredients
-            <svg 
-              class="w-4 h-4" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
         </div>
-        <div v-if="selectedIngredients.length" class="flex flex-wrap items-center gap-2 mt-4 p-3 bg-[#f0fdf4] rounded-lg">
+        <div v-if="selectedIngredients.length"
+          class="flex flex-wrap items-center gap-2 mt-4 p-3 bg-[#f0fdf4] rounded-lg">
           <span class="font-bold text-[#166534]">Seleccionats:</span>
-          <span v-for="ingredient in selectedIngredients" :key="ingredient" class="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm">
+          <span v-for="ingredient in selectedIngredients" :key="ingredient"
+            class="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm">
             {{ ingredient }}
             <button @click="removeIngredient(ingredient)" class="text-white hover:text-[#f0fdf4]">×</button>
           </span>
@@ -163,42 +113,32 @@
 
     <!-- Filtro por dificultad -->
     <div class="flex flex-col gap-3">
-      <button 
-        @click="toggleFilterSection('difficulty')"
-        class="text-xl font-bold text-[#166534] hover:text-[#22c55e] transition-colors text-left flex items-center justify-between bg-gradient-to-r from-[#f0fdf4] to-[#dcfce7] p-4 rounded-xl shadow-sm"
-      >
+      <button @click="toggleFilterSection('difficulty')"
+        class="text-xl font-bold text-[#166534] hover:text-[#22c55e] transition-colors text-left flex items-center justify-between bg-gradient-to-r from-[#f0fdf4] to-[#dcfce7] p-4 rounded-xl shadow-sm">
         Filtrar per dificultat
-        <svg 
-          class="w-6 h-6 transform transition-transform"
-          :class="{ 'rotate-180': activeSection === 'difficulty' }"
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
+        <svg class="w-6 h-6 transform transition-transform" :class="{ 'rotate-180': activeSection === 'difficulty' }"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       <div v-if="activeSection === 'difficulty'" class="pl-4 border-l-2 border-[#22c55e] bg-white/50 p-4 rounded-lg">
         <div class="flex flex-wrap gap-2">
-          <button 
+          <button
             class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
             :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedDifficulties.includes('facil') }"
-            @click="toggleDifficulty('facil')"
-          >
+            @click="toggleDifficulty('facil')">
             Fàcil (1-5 passos)
           </button>
-          <button 
+          <button
             class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
             :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedDifficulties.includes('regular') }"
-            @click="toggleDifficulty('regular')"
-          >
+            @click="toggleDifficulty('regular')">
             Regular (6-10 passos)
           </button>
-          <button 
+          <button
             class="px-4 py-2 text-sm font-medium bg-[#4ade80] text-white rounded-full hover:bg-[#22c55e] transition-all duration-200 shadow-sm"
             :class="{ 'ring-2 ring-[#166534] ring-offset-2': selectedDifficulties.includes('dificil') }"
-            @click="toggleDifficulty('dificil')"
-          >
+            @click="toggleDifficulty('dificil')">
             Difícil (10+ passos)
           </button>
         </div>
@@ -209,58 +149,53 @@
     <div v-if="hasSelectedFilters" class="mt-4 p-4 bg-gradient-to-r from-[#f0fdf4] to-[#dcfce7] rounded-xl">
       <h3 class="font-bold text-[#166534] mb-3">Filtres seleccionats:</h3>
       <div class="flex flex-wrap gap-2">
-        <span v-for="category in selectedCategories" :key="'cat-'+category" 
+        <span v-for="category in selectedCategories" :key="'cat-' + category"
           class="group relative px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm flex items-center gap-1 cursor-pointer hover:from-[#16a34a] hover:to-[#bef264] transition-all duration-200"
-          @click="toggleCategory(category)"
-        >
+          @click="toggleCategory(category)">
           {{ getCategoryName(category) }}
-          <span class="absolute -right-1 -top-1 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[#166534] text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200">×</span>
+          <span
+            class="absolute -right-1 -top-1 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[#166534] text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200">×</span>
         </span>
-        <span v-for="cuisine in selectedCuisines" :key="'cuis-'+cuisine" 
+        <span v-for="cuisine in selectedCuisines" :key="'cuis-' + cuisine"
           class="group relative px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm flex items-center gap-1 cursor-pointer hover:from-[#16a34a] hover:to-[#bef264] transition-all duration-200"
-          @click="toggleCuisine(cuisine)"
-        >
+          @click="toggleCuisine(cuisine)">
           {{ getCuisineName(cuisine) }}
-          <span class="absolute -right-1 -top-1 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[#166534] text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200">×</span>
+          <span
+            class="absolute -right-1 -top-1 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[#166534] text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200">×</span>
         </span>
-        <span v-for="time in selectedTimes" :key="'time-'+time" 
+        <span v-for="time in selectedTimes" :key="'time-' + time"
           class="group relative px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm flex items-center gap-1 cursor-pointer hover:from-[#16a34a] hover:to-[#bef264] transition-all duration-200"
-          @click="toggleTime(time)"
-        >
+          @click="toggleTime(time)">
           {{ time }} min
-          <span class="absolute -right-1 -top-1 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[#166534] text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200">×</span>
+          <span
+            class="absolute -right-1 -top-1 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[#166534] text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200">×</span>
         </span>
-        <span v-for="difficulty in selectedDifficulties" :key="'diff-'+difficulty" 
+        <span v-for="difficulty in selectedDifficulties" :key="'diff-' + difficulty"
           class="group relative px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm flex items-center gap-1 cursor-pointer hover:from-[#16a34a] hover:to-[#bef264] transition-all duration-200"
-          @click="toggleDifficulty(difficulty)"
-        >
+          @click="toggleDifficulty(difficulty)">
           {{ getDifficultyName(difficulty) }}
-          <span class="absolute -right-1 -top-1 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[#166534] text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200">×</span>
+          <span
+            class="absolute -right-1 -top-1 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[#166534] text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200">×</span>
         </span>
-        <span v-for="ingredient in selectedIngredients" :key="'ing-'+ingredient" 
+        <span v-for="ingredient in selectedIngredients" :key="'ing-' + ingredient"
           class="group relative px-3 py-1 bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full text-sm flex items-center gap-1 cursor-pointer hover:from-[#16a34a] hover:to-[#bef264] transition-all duration-200"
-          @click="toggleIngredient(ingredient)"
-        >
+          @click="toggleIngredient(ingredient)">
           {{ ingredient }}
-          <span class="absolute -right-1 -top-1 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[#166534] text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200">×</span>
+          <span
+            class="absolute -right-1 -top-1 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[#166534] text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200">×</span>
         </span>
       </div>
     </div>
 
     <!-- Botones de control -->
     <div class="flex justify-end gap-3 mt-6">
-      <button 
-        @click="applyAllFilters" 
+      <button @click="applyAllFilters"
         class="px-4 py-2 text-sm bg-gradient-to-r from-[#22c55e] to-[#a3e635] text-white rounded-full hover:from-[#16a34a] hover:to-[#bef264] transition-all duration-200 shadow-sm font-medium"
-        :disabled="!hasSelectedFilters"
-        :class="{ 'opacity-50 cursor-not-allowed': !hasSelectedFilters }"
-      >
+        :disabled="!hasSelectedFilters" :class="{ 'opacity-50 cursor-not-allowed': !hasSelectedFilters }">
         Aplicar filtres
       </button>
-      <button 
-        @click="clearAllFilters" 
-        class="px-4 py-2 text-sm bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-sm font-medium"
-      >
+      <button @click="clearAllFilters"
+        class="px-4 py-2 text-sm bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-sm font-medium">
         Netejar filtres
       </button>
     </div>
@@ -299,17 +234,17 @@ export default {
     // Computed properties
     const hasSelectedFilters = computed(() => {
       return selectedCategories.value.length > 0 ||
-             selectedCuisines.value.length > 0 ||
-             selectedTimes.value.length > 0 ||
-             selectedDifficulties.value.length > 0 ||
-             selectedIngredients.value.length > 0;
+        selectedCuisines.value.length > 0 ||
+        selectedTimes.value.length > 0 ||
+        selectedDifficulties.value.length > 0 ||
+        selectedIngredients.value.length > 0;
     });
 
     // Computed property para filtrar ingredientes según la búsqueda
     const filteredIngredients = computed(() => {
       if (!ingredientSearch.value) return ingredients.value;
       const searchTerm = ingredientSearch.value.toLowerCase();
-      return ingredients.value.filter(ingredient => 
+      return ingredients.value.filter(ingredient =>
         ingredient.toLowerCase().includes(searchTerm)
       );
     });
@@ -458,7 +393,7 @@ export default {
         // Aplicar filtros de categoría
         if (selectedCategories.value.length > 0) {
           const categoryRecipes = await Promise.all(
-            selectedCategories.value.map(categoryId => 
+            selectedCategories.value.map(categoryId =>
               communicationManager.fetchRecipesByCategory(categoryId)
             )
           );
@@ -469,7 +404,7 @@ export default {
               return [];
             })
           );
-          filteredRecipes = filteredRecipes.filter(recipe => 
+          filteredRecipes = filteredRecipes.filter(recipe =>
             categoryRecipeIds.has(recipe.id)
           );
         }
@@ -477,7 +412,7 @@ export default {
         // Aplicar filtros de cocina
         if (selectedCuisines.value.length > 0) {
           const cuisineRecipes = await Promise.all(
-            selectedCuisines.value.map(cuisineId => 
+            selectedCuisines.value.map(cuisineId =>
               communicationManager.fetchRecipesByCuisine(cuisineId)
             )
           );
@@ -488,7 +423,7 @@ export default {
               return [];
             })
           );
-          filteredRecipes = filteredRecipes.filter(recipe => 
+          filteredRecipes = filteredRecipes.filter(recipe =>
             cuisineRecipeIds.has(recipe.id)
           );
         }
@@ -496,7 +431,7 @@ export default {
         // Aplicar filtros de tiempo
         if (selectedTimes.value.length > 0) {
           const timeRecipes = await Promise.all(
-            selectedTimes.value.map(time => 
+            selectedTimes.value.map(time =>
               communicationManager.fetchRecipesByTime(time)
             )
           );
@@ -507,7 +442,7 @@ export default {
               return [];
             })
           );
-          filteredRecipes = filteredRecipes.filter(recipe => 
+          filteredRecipes = filteredRecipes.filter(recipe =>
             timeRecipeIds.has(recipe.id)
           );
         }
@@ -519,9 +454,9 @@ export default {
           );
           const ingredientRecipeIds = new Set(
             Array.isArray(ingredientRecipes) ? ingredientRecipes.map(r => r.id) :
-            ingredientRecipes && ingredientRecipes.recipes ? ingredientRecipes.recipes.map(r => r.id) : []
+              ingredientRecipes && ingredientRecipes.recipes ? ingredientRecipes.recipes.map(r => r.id) : []
           );
-          filteredRecipes = filteredRecipes.filter(recipe => 
+          filteredRecipes = filteredRecipes.filter(recipe =>
             ingredientRecipeIds.has(recipe.id)
           );
         }
@@ -533,14 +468,14 @@ export default {
               try {
                 const stepsResponse = await communicationManager.getRecipeSteps(recipe.id);
                 const steps = Array.isArray(stepsResponse) ? stepsResponse :
-                            stepsResponse && stepsResponse.steps ? stepsResponse.steps : [];
+                  stepsResponse && stepsResponse.steps ? stepsResponse.steps : [];
                 const numSteps = steps.length;
                 let difficulty;
                 if (numSteps <= 5) difficulty = 'facil';
                 else if (numSteps <= 10) difficulty = 'regular';
                 else difficulty = 'dificil';
                 return selectedDifficulties.value.includes(difficulty) ? recipe : null;
-          } catch (error) {
+              } catch (error) {
                 console.error(`Error al obtener pasos para la receta ${recipe.id}:`, error);
                 return null;
               }
@@ -549,7 +484,7 @@ export default {
           filteredRecipes = difficultyRecipes.filter(recipe => recipe !== null);
         }
 
-        console.log('Recetas filtradas:', filteredRecipes); // Debug log
+        console.log('Recetas filtradas:', filteredRecipes);
 
         // Emitir las recetas filtradas
         if (filteredRecipes.length > 0) {
@@ -591,7 +526,7 @@ export default {
     const removeIngredient = (ingredient) => {
       selectedIngredients.value = selectedIngredients.value.filter(i => i !== ingredient);
     };
-    
+
     const isIngredientSelected = (ingredient) => {
       return selectedIngredients.value.includes(ingredient);
     };

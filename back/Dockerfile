@@ -1,6 +1,7 @@
+# Imagen base usando PHP 8.2 con FPM (FastCGI Process Manager)
 FROM php:8.2-fpm
 
-# Instalar dependencias necesarias
+# Instalar dependencias del sistema y extensiones PHP necesarias para Laravel
 RUN apt-get update && apt-get install -y \
     curl \
     zip \
@@ -14,8 +15,8 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar Composer
+# Instalar Composer para la gestión de dependencias de PHP
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Configurar el directorio de trabajo
+# Establecer el directorio de trabajo para la aplicación
 WORKDIR /var/www/html

@@ -1,10 +1,9 @@
 <template>
   <div class="min-h-screen bg-lime-50 flex flex-col">
-    <!-- Hero Section with animated background -->
+    <!-- Sección Hero con fondo animado y título -->
     <section class="relative overflow-hidden">
       <div class="bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 py-16 relative">
         <div class="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
-        <!-- Animated circles decoration -->
         <div class="absolute inset-0 overflow-hidden">
           <div class="absolute -left-10 -top-10 w-40 h-40 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 motion-safe:animate-[blob_7s_infinite]"></div>
           <div class="absolute -right-10 -top-10 w-40 h-40 bg-lime-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 motion-safe:animate-[blob_7s_infinite_2s]"></div>
@@ -26,7 +25,7 @@
       </div>
     </section>
 
-    <!-- Search Section -->
+    <!-- Sección de búsqueda y botones CRUD -->
     <div class="w-full px-6 -mt-12 sm:-mt-8 relative z-20 flex justify-center items-center gap-4">
       <div class="w-full sm:w-2/3 md:w-1/2 lg:w-1/3 transform hover:scale-105 transition-transform duration-300">
         <div class="relative">
@@ -48,7 +47,7 @@
       </div>
     </div>
 
-    <!-- Main Content -->
+    <!-- Contenido principal con estados de carga, error y tabla de categorías -->
     <div class="max-w-7xl mx-auto px-6 py-3 sm:py-6 mb-24">
       <!-- Loading State -->
       <div v-if="loading" class="flex flex-col items-center justify-center py-12">
@@ -126,7 +125,7 @@
       </template>
     </div>
 
-    <!-- Confirmation Modal -->
+    <!-- Modal de confirmación para eliminar categoría -->
     <div v-if="modalVisible" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 transform transition-all">
         <h3 class="text-xl font-bold text-lime-900 mb-4">Confirmar eliminació</h3>
@@ -148,7 +147,7 @@
       </div>
     </div>
 
-    <!-- Success Modal -->
+    <!-- Modal de éxito para mostrar mensajes de operación exitosa -->
     <div v-if="successMessage" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 transform transition-all">
         <div class="text-center">
@@ -176,19 +175,23 @@ export default {
   },
   data() {
     return {
-      categories: [],
-      loading: false,
-      error: null,
-      successMessage: '',
-      modalVisible: false,
-      categoryToDelete: null,
+      categories: [], // Lista de categorías
+      loading: false, // Estado de carga
+      error: null, // Mensaje de error
+      successMessage: '', // Mensaje de éxito
+      modalVisible: false, // Control de visibilidad del modal
+      categoryToDelete: null, // ID de la categoría a eliminar
       newCategory: {
-        name: ''
+        name: '' // Nombre de la nueva categoría
       },
-      searchTerm: ''
+      searchTerm: '' // Término de búsqueda
     }
   },
   computed: {
+    /**
+     * Filtra las categorías según el término de búsqueda
+     * @returns {Array} Lista de categorías filtradas
+     */
     filteredCategories() {
       if (!this.searchTerm) return this.categories;
       const searchLower = this.searchTerm.toLowerCase();
@@ -201,6 +204,10 @@ export default {
     this.obtenirCategories();
   },
   methods: {
+    /**
+     * Obtiene todas las categorías del servidor
+     * Maneja estados de carga y errores
+     */
     async obtenirCategories() {
       this.loading = true;
       this.error = null;
@@ -216,11 +223,19 @@ export default {
       }
     },
     
+    /**
+     * Muestra el modal de confirmación para eliminar una categoría
+     * @param {number} id - ID de la categoría a eliminar
+     */
     mostrarModalEliminar(id) {
       this.categoryToDelete = id;
       this.modalVisible = true;
     },
     
+    /**
+     * Confirma y ejecuta la eliminación de una categoría
+     * Maneja estados de carga, errores y mensajes de éxito
+     */
     async confirmarEliminar() {
       this.loading = true;
       this.error = null;
@@ -242,6 +257,10 @@ export default {
       }
     },
     
+    /**
+     * Crea una nueva categoría
+     * Valida el nombre y maneja estados de carga, errores y mensajes de éxito
+     */
     async createCategory() {
       if (!this.newCategory.name.trim()) {
         this.error = 'El nom de la categoria no pot estar buit.';

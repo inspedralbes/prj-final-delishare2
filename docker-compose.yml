@@ -1,6 +1,40 @@
-version: '3.8'  # Aunque es opcional, ayuda a evitar confusiones
+version: '3.8'  
+
+# ==============================================
+# CONFIGURACIÓN GENERAL DEL PROYECTO
+# ==============================================
+# Este proyecto está compuesto por varios servicios:
+# - Base de datos MySQL para almacenamiento persistente
+# - Frontend en Vue.js para la interfaz de usuario
+# - Backend en Laravel para la API REST principal
+# - API en Node.js para funcionalidades en tiempo real (chat, notificaciones)
+# - Adminer para gestión de la base de datos
+#
+# INSTRUCCIONES DE INSTALACIÓN Y EJECUCIÓN:
+# 1. Requisitos previos:
+#    - Docker y Docker Compose instalados
+#    - Git (para clonar el repositorio)
+#
+# 2. Pasos de instalación:
+#    a. Clonar el repositorio
+#    b. Navegar al directorio del proyecto
+#    c. Ejecutar 'docker-compose up'
+#
+# 3. Configuración inicial:
+#    - Las dependencias se instalarán automáticamente
+#    - La base de datos se inicializará con datos de prueba
+#    - Los servicios se iniciarán en el orden correcto
+#
+# PUNTOS DE ACCESO:
+# - Frontend (Vue.js): http://localhost:5173
+# - Backend (Laravel): http://localhost:8000
+# - API Node.js: http://localhost:4000
+# - Adminer (MySQL): http://localhost:9094
 
 services:
+  # ==============================================
+  # BASE DE DATOS MYSQL
+  # ==============================================
   db:
     image: mysql:8.2.0
     restart: always
@@ -16,6 +50,9 @@ services:
       timeout: 20s
       retries: 10
 
+  # ==============================================
+  # ADMINER - GESTOR DE BASE DE DATOS
+  # ==============================================
   adminer:
     image: adminer
     restart: always
@@ -25,6 +62,9 @@ services:
     ports:
       - "9094:8080"
 
+  # ==============================================
+  # FRONTEND - VUE.JS
+  # ==============================================
   vue-app:
     build: ./front
     working_dir: /app
@@ -40,6 +80,9 @@ services:
       db:
         condition: service_healthy
 
+  # ==============================================
+  # BACKEND - LARAVEL
+  # ==============================================
   laravel:
     build: ./back
     volumes:
@@ -62,7 +105,10 @@ services:
       php artisan migrate:fresh --seed &&
       php artisan serve --host=0.0.0.0 --port=8000"
 
-  node-api:  # Cambiado de node-app a node-api para mejor semántica
+  # ==============================================
+  # API EN TIEMPO REAL - NODE.JS
+  # ==============================================
+  node-api:
     build: ./node
     working_dir: /app
     volumes:
@@ -90,6 +136,9 @@ services:
       timeout: 5s
       retries: 5
 
+# ==============================================
+# VOLÚMENES
+# ==============================================
 volumes:
   mysql_data:
     driver: local

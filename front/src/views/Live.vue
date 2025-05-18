@@ -198,11 +198,19 @@ export default {
   setup() {
     const router = useRouter();
     const authStore = useAuthStore();
+    // Lista de lives disponibles
     const lives = ref([]);
+    // Estado de carga
     const loading = ref(true);
+    // Mensaje de error
     const error = ref(null);
+    // Término de búsqueda
     const searchQuery = ref('');
 
+    /**
+     * Filtra los lives según el término de búsqueda
+     * Busca coincidencias en título y nombre del chef
+     */
     const filteredLives = computed(() => {
       if (!searchQuery.value.trim()) {
         return lives.value;
@@ -217,13 +225,23 @@ export default {
       });
     });
 
+    /**
+     * Determina qué lives mostrar según el estado de búsqueda
+     */
     const displayedLives = computed(() => {
       return searchQuery.value ? filteredLives.value : lives.value;
     });
 
+    /**
+     * Maneja la búsqueda de lives
+     */
     const handleSearch = () => {
     };
 
+    /**
+     * Obtiene la lista de lives del servidor
+     * Maneja estados de carga y errores
+     */
     const fetchLives = async () => {
       try {
         loading.value = true;
@@ -246,6 +264,10 @@ export default {
       }
     };
 
+    /**
+     * Configura un recordatorio en Google Calendar para un live
+     * @param {Object} live - Información del live
+     */
     const setReminder = (live) => {
       const title = encodeURIComponent(`Live de cuina: ${live.recipe.title}`);
       const description = encodeURIComponent(live.recipe.description);
@@ -266,6 +288,10 @@ export default {
       window.open(calendarUrl, '_blank');
     };
 
+    /**
+     * Navega a la sala de chat del live seleccionado
+     * @param {Object} live - Información del live
+     */
     const joinLive = (live) => {
       router.push({
         name: 'ChatRoom', 
@@ -275,6 +301,11 @@ export default {
       });
     };
 
+    /**
+     * Formatea una fecha al formato catalán
+     * @param {string} dateString - Fecha a formatear
+     * @returns {string} Fecha formateada
+     */
     const formatDate = (dateString) => {
       try {
         if (!dateString) return 'Data no definida';
@@ -290,7 +321,7 @@ export default {
 
         const catalanDate = date.toLocaleDateString('ca-ES', options);
         
-        // Personalizar nombres de meses y días
+        // Mapeo de meses en catalán
         const months = {
           'gener': 'gener',
           'febrer': 'febrer',
@@ -306,6 +337,7 @@ export default {
           'desembre': 'desembre'
         };
 
+        // Mapeo de días en catalán
         const days = {
           'dilluns': 'dilluns',
           'dimarts': 'dimarts',
@@ -332,6 +364,10 @@ export default {
       }
     };
 
+    /**
+     * Inicializa el componente al montarlo
+     * Carga los lives disponibles
+     */
     onMounted(() => {
       try {
         fetchLives();
@@ -362,6 +398,10 @@ export default {
 </script>
 
 <style>
+/**
+ * Animación para los elementos blob del fondo
+ * Crea un efecto de movimiento suave y orgánico
+ */
 @keyframes blob {
   0% {
     transform: translate(0px, 0px) scale(1);
@@ -392,8 +432,11 @@ export default {
   animation-delay: 4s;
 }
 
+/**
+ * Animación de sacudida para elementos con error
+ * Proporciona feedback visual al usuario
+ */
 @keyframes shake {
-
   0%,
   100% {
     transform: translateX(0);

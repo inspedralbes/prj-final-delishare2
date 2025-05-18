@@ -7,7 +7,7 @@ import InfoReceta from '@/views/InfoReceta.vue';
 import AgregarReceta from '@/views/AgregarReceta.vue';
 import login from '@/components/login.vue';
 import register from '@/components/register.vue';
-import { useAuthStore } from '@/stores/authStore';  // Importa el store de autenticación
+import { useAuthStore } from '@/stores/authStore';  
 import UserProfile from '@/components/UserProfile.vue';
 import Formulario from '@/views/Formulario.vue';
 import RecetasList from '@/views/RecetasList.vue';

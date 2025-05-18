@@ -1,6 +1,7 @@
 <template>
+  <!-- Contenedor principal del componente -->
   <div class="min-h-screen bg-lime-50 flex flex-col">
-    <!-- Hero Section with animated background -->
+    <!-- Sección Hero con fondo animado y título -->
     <section class="relative overflow-hidden">
       <div class="bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 py-16 relative">
         <div class="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
@@ -26,11 +27,11 @@
       </div>
     </section>
 
-    <!-- Form Section -->
+    <!-- Sección del formulario de preferencias -->
     <div class="max-w-4xl mx-auto px-4 sm:px-8 -mt-12 pt-12 pb-24">
       <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 sm:p-8">
         <form @submit.prevent="submitPreferences" class="space-y-8">
-          <!-- Sección de Cocinas -->
+          <!-- Sección de selección de cocinas -->
           <div class="bg-gradient-to-br from-lime-50 to-green-50 rounded-xl p-6 sm:p-8 shadow-sm">
             <h3 class="text-lg sm:text-xl font-semibold text-lime-900 mb-6">Selecciona tus cocinas favoritas</h3>
             <div class="grid grid-cols-2 gap-4">
@@ -47,7 +48,7 @@
             </div>
           </div>
 
-          <!-- Sección de Categorías -->
+          <!-- Sección de selección de categorías -->
           <div class="bg-gradient-to-br from-lime-50 to-green-50 rounded-xl p-6 sm:p-8 shadow-sm">
             <h3 class="text-lg sm:text-xl font-semibold text-lime-900 mb-6">Selecciona tus categorías favoritas</h3>
             <div class="grid grid-cols-2 gap-4">
@@ -64,7 +65,7 @@
             </div>
           </div>
 
-          <!-- Botón de Envío -->
+          <!-- Botón de envío del formulario -->
           <div class="flex justify-center pt-6">
             <button type="submit" 
                     :disabled="isLoading"
@@ -79,7 +80,7 @@
             </button>
           </div>
 
-          <!-- Mensajes de Feedback -->
+          <!-- Mensajes de feedback para el usuario -->
           <div v-if="message" 
                :class="[
                  'p-4 rounded-lg text-center font-medium transition-all duration-300',
@@ -100,13 +101,13 @@ export default {
   name: 'RecommendationForm',
   data() {
     return {
-      cuisines: [],
-      categories: [],
-      selectedCuisines: [],
-      selectedCategories: [],
-      isLoading: false,
-      message: '',
-      isSuccess: false
+      cuisines: [], // Lista de cocinas disponibles
+      categories: [], // Lista de categorías disponibles
+      selectedCuisines: [], // Cocinas seleccionadas por el usuario
+      selectedCategories: [], // Categorías seleccionadas por el usuario
+      isLoading: false, // Estado de carga
+      message: '', // Mensaje de feedback
+      isSuccess: false // Estado de éxito/error del mensaje
     };
   },
   async created() {
@@ -114,6 +115,10 @@ export default {
     await this.loadUserPreferences();
   },
   methods: {
+    /**
+     * Alterna la selección de una cocina
+     * @param {number} id - ID de la cocina a alternar
+     */
     toggleCuisine(id) {
       const index = this.selectedCuisines.indexOf(id);
       if (index === -1) {
@@ -122,6 +127,11 @@ export default {
         this.selectedCuisines.splice(index, 1);
       }
     },
+
+    /**
+     * Alterna la selección de una categoría
+     * @param {number} id - ID de la categoría a alternar
+     */
     toggleCategory(id) {
       const index = this.selectedCategories.indexOf(id);
       if (index === -1) {
@@ -130,6 +140,11 @@ export default {
         this.selectedCategories.splice(index, 1);
       }
     },
+
+    /**
+     * Obtiene las opciones de cocinas y categorías del servidor
+     * Maneja errores y muestra mensajes de feedback
+     */
     async fetchOptions() {
       try {
         const response = await communicationManager.fetchCuisinesAndCategories();
@@ -140,6 +155,11 @@ export default {
         this.showMessage('Error al cargar las opciones', false);
       }
     },
+
+    /**
+     * Carga las preferencias guardadas del usuario
+     * Inicializa las selecciones con los datos del servidor
+     */
     async loadUserPreferences() {
       try {
         const response = await communicationManager.fetchUserPreferences();
@@ -151,6 +171,11 @@ export default {
         console.error('Error loading preferences:', error);
       }
     },
+
+    /**
+     * Envía las preferencias seleccionadas al servidor
+     * Maneja estados de carga, errores y redirección
+     */
     async submitPreferences() {
       this.isLoading = true;
       this.message = '';
@@ -170,6 +195,12 @@ export default {
         this.isLoading = false;
       }
     },
+
+    /**
+     * Muestra un mensaje de feedback al usuario
+     * @param {string} msg - Mensaje a mostrar
+     * @param {boolean} success - Indica si es un mensaje de éxito o error
+     */
     showMessage(msg, success) {
       this.message = msg;
       this.isSuccess = success;
@@ -182,6 +213,7 @@ export default {
 </script>
 
 <style scoped>
+/* Animación para los círculos decorativos del fondo */
 @keyframes blob {
   0% {
     transform: translate(0px, 0px) scale(1);
@@ -197,10 +229,12 @@ export default {
   }
 }
 
+/* Clase para aplicar la animación blob */
 .animate-blob {
   animation: blob 7s infinite;
 }
 
+/* Retrasos en la animación para diferentes círculos */
 .animation-delay-2000 {
   animation-delay: 2s;
 }
