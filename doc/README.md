@@ -99,38 +99,6 @@ docker-compose up
 └─────────────────────────────────────────────────────┘
 ```
 
-## Entorn de desenvolupament
-
-### Requisits previs
-* Docker i Docker Compose
-* Node.js 18+
-* PHP 8.2+
-* Composer
-* Git
-
-### Configuració
-1. Clonar el repositorio:
-```bash
-git clone [URL_DEL_REPOSITORIO]
-cd delishare
-```
-
-2. Configurar variables d'entorn:
-```bash
-# Frontend
-cp front/.env.example front/.env
-
-# Backend
-cp back/.env.example back/.env
-
-# Node.js
-cp node/.env.example node/.env
-```
-
-3. Iniciar els serveis:
-```bash
-docker-compose up
-```
 
 ## Desplegament a producció
 
