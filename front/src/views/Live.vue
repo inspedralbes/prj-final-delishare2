@@ -66,7 +66,6 @@
     <div v-else-if="error" class="max-w-7xl mx-auto px-6 py-12">
       <div
         class="bg-red-50 rounded-xl p-8 text-center border border-red-200 shadow-lg hover:shadow-xl transition-all duration-300 animate-shake">
-        <div class="text-4xl mb-4">😕</div>
         <p class="text-red-600 mb-4 font-medium">⚠️ {{ error }}</p>
         <button @click="fetchLives"
           class="bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 px-8 py-3 rounded-full hover:from-green-600 hover:via-lime-500 hover:to-lime-400 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-medium">

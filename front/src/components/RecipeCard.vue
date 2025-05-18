@@ -21,20 +21,20 @@
       >
         <div 
           v-if="showAuthModal && !authStore.isAuthenticated" 
-          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
           @click.self="closeModal"
         >
-          <div class="bg-white p-6 rounded-lg shadow-xl w-11/12 max-w-sm text-center">
-            <p class="text-gray-700 mb-6">Debes iniciar sesión para ver esta receta</p>
-            <div class="flex justify-center space-x-4">
+          <div class="bg-white rounded-2xl shadow-lg p-8 text-center w-full max-w-xs md:max-w-md">
+            <p class="text-lime-900 text-lg font-semibold mb-6">Debes iniciar sesión para ver esta receta</p>
+            <div class="flex justify-center gap-4">
               <button 
-                class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                class="flex-1 py-2 bg-gradient-to-r from-red-400 to-red-600 text-white rounded-xl font-semibold shadow hover:from-red-500 hover:to-red-700 transition-all duration-200"
                 @click="closeModal"
               >
                 Cancelar
               </button>
               <button 
-                class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                class="flex-1 py-2 bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 rounded-xl font-semibold shadow hover:from-green-600 hover:via-lime-500 hover:to-lime-400 hover:brightness-110 transition-all duration-200"
                 @click="goToLogin"
               >
                 Aceptar

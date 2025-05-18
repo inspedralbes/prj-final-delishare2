@@ -71,7 +71,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/recipes/{id}', [RecipeController::class, 'update']);
     Route::delete('/recipes/{id}', [RecipeController::class, 'destroy']);
     Route::post('/recipes/{recipe}/like', [RecipeController::class, 'toggleLike']);
-    Route::get('/recipes/{recipe}/likes', [RecipeController::class, 'getLikes']);});
+    Route::get('/recipes/{recipe}/likes', [RecipeController::class, 'getLikes']);
+});
 
 Route::get('/', function () {
     return view('welcome');
