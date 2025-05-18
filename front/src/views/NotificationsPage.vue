@@ -1,96 +1,131 @@
 <template>
-  <div class="notifications-container">
-    <div class="header">
-      <h1>Notificaciones</h1>
-      <span class="notification-count" v-if="unreadCount > 0">{{ unreadCount }}</span>
-    </div>
-    
-    <div class="search-container">
+  <div class="min-h-screen bg-lime-50 flex flex-col">
+    <!-- Hero/Header visual -->
+    <section class="relative overflow-hidden">
+      <div class="bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 py-16 relative">
+        <div class="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
+        <!-- Animated circles decoration -->
+        <div class="absolute inset-0 overflow-hidden">
+          <div class="absolute -left-10 -top-10 w-40 h-40 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+          <div class="absolute -right-10 -top-10 w-40 h-40 bg-lime-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+          <div class="absolute -bottom-10 left-20 w-40 h-40 bg-green-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+        </div>
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+          <div class="text-center flex flex-col items-center justify-center gap-4">
+            <h1 class="text-4xl tracking-tight font-extrabold text-lime-900 sm:text-5xl md:text-6xl">
+              <span class="block bg-gradient-to-r from-lime-900 via-lime-700 to-green-800 bg-clip-text text-transparent">
+                Notificaciones
+              </span>
+              <span class="block text-2xl mt-3 text-lime-700 font-medium">
+                Consulta tus avisos y novedades
+              </span>
+            </h1>
+            <span v-if="unreadCount > 0" class="inline-flex items-center justify-center bg-red-500 text-white rounded-full w-8 h-8 text-base font-bold">{{ unreadCount }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search -->
+    <div class="max-w-2xl w-full mx-auto px-4 mt-8">
       <input 
         type="text" 
         v-model="searchQuery" 
         placeholder="Buscar notificaciones..." 
-        class="search-input"
+        class="w-full p-3 border border-gray-200 rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-lime-300 shadow-sm"
       >
     </div>
 
-    <div class="tabs">
+    <!-- Tabs -->
+    <div class="flex justify-center gap-4 mt-8 mb-6 px-6 md:gap-2 md:mt-4 md:mb-2 md:px-2">
       <button 
         @click="activeTab = 'all'" 
-        :class="['tab-button', activeTab === 'all' ? 'active' : '']"
+        :class="[
+          'flex-1 py-2 px-2 text-sm rounded-full font-semibold transition-all duration-300',
+          'md:py-4 md:px-4 md:text-base',
+          activeTab === 'all' ? 'bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 shadow-lg hover:shadow-xl hover:brightness-110' : 'bg-gradient-to-r from-green-100 via-lime-50 to-lime-100 text-lime-700 hover:from-green-200 hover:via-lime-100 hover:to-lime-200 hover:shadow-md'
+        ]"
       >
         Todas
       </button>
       <button 
         @click="activeTab = 'unread'" 
-        :class="['tab-button', activeTab === 'unread' ? 'active' : '']"
+        :class="[
+          'flex-1 py-2 px-2 text-sm rounded-full font-semibold transition-all duration-300',
+          'md:py-4 md:px-4 md:text-base',
+          activeTab === 'unread' ? 'bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 shadow-lg hover:shadow-xl hover:brightness-110' : 'bg-gradient-to-r from-green-100 via-lime-50 to-lime-100 text-lime-700 hover:from-green-200 hover:via-lime-100 hover:to-lime-200 hover:shadow-md'
+        ]"
       >
         No leídas
       </button>
     </div>
-    
-    <transition-group name="list" tag="div" class="notifications-list">
-      <div v-if="filteredNotifications.length === 0" key="empty" class="empty-state">
-        <svg class="empty-icon" viewBox="0 0 24 24" width="64" height="64">
-          <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-1 14H5c-.55 0-1-.45-1-1V7c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v10c0 .55-.45 1-1 1z"/>
-          <path d="M12 11c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-        </svg>
-        <p>No tienes notificaciones{{ activeTab === 'unread' ? ' sin leer' : '' }}.</p>
-      </div>
 
-      <router-link 
-        v-for="notification in filteredNotifications" 
-        :key="notification.id" 
-        :to="'/info/' + notification.recipe_id"
-        class="notification-link"
-      >
-        <div class="notification" :class="{ 'unread': !notification.read }">
-          <div class="notification-indicator" v-if="!notification.read"></div>
-          <div class="notification-content">
-            <div class="image-container" v-if="notification.recipe_image">
-              <img :src="notification.recipe_image" alt="Imagen de la receta" class="recipe-image" />
+    <!-- Lista de notificaciones -->
+    <main class="flex-1 max-w-2xl w-full mx-auto px-4 pb-32 md:pb-24">
+      <transition-group name="list" tag="div" class="space-y-4 mt-4">
+        <div v-if="filteredNotifications.length === 0" key="empty" class="bg-white rounded-xl shadow-lg p-8 text-center mt-8 md:rounded-xl md:shadow-md md:p-6 md:mt-4">
+          <svg class="mx-auto mb-4" viewBox="0 0 24 24" width="64" height="64">
+            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-1 14H5c-.55 0-1-.45-1-1V7c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v10c0 .55-.45 1-1 1z" fill="#ccc"/>
+            <path d="M12 11c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" fill="#ccc"/>
+          </svg>
+          <p class="text-gray-600 mb-4 text-xl md:text-base">No tienes notificaciones{{ activeTab === 'unread' ? ' sin leer' : '' }}.</p>
+        </div>
+
+        <router-link 
+          v-for="notification in filteredNotifications" 
+          :key="notification.id" 
+          :to="'/info/' + notification.recipe_id"
+          class="block"
+        >
+          <div class="flex items-start gap-4 bg-white rounded-xl shadow-md p-4 md:p-6 mb-2 transition-all hover:shadow-lg border-l-4" :class="notification.read ? 'border-transparent' : 'border-lime-400'">
+            <div v-if="notification.recipe_image" class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+              <img :src="notification.recipe_image" alt="Imagen de la receta" class="w-full h-full object-cover" />
             </div>
-            <div class="notification-message">
-              <p :class="notification.read ? 'read-notification' : 'unread-notification'">
+            <div class="flex-1">
+              <p :class="notification.read ? 'text-gray-500' : 'font-semibold text-lime-900'">
                 {{ notification.message }}
               </p>
-              <span class="notification-time">{{ formatTime(notification.createdAt) }}</span>
+              <span class="block text-xs text-gray-400 mt-1">{{ formatTime(notification.createdAt) }}</span>
+            </div>
+            <div v-if="!notification.read" class="flex items-center">
+              <span class="inline-block w-3 h-3 bg-lime-400 rounded-full"></span>
+            </div>
+            <div class="ml-2">
+              <button 
+                v-if="!notification.read" 
+                @click.prevent="markAsRead(notification.id)" 
+                class="inline-flex items-center px-2 py-1 bg-lime-50 text-lime-700 rounded-lg text-xs font-medium hover:bg-lime-100 transition-colors"
+                aria-label="Marcar como leída"
+              >
+                <svg viewBox="0 0 24 24" width="18" height="18" class="mr-1">
+                  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" fill="currentColor"/>
+                </svg>
+                Leída
+              </button>
             </div>
           </div>
-          <div class="notification-actions">
-            <button 
-              v-if="!notification.read" 
-              @click.prevent="markAsRead(notification.id)" 
-              class="mark-read-button"
-              aria-label="Marcar como leída"
-            >
-              <svg viewBox="0 0 24 24" width="18" height="18">
-                <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
-              </svg>
-              <span>Leída</span>
-            </button>
-          </div>
-        </div>
-      </router-link>
-    </transition-group>
+        </router-link>
+      </transition-group>
 
-    <div class="pagination" v-if="notifications.length > itemsPerPage">
-      <button 
-        class="pagination-button" 
-        :disabled="currentPage === 1"
-        @click="currentPage--"
-      >
-        Anterior
-      </button>
-      <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
-      <button 
-        class="pagination-button" 
-        :disabled="currentPage === totalPages"
-        @click="currentPage++"
-      >
-        Siguiente
-      </button>
-    </div>
+      <!-- Paginación -->
+      <div class="flex justify-center items-center mt-8" v-if="notifications.length > itemsPerPage">
+        <button 
+          class="px-4 py-2 bg-lime-100 text-lime-700 rounded-lg font-medium mr-2 disabled:opacity-50" 
+          :disabled="currentPage === 1"
+          @click="currentPage--"
+        >
+          Anterior
+        </button>
+        <span class="mx-2 text-gray-600">{{ currentPage }} / {{ totalPages }}</span>
+        <button 
+          class="px-4 py-2 bg-lime-100 text-lime-700 rounded-lg font-medium ml-2 disabled:opacity-50" 
+          :disabled="currentPage === totalPages"
+          @click="currentPage++"
+        >
+          Siguiente
+        </button>
+      </div>
+    </main>
   </div>
 </template>
 
@@ -220,302 +255,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.notifications-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #333;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-h1 {
-  font-size: 28px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0;
-}
-
-.notification-count {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #e74c3c;
-  color: white;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  font-size: 14px;
-  margin-left: 12px;
-  font-weight: bold;
-}
-
-.search-container {
-  margin-bottom: 20px;
-}
-
-.search-input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 16px;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 2px 10px rgba(52, 152, 219, 0.2);
-}
-
-.tabs {
-  display: flex;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #eee;
-}
-
-.tab-button {
-  padding: 12px 20px;
-  background: none;
-  border: none;
-  font-size: 16px;
-  font-weight: 500;
-  color: #666;
-  cursor: pointer;
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.tab-button:hover {
-  color: #3498db;
-}
-
-.tab-button.active {
-  color: #3498db;
-  font-weight: 600;
-}
-
-.tab-button.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background-color: #3498db;
-  border-radius: 3px 3px 0 0;
-}
-
-.notifications-list {
-  position: relative;
-  min-height: 100px;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 0;
-  color: #95a5a6;
-  text-align: center;
-}
-
-.empty-icon {
-  fill: #ccc;
-  margin-bottom: 16px;
-}
-
-.notification-link {
-  text-decoration: none;
-  color: inherit;
-  display: block;
-  margin-bottom: 16px;
-}
-
-.notification {
-  border-radius: 8px;
-  background-color: #fff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: stretch;
-  position: relative;
-  border-left: 4px solid transparent;
-}
-
-.notification.unread {
-  border-left-color: #3498db;
-  background-color: #f8fafd;
-}
-
-.notification:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.notification-indicator {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 10px;
-  height: 10px;
-  background-color: #3498db;
-  border-radius: 50%;
-}
-
-.notification-content {
-  flex: 1;
-  display: flex;
-  padding: 16px;
-}
-
-.image-container {
-  width: 80px;
-  flex-shrink: 0;
-  margin-right: 16px;
-  overflow: hidden;
-  border-radius: 6px;
-}
-
-.recipe-image {
-  width: 100%;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 6px;
-  transition: transform 0.3s ease;
-}
-
-.notification:hover .recipe-image {
-  transform: scale(1.05);
-}
-
-.notification-message {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.unread-notification {
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 8px 0;
-  line-height: 1.5;
-}
-
-.read-notification {
-  color: #57606f;
-  margin: 0 0 8px 0;
-  line-height: 1.5;
-}
-
-.notification-time {
-  font-size: 12px;
-  color: #95a5a6;
-}
-
-.notification-actions {
-  padding: 16px 16px 16px 0;
-  display: flex;
-  align-items: center;
-}
-
-.mark-read-button {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  background-color: #eaf2fd;
-  color: #3498db;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.mark-read-button svg {
-  margin-right: 4px;
-  fill: currentColor;
-}
-
-.mark-read-button:hover {
-  background-color: #d4e6fc;
-}
-
-/* Animaciones */
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.5s ease;
-}
-.list-enter-from,
-.list-leave-to {
-  opacity: 0;
-  transform: translateX(-30px);
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 24px;
-}
-
-.pagination-button {
-  padding: 8px 16px;
-  background-color: #f1f2f6;
-  color: #57606f;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.pagination-button:not(:disabled):hover {
-  background-color: #e2e5ea;
-}
-
-.pagination-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.page-info {
-  margin: 0 16px;
-  font-size: 14px;
-  color: #57606f;
-}
-
-/* Responsive design */
-@media (max-width: 600px) {
-  .notification-content {
-    flex-direction: column;
-  }
-  
-  .image-container {
-    width: 100%;
-    margin-right: 0;
-    margin-bottom: 16px;
-  }
-  
-  .recipe-image {
-    height: 120px;
-  }
-  
-  .notification-actions {
-    padding: 0 16px 16px 16px;
-    justify-content: flex-end;
-  }
-}
-</style>

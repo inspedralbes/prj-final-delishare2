@@ -1,7 +1,7 @@
 <template>
   <div v-if="!authStore.token" class="min-h-screen bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 flex items-center justify-center p-4">
     <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-8 max-w-md w-full shadow-xl text-center">
-      <p class="text-lime-900 text-lg mb-6">Debes iniciar sesión para ver los detalles de esta receta</p>
+      <p class="text-lime-900 text-lg mb-6">Per veure els detalls d'aquesta recepta, has d'iniciar sessió</p>
       <button @click="goToLogin" class="bg-gradient-to-r from-lime-500 via-green-500 to-emerald-500 text-white px-6 py-3 rounded-lg hover:from-lime-600 hover:via-green-600 hover:to-emerald-600 transition-all duration-300 shadow-lg hover:shadow-xl">
         Ir a Login
       </button>
