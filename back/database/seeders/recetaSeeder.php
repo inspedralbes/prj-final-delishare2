@@ -62,7 +62,7 @@ foreach ($users as $userData) {
             $cuisineInstances[] = Cuisine::firstOrCreate(['country' => $cuisine]);
         }
 
-        // Crear recetas con arrays directamente (sin json_encode)
+        // Crear recetas con arrays directamente
         $recipes = [
             [
                 'user_id' => $user2->id,
