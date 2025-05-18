@@ -156,7 +156,7 @@
 
             <div class="flex justify-center gap-4">
               <button @click="toggleCamera" class="flex items-center px-6 py-3 rounded-full transition-all duration-300"
-                :class="isCameraOn ? 'bg-lime-500 hover:bg-lime-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700">
+                :class="isCameraOn ? 'bg-lime-500 hover:bg-lime-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
                   stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
