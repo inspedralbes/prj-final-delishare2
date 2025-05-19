@@ -1,16 +1,14 @@
 import axios from 'axios';
 import io from 'socket.io-client';
 
-// Configuración base de Axios para las peticiones HTTP
+// Configuración base de Axios
 const apiClient = axios.create({
-  baseURL: 'https://delishare.cat/api',
+  baseURL: 'http://127.0.0.1:8000/api',
   headers: {
     'Content-Type': 'application/json',
   },
   withCredentials: true,
 });
-
-// Interceptor para añadir el token de autenticación a todas las peticiones
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -25,10 +23,9 @@ apiClient.interceptors.request.use(
 let socket = null;
 let isSocketConnected = false;
 
-// Función para establecer la conexión con el servidor de sockets
 const connectSocket = (userId) => {
   if (!socket) {
-    socket = io(process.env.VUE_APP_SOCKET_URL || 'https://delishare.cat/socket.io/', {
+    socket = io(process.env.VUE_APP_SOCKET_URL || 'http://127.0.0.1:8000/socket.io/', {
       transports: ['websocket', 'polling'],
       auth: {
         token: localStorage.getItem('token')
@@ -54,8 +51,8 @@ const connectSocket = (userId) => {
   }
 };
 
+
 const communicationManager = {
-  // Descarga un PDF de una receta específica
   downloadPDF(recipeId) {
     return apiClient.get(`/recipes/${recipeId}/download`, {
       responseType: 'blob',
@@ -75,7 +72,7 @@ const communicationManager = {
       });
   },
 
-  // Obtiene todas las categorías disponibles
+
   fetchCategories() {
     return apiClient.get('/categories')
       .then(response => response.data)
@@ -85,7 +82,6 @@ const communicationManager = {
       });
   },
 
-  // Obtiene todas las cocinas disponibles
   fetchCuisines() {
     return apiClient.get('/cuisines')
       .then(response => response.data)
@@ -94,8 +90,6 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Elimina una cocina específica por su ID
   deleteCuisine(id) {
     return apiClient.delete(`/cuisines/${id}`)
       .then(response => response.data)
@@ -104,8 +98,6 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Crea una nueva cocina
   createCuisine(cuisineData) {
     return apiClient.post('/cuisines', cuisineData)
       .then(response => response.data)
@@ -114,18 +106,6 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Obtiene los pasos de una receta específica
-  getRecipeSteps(recipeId) {
-    return apiClient.get(`/recipes/${recipeId}/steps`)
-      .then(response => response.data)
-      .catch(error => {
-        console.error('Error fetching recipe steps:', error);
-        throw error;
-      });
-  },
-
-  // Envía una solicitud de verificación
   sendVerificationRequest(message) {
     return apiClient.post('/send-verification', { message })
       .then(response => response.data)
@@ -134,8 +114,7 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Elimina una receta específica
+  
   deleteRecipe(id) {
     return apiClient.delete(`/recipes/${id}`)
       .then(response => response.data)
@@ -143,9 +122,9 @@ const communicationManager = {
         console.error(`Error al eliminar la receta con ID ${id}:`, error);
         throw error;
       });
-  },
-
-  // Obtiene todas las recetas
+  }
+  ,
+  // Función para obtener todas las recetas
   fetchRecipes() {
     return apiClient.get('/recipes')
       .then(response => response.data)
@@ -155,8 +134,17 @@ const communicationManager = {
       });
   },
 
-  // Obtiene los detalles de una receta específica
+  // Función para eliminar una receta por su ID
+  deleteRecipe(id) {
+    return apiClient.delete(`/recipes/${id}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error(`Error al eliminar la receta con ID ${id}:`, error);
+        throw error;
+      });
+  },
   fetchRecipeDetails(recipeId) {
+    // Asegúrate de que recipeId sea string si tu backend lo espera así
     return apiClient.get(`/recipes/${String(recipeId)}`)
       .then(response => response.data)
       .catch(error => {
@@ -167,8 +155,6 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Actualiza el rol de un usuario
   updateUserRole(userId, role) {
     return apiClient.put(`/usuarios/${userId}/rol`, { role })
       .then(response => response.data)
@@ -177,8 +163,7 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Obtiene todos los usuarios
+  
   fetchAllUsers() {
     return apiClient.get('/users')
       .then(response => response.data)
@@ -187,8 +172,6 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Elimina un usuario específico
   deleteUser(userId) {
     return apiClient.delete(`/users/${userId}`)
       .then(response => {
@@ -201,7 +184,6 @@ const communicationManager = {
       });
   },
 
-  // Crea una nueva receta
   createRecipe(recipeData) {
     return apiClient.post('/recipes', {
       ...recipeData,
@@ -214,17 +196,6 @@ const communicationManager = {
       });
   },
 
-  // Actualiza una receta existente
-  updateRecipe(recipeId, recipeData) {
-    return apiClient.put(`/recipes/${recipeId}`, recipeData)
-      .then(response => response.data)
-      .catch(error => {
-        console.error('Error updating recipe:', error);
-        throw error;
-      });
-  },
-
-  // Registra un nuevo usuario
   register(userData) {
     return apiClient.post('/register', userData)
       .then(response => response.data)
@@ -232,16 +203,18 @@ const communicationManager = {
         if (error.response && error.response.status === 422) {
           const validationErrors = error.response.data.errors;
           alert(Object.values(validationErrors).flat().join('\n'));
+          // Ya está manejado, no lo volvemos a lanzar
           return null;
         } else {
+          // Para errores inesperados sí mostramos algo
           alert('Error inesperado en el registro. Intenta de nuevo.');
           console.error('Error inesperado en el registro:', error);
           return null;
         }
       });
   },
+  
 
-  // Inicia sesión de un usuario
   login(userData) {
     return apiClient.post('/login', userData)
       .then(response => response.data)
@@ -251,7 +224,7 @@ const communicationManager = {
       });
   },
 
-  // Obtiene las recetas guardadas del usuario
+  // Obtener recetas guardadas
   getSavedRecipes() {
     return apiClient.get('/saved-recipes')
       .then(response => response.data)
@@ -261,7 +234,7 @@ const communicationManager = {
       });
   },
 
-  // Guarda o quita una receta de las guardadas
+  // Guardar o quitar una receta
   toggleSaveRecipe(recipeId) {
     return apiClient.post(`/saved-recipes/toggle/${recipeId}`)
       .then(response => response.data)
@@ -271,13 +244,13 @@ const communicationManager = {
       });
   },
 
-  // Obtiene la información del usuario actual
+  //info de cada user
   getUser: async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error("No token found");
 
-      const response = await axios.get('https://delishare.cat/api/user', {
+      const response = await axios.get('http://127.0.0.1:8000/api/user', {
         headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;
@@ -285,8 +258,6 @@ const communicationManager = {
       throw error;
     }
   },
-
-  // Obtiene las notificaciones del usuario
   async fetchNotifications() {
     try {
       const response = await apiClient.get('/notifications');
@@ -297,7 +268,7 @@ const communicationManager = {
     }
   },
 
-  // Obtiene todas las categorías
+  // Métodos nuevos para obtener categorías y cocinas
   getCategories() {
     return apiClient.get('/categories')
       .then(response => response.data)
@@ -306,8 +277,6 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Elimina una categoría específica
   deleteCategory(id) {
     return apiClient.delete(`/categories/${id}`)
       .then(response => response.data)
@@ -317,7 +286,15 @@ const communicationManager = {
       });
   },
 
-  // Crea una nueva categoría
+  // Método para crear una categoría (por si lo necesitas)
+  createCategory(categoryData) {
+    return apiClient.post('/categories', categoryData)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error creating category:', error);
+        throw error;
+      });
+  },
   createCategory(categoryData) {
     return apiClient.post('/categories', categoryData)
       .then(response => response.data)
@@ -327,7 +304,7 @@ const communicationManager = {
       });
   },
 
-  // Obtiene las notificaciones del usuario
+  // Notificaciones
   async getUserNotifications() {
     try {
       const response = await apiClient.get('/notifications');
@@ -338,11 +315,11 @@ const communicationManager = {
     }
   },
 
-  // Marca una notificación como leída
   async markNotificationAsRead(id) {
     try {
       const response = await apiClient.put(`/notifications/${id}/read`);
 
+      // Sincronizar con el servidor de sockets si está conectado
       if (socket && isSocketConnected) {
         socket.emit('markNotificationAsRead', id);
       }
@@ -354,18 +331,19 @@ const communicationManager = {
     }
   },
 
-  // Crea una nueva notificación
   async createNotification(data) {
     try {
+      // Primero crear en el backend PHP
       const response = await apiClient.post('/notifications', data);
 
+      // Luego enviar por sockets si está conectado
       if (socket && isSocketConnected) {
         socket.emit('createNotification', {
           recipientId: data.user_id,
           message: response.data.message,
           recipeId: data.recipe_id,
           type: data.type,
-          triggeredBy: data.triggered_by
+          triggeredBy: data.triggered_by // Asumiendo que esto viene del store de autenticación
         });
       }
 
@@ -376,7 +354,7 @@ const communicationManager = {
     }
   },
 
-  // Obtiene recetas filtradas por categoría
+  // Filtrar recetas por categoría
   fetchRecipesByCategory(categoryId) {
     return apiClient.get(`/filterByCategory/${categoryId}`)
       .then(response => response.data)
@@ -386,7 +364,6 @@ const communicationManager = {
       });
   },
 
-  // Obtiene todos los usuarios
   fetchUsers() {
     return apiClient.get('/getAllUsers')
       .then(response => response.data.users)
@@ -396,7 +373,6 @@ const communicationManager = {
       });
   },
 
-  // Obtiene todos los ingredientes
   fetchIngredients() {
     return apiClient.get('/ingredients')
       .then(response => response.data)
@@ -405,8 +381,6 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Obtiene recetas filtradas por ingredientes
   fetchRecipesByIngredients(ingredients) {
     return apiClient.post('/recipes/filter-by-ingredients', { ingredients })
       .then(response => response.data)
@@ -416,7 +390,8 @@ const communicationManager = {
       });
   },
 
-  // Obtiene recetas filtradas por cocina
+
+  // Obtener recetas filtradas por el ID de la cocina
   fetchRecipesByCuisine(cuisineId) {
     return apiClient.get(`/filterByCuisine/${cuisineId}`)
       .then(response => response.data)
@@ -425,8 +400,7 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Obtiene todos los tiempos disponibles
+  // Obtener todos los tiempos disponibles
   getAllTimes() {
     return apiClient.get('/times')
       .then(response => response.data)
@@ -436,7 +410,7 @@ const communicationManager = {
       });
   },
 
-  // Obtiene recetas filtradas por tiempo
+  // Filtrar recetas por tiempo total (preparación + cocción)
   fetchRecipesByTime(time) {
     return apiClient.get(`/filterByTime/${time}`)
       .then(response => response.data)
@@ -445,8 +419,6 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Actualiza el perfil del usuario
   updateProfile(userData) {
     return apiClient.post('/updatePerfile', userData)
       .then(response => response.data)
@@ -456,7 +428,6 @@ const communicationManager = {
       });
   },
 
-  // Actualiza la foto de perfil del usuario
   async updateProfilePicture(img) {
     return apiClient.put('/updateProfilePicture', img)
       .then(response => {
@@ -469,8 +440,8 @@ const communicationManager = {
       });
   },
 
-  // Cambia la contraseña del usuario
   changePassword(passwordData) {
+
     return apiClient.post('/cambiarContra', passwordData)
       .then(response => response.data)
       .catch(error => {
@@ -478,8 +449,6 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Obtiene las recetas de un usuario específico
   getUserRecipes(id) {
     return apiClient.get(`/user/${id}/recipes`)
       .then(response => response.data)
@@ -487,9 +456,9 @@ const communicationManager = {
         console.error('Error fetching user recipes:', error);
         throw error;
       });
+
   },
 
-  // Obtiene los comentarios de una receta
   fetchComments(recipeId) {
     return apiClient.get(`/recipes/${recipeId}/comments`)
       .then(response => response.data)
@@ -498,18 +467,25 @@ const communicationManager = {
         throw error;
       });
   },
+  // Eliminar receta
+  deleteRecipe(recipeId) {
+    return apiClient.delete(`/recipes/${recipeId}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error eliminando receta:', error);
+        throw error;
+      });
+  },
 
-  // Añade un comentario a una receta
+  // Agregar un comentario a una receta
   addComment(recipeId, commentText) {
-    return apiClient.post(`/recipes/${recipeId}/comment`, { comment: commentText })
+    return apiClient.post(`/recipes/${recipeId}/comment`, { comment: commentText })  // <-- Enviar 'comment' en lugar de 'text'
       .then(response => response.data)
       .catch(error => {
         console.error('Error adding comment:', error);
         throw error;
       });
   },
-
-  // Obtiene todos los comentarios
   getAllComments() {
     return apiClient.get('/comments')
       .then(response => response.data)
@@ -518,8 +494,6 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Elimina un comentario
   deleteComment(recipeId, commentText) {
     return apiClient.delete(`/recipes/${recipeId}/comments`, {
       data: { comment: commentText }
@@ -530,8 +504,6 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Crea una nueva carpeta
   createFolder(folderName) {
     return apiClient.post('/folders', { name: folderName })
       .then(response => response.data)
@@ -540,8 +512,7 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Obtiene las recetas de una carpeta específica
+  // Obtener las recetas de una carpeta
   fetchFolderRecipes(folderId) {
     return apiClient.get(`/folders/${folderId}/recipes`)
       .then(response => response.data.recipes)
@@ -551,7 +522,8 @@ const communicationManager = {
       });
   },
 
-  // Guarda una receta en una carpeta
+
+  // Guardar una receta en una carpeta
   saveRecipeToFolder(folderId, recipeId) {
     return apiClient.post(`/folders/${folderId}/recipes/${recipeId}`)
       .then(response => response.data)
@@ -560,10 +532,9 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Elimina una receta de una carpeta
   removeRecipeFromFolder: async (recipeId, folderId) => {
     try {
+      // Asegúrate de que la URL esté correctamente construida
       const response = await apiClient.delete(`/folders/${folderId}/recipes/${recipeId}`);
       return response.data;
     } catch (error) {
@@ -572,7 +543,7 @@ const communicationManager = {
     }
   },
 
-  // Obtiene las recetas guardadas del usuario
+  // Obtener las recetas guardadas por el usuario
   fetchUserSavedRecipes() {
     return apiClient.get('/user/saved-recipes')
       .then(response => response.data)
@@ -581,8 +552,7 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Obtiene las carpetas del usuario
+  // Obtener las carpetas del usuario
   fetchUserFolders() {
     return apiClient.get('/folders')
       .then(response => response.data)
@@ -591,8 +561,7 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Elimina una carpeta
+  // Método para eliminar una carpeta
   deleteFolder(folderId) {
     return apiClient.delete(`/folders/${folderId}`)
       .then(response => response.data)
@@ -602,7 +571,32 @@ const communicationManager = {
       });
   },
 
-  // Da o quita like a una receta
+  // Eliminar receta
+  deleteRecipe(recipeId) {
+    return apiClient.delete(`/recipes/${recipeId}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error eliminando receta:', error);
+        throw error;
+      });
+  },
+  saveRecipeToFolder(folderId, recipeId) {
+    return apiClient.post(`/folders/${folderId}/recipes/${recipeId}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error saving recipe to folder:', error.response ? error.response.data : error.message);
+        throw error;
+      });
+  },
+  // Guardar o quitar una receta de las recetas guardadas
+  toggleSaveRecipe(recipeId) {
+    return apiClient.post(`/saved-recipes/toggle/${recipeId}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error toggling saved recipe:', error);
+        throw error;
+      });
+  },
   toggleLike(recipeId) {
     return apiClient.post(`/recipes/${recipeId}/like`)
       .then(response => response.data)
@@ -611,22 +605,22 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Obtiene las recetas que el usuario ha dado like
+  // Añade esto en tu objeto communicationManager
   getUserLikedRecipes: async () => {
     try {
       const response = await apiClient.get('/user/liked-recipes');
       return response.data;
     } catch (error) {
       console.error('Error fetching liked recipes:', error.response?.data?.message || error.message);
+
+      // Manejo específico para errores de autenticación
       if (error.response?.status === 401) {
         throw new Error('Debes iniciar sesión para ver tus recetas likeadas');
       }
+
       throw error;
     }
   },
-
-  // Obtiene los likes de una receta
   getLikes(recipeId) {
     return apiClient.get(`/recipes/${recipeId}/likes`)
       .then(response => response.data)
@@ -635,8 +629,6 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Cierra la sesión del usuario
   logout() {
     const authStore = useAuthStore();
     try {
@@ -653,8 +645,6 @@ const communicationManager = {
       console.error('Error al intentar cerrar sesión:', error);
     }
   },
-
-  // Obtiene las opciones de recomendaciones
   fetchCuisinesAndCategories() {
     return apiClient.get('/recommendations/options')
       .then(response => response.data)
@@ -663,21 +653,37 @@ const communicationManager = {
         throw error;
       });
   },
-
-  // Obtiene las preferencias del usuario
+  fetchRecipesByIngredients(ingredients) {
+    // Validación antes de enviar la solicitud
+    if (!Array.isArray(ingredients) || ingredients.length === 0) {
+      return Promise.reject(new Error('Debe proporcionar al menos un ingrediente'));
+    }
+  
+    return apiClient.post('/recipes/filter-by-ingredients', { ingredients })
+      .then(response => {
+        // Aquí podrías añadir más lógica si es necesario (como mostrar un mensaje si no se encuentran recetas)
+        return response.data;
+      })
+      .catch(error => {
+        // Manejo de errores mejorado
+        console.error('Error fetching recipes by ingredients:', error);
+        // Puedes lanzar un error más controlado o manejarlo de otra manera:
+        throw new Error('No se pudieron obtener las recetas. Por favor, intente nuevamente.');
+      });
+  }
+  ,
   fetchUserPreferences() {
     return apiClient.get('/recommendations/preferences')
       .then(response => response.data)
       .catch(error => {
         if (error.response && error.response.status === 404) {
-          return { data: null };
+          return { data: null }; // No hay preferencias guardadas
         }
         console.error('Error fetching preferences:', error);
         throw error;
       });
   },
 
-  // Guarda las preferencias del usuario
   savePreferences(data) {
     return apiClient.post('/recommendations/preferences', data)
       .then(response => response.data)
@@ -687,20 +693,31 @@ const communicationManager = {
       });
   },
 
-  // Obtiene las recetas recomendadas
   getRecommendedRecipes() {
     return apiClient.get('/recipes/recommended')
-      .then(response => response.data)
+      .then(response => {
+        // Return recommended recipes directly
+        return response.data.recommended_recipes;
+      })
       .catch(error => {
         console.error('Error fetching recommended recipes:', error);
         throw error;
       });
   },
 
-  // Obtiene todos los lives disponibles
+  // Obtener todos los lives disponibles
   getLives() {
     return apiClient.get('/lives')
-      .then(response => response.data)
+      .then(response => {
+        const responseData = response.data?.data || response.data;
+        if (Array.isArray(responseData)) {
+          return {
+            data: responseData,
+            success: response.data?.success || true
+          };
+        }
+        throw new Error('Formato de datos inesperado');
+      })
       .catch(error => {
         console.error('Error fetching lives:', error);
         const status = error.response?.status;
@@ -710,7 +727,7 @@ const communicationManager = {
       });
   },
 
-  // Crea un nuevo live (solo chefs)
+  // Crear un nuevo live (solo chefs)
   createLive(liveData) {
     return apiClient.post('/lives', liveData)
       .then(response => response.data)
@@ -723,7 +740,7 @@ const communicationManager = {
       });
   },
 
-  // Obtiene los detalles de un live específico
+  // Obtener detalles de un live específico
   getLiveDetails(liveId) {
     return apiClient.get(`/lives/${liveId}`)
       .then(response => response.data)
@@ -736,7 +753,7 @@ const communicationManager = {
       });
   },
 
-  // Actualiza un live existente
+  // Actualizar un live (solo chef dueño)
   updateLive(liveId, updateData) {
     return apiClient.put(`/lives/${liveId}`, updateData)
       .then(response => response.data)
@@ -752,58 +769,19 @@ const communicationManager = {
       });
   },
 
-  // Obtiene los lives del chef autenticado
+  // Obtener los lives del chef autenticado
   async getChefLives() {
     try {
       const response = await apiClient.get('/mis-lives');
-      return response.data;
+      const lives = response.data?.data || [];
+      return { lives };
     } catch (error) {
-      console.error('Error fetching chef lives:', error);
-      throw error;
+      console.error('Error en fetch getChefLives:', error);
+      throw new Error(error.response?.data?.message || 'Error al obtener los lives del chef');
     }
   },
 
-  // Obtiene los lives de un chef específico
-  getChefLivesByUserId: async (userId) => {
-    try {
-      const response = await apiClient.get(`/chef/${userId}/lives`);
-      return response.data?.data || response.data || [];
-    } catch (error) {
-      console.error('Error fetching chef lives:', error);
-      if (error.response?.status === 404) {
-        return [];
-      }
-      throw error;
-    }
-  },
-
-  // Obtiene la información de un usuario específico
-  getUserInfo: async (userId) => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error("No token found");
-
-      const response = await axios.get(`https://delishare.cat/api/userInfo/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // Obtiene los lives de un usuario específico
-  async getUserLives(userId) {
-    try {
-      const response = await apiClient.get(`/users/${userId}/lives`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching user getUserLives:', error);
-      throw error;
-    }
-  },
-
-  // Elimina un live específico
+  // Eliminar un live (solo chef dueño)
   async deleteLive(liveId) {
     try {
       const response = await apiClient.delete(`/lives/${liveId}`);
@@ -813,14 +791,90 @@ const communicationManager = {
       throw new Error(error.response?.data?.message || 'Error al eliminar el live');
     }
   },
+  // Obtener información de un usuario específico
+  getUserInfo: async (userId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error("No token found");
 
-  // Inicializa la conexión con el servidor de sockets
+      const response = await axios.get(`http://127.0.0.1:8000/api/userInfo/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  // Obtener los lives de un chef específico por su ID
+  getChefLivesByUserId: async (userId) => {
+    try {
+      const response = await apiClient.get(`/chef/${userId}/lives`);
+      return response.data?.data || response.data || [];
+    } catch (error) {
+      console.error('Error fetching chef lives:', error);
+      if (error.response?.status === 404) {
+        return []; // Retorna array vacío si no hay lives
+      }
+      throw error;
+    }
+  },
+
+
+  // Notificaciones
+  async getUserNotifications() {
+    try {
+      const response = await apiClient.get('/notifications');
+      return response.data;
+    } catch (error) {
+      console.error('Error obteniendo notificaciones:', error);
+      throw error;
+    }
+  },
+
+  async markNotificationAsRead(id) {
+    try {
+      const response = await apiClient.put(`/notifications/${id}/read`);
+      
+      // Sincronizar con el servidor de sockets si está conectado
+      if (socket && isSocketConnected) {
+        socket.emit('markNotificationAsRead', id);
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error marcando notificación como leída:', error);
+      throw error;
+    }
+  },
+
+  async createNotification(data) {
+    try {
+      const response = await apiClient.post('/notifications', data);
+      
+      // Enviar por sockets si está conectado
+      if (socket && isSocketConnected) {
+        socket.emit('createNotification', {
+          recipientId: data.user_id,
+          message: response.data.message,
+          recipeId: data.recipe_id,
+          type: data.type,
+          triggeredBy: data.triggered_by
+        });
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error creando notificación:', error);
+      throw error;
+    }
+  },
+
+  // Socket.IO
   initSocket(userId) {
     connectSocket(userId);
     return socket;
   },
 
-  // Desconecta el socket
   disconnectSocket() {
     if (socket) {
       socket.disconnect();
@@ -829,10 +883,8 @@ const communicationManager = {
     }
   },
 
-  // Obtiene la instancia del socket
   getSocket() {
     return socket;
   }
 };
-
 export default communicationManager;

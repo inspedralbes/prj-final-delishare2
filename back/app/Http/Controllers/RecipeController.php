@@ -318,17 +318,120 @@ class RecipeController extends Controller
     }
 
     // Devuelve las recomendaciones para el usuario autenticado con info del usuario y receta
-    public function getRecommendations(Request $request)
+    public function getRecommendedRecipes(Request $request)
     {
         $userId = $request->user()->id;
 
-        $recommendations = Recommendation::with('user', 'recipe')
-            ->where('user_id', $userId)
-            ->get();
+        try {
+            // Get user's recommendation preferences
+            $recommendation = Recommendation::with('user')
+                ->where('user_id', $userId)
+                ->firstOrFail();
 
-        return response()->json($recommendations);
+            // Get all recipes
+            $recipes = Recipe::with(['user', 'category', 'cuisine'])
+                ->get();
+
+            // Filter recipes based on preferences
+            $filteredRecipes = $recipes->filter(function ($recipe) use ($recommendation) {
+                $cuisineMatch = in_array($recipe->cuisine_id, $recommendation->cuisine_ids ?? []);
+                $categoryMatch = in_array($recipe->category_id, $recommendation->category_ids ?? []);
+                return $cuisineMatch || $categoryMatch;
+            });
+
+            // Shuffle and take top 10
+            $recommendedRecipes = $filteredRecipes->shuffle()->take(10);
+
+            return response()->json([
+                'recommendation' => $recommendation,
+                'recommended_recipes' => $recommendedRecipes
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'No se encontraron preferencias de recomendaciones para este usuario'
+            ], 404);
+        }
     }
-    
+    public function getAllIngredients()
+    {
+        // Obtener todas las recetas con solo el campo de ingredientes
+        $recipes = Recipe::select('ingredients')->get();
+        
+        // Array para almacenar todos los ingredientes
+        $allIngredients = [];
+        
+        // Recorrer cada receta y extraer los ingredientes
+        foreach ($recipes as $recipe) {
+            $ingredients = $recipe->ingredients;
+            
+            // Si es un string, intentar decodificar como JSON
+            if (is_string($ingredients)) {
+                $decoded = json_decode($ingredients, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $ingredients = $decoded;
+                } else {
+                    // Si no es JSON válido, continuar con la siguiente receta
+                    continue;
+                }
+            }
+            
+            // Si es un array, procesar cada ingrediente
+            if (is_array($ingredients)) {
+                foreach ($ingredients as $ingredient) {
+                    // Si el ingrediente es un array (como en tu estructura de datos)
+                    if (is_array($ingredient) && isset($ingredient['name'])) {
+                        $allIngredients[] = $ingredient['name'];
+                    } 
+                    // Si es un string directo
+                    elseif (is_string($ingredient)) {
+                        $allIngredients[] = $ingredient;
+                    }
+                }
+            }
+        }
+        
+        // Limpiar ingredientes: eliminar espacios en blanco, valores vacíos y duplicados
+        $cleanedIngredients = array_map(function($item) {
+            return is_string($item) ? trim($item) : $item;
+        }, $allIngredients);
+        
+        $cleanedIngredients = array_filter($cleanedIngredients, function($item) {
+            return !empty($item) && is_string($item);
+        });
+        
+        $uniqueIngredients = array_unique($cleanedIngredients);
+        
+        // Ordenar alfabéticamente
+        sort($uniqueIngredients);
+        
+        return response()->json([
+            'success' => true,
+            'count' => count($uniqueIngredients),
+            'ingredients' => array_values($uniqueIngredients) // reindexar array
+        ], 200);
+    }
+
+    // Filtrar recetas por ingredientes
+    public function filterByIngredients(Request $request)
+    {
+        $request->validate([
+            'ingredients' => 'required|array|min:1',
+            'ingredients.*' => 'string'
+        ]);
+
+        $ingredients = $request->input('ingredients');
+
+        // Buscar recetas que contengan TODOS los ingredientes
+        $recipes = Recipe::where(function ($query) use ($ingredients) {
+            foreach ($ingredients as $ingredient) {
+                $query->whereRaw('JSON_CONTAINS(ingredients, ?)', [json_encode($ingredient)]);
+            }
+        })->get();
+
+        return response()->json([
+            'recipes' => $recipes,
+        ], 200);
+    }
     // Devuelve la receta con ID aleatorio
     public function getRandomRecipe()
     {

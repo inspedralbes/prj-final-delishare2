@@ -71,8 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/recipes/{id}', [RecipeController::class, 'update']);
     Route::delete('/recipes/{id}', [RecipeController::class, 'destroy']);
     Route::post('/recipes/{recipe}/like', [RecipeController::class, 'toggleLike']);
-    Route::get('/recipes/{recipe}/likes', [RecipeController::class, 'getLikes']);
-});
+    Route::get('/recipes/{recipe}/likes', [RecipeController::class, 'getLikes']);});
 
 Route::get('/', function () {
     return view('welcome');
@@ -139,18 +138,13 @@ Route::get('/recipes/{id}/download', [RecipeController::class, 'downloadFullReci
 
 Route::middleware(['auth:sanctum'])->group(function () {
     // Todas las rutas de lives protegidas
-    Route::get('/lives', [LiveController::class, 'index']);         
-    Route::post('/lives', [LiveController::class, 'store']);        
-    Route::get('/lives/{live}', [LiveController::class, 'show']);   
-    Route::put('/lives/{live}', [LiveController::class, 'update']);
-    Route::delete('/lives/{live}', [LiveController::class, 'destroy']); 
-    Route::get('/mis-lives', [LiveController::class, 'chefLives']); 
-});
-
-// Rutas públicas de lives
-Route::get('/users/{userId}/lives', [LiveController::class, 'getUserLives']); 
-//Route::get('/mis-lives', [LiveController::class, 'misLivesProgramados'])->middleware('auth:sanctum');
+    Route::get('/lives', [LiveController::class, 'index']);         // Listar todos los lives (futuros)
+    Route::post('/lives', [LiveController::class, 'store']);        // Crear un nuevo live (solo chefs)
+    Route::get('/lives/{live}', [LiveController::class, 'show']);   // Ver detalles de un live específico
+    Route::put('/lives/{live}', [LiveController::class, 'update']); // Actualizar un live (solo el chef dueño)
+    Route::delete('/lives/{live}', [LiveController::class, 'destroy']); // Eliminar un live (solo el chef dueño)
+    Route::get('/lives/chef', [LiveController::class, 'chefLives']); // Lives del chef actual
+});Route::get('/mis-lives', [LiveController::class, 'misLivesProgramados'])->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->post('/send-verification', [UserController::class, 'sendVerificationEmail']);
 Route::middleware('auth:sanctum')->put('/usuarios/{id}/rol', [AuthController::class, 'cambiarRol']);
-Route::get('/recipes/{id}/steps', [RecipeController::class, 'getRecipeSteps']);

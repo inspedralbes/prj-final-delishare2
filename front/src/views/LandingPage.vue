@@ -16,7 +16,8 @@
       <div class="absolute inset-0 bg-gradient-to-t from-lime-500/70 to-transparent rounded-b-xl"></div>
       <div class="absolute bottom-6 left-0 w-full px-6 text-white">
         <h1 class="text-3xl md:text-2xl lg:text-3xl font-bold leading-tight drop-shadow">Descobreix noves receptes</h1>
-        <p class="text-xl md:text-base leading-snug drop-shadow">Comparteix i explora receptes delicioses amb la comunitat</p>
+        <p class="text-xl md:text-base leading-snug drop-shadow">Comparteix i explora receptes delicioses amb la
+          comunitat</p>
       </div>
       <!-- Carousel indicators -->
       <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-3">
@@ -52,7 +53,7 @@
       <div v-else-if="activeTab === 'recent'">
         <h2 class="text-2xl md:text-xl font-bold mb-6 md:mb-2 text-lime-700">Més recents</h2>
         <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
-         <RecipeCard v-for="(recipe, i) in displayedRecentRecipes.slice(0, 20)" :key="i" :recipe-id="recipe.id"
+          <RecipeCard v-for="(recipe, i) in displayedRecentRecipes.slice(0, 20)" :key="i" :recipe-id="recipe.id"
             :title="recipe.title" :description="recipe.description || 'Sense descripció disponible'"
             :image="recipe.image" :class="['text-base p-4 rounded-xl shadow-md md:text-sm md:p-3 md:rounded-lg h-[280px]',
               i === displayedRecentRecipes.length - 1 ? 'mb-8' : ''
@@ -62,9 +63,11 @@
 
       <div v-else>
         <h2 class="text-2xl md:text-xl font-bold mb-6 md:mb-2 text-lime-700">Recomanades per a tu</h2>
-        <div v-if="recommendedRecipes.length" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
-          <RecipeCard v-for="(recipe, i) in recommendedRecipes.slice(0, 20)" :key="i" :recipe-id="recipe.id" :title="recipe.title"
-            :description="recipe.description || 'Sense descripció disponible'" :image="recipe.image" :class="['text-base p-4 rounded-xl shadow-md md:text-sm md:p-3 md:rounded-lg h-[280px]',
+        <div v-if="recommendedRecipes.length"
+          class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+          <RecipeCard v-for="(recipe, i) in recommendedRecipes.slice(0, 20)" :key="i" :recipe-id="recipe.id"
+            :title="recipe.title" :description="recipe.description || 'Sense descripció disponible'"
+            :image="recipe.image" :class="['text-base p-4 rounded-xl shadow-md md:text-sm md:p-3 md:rounded-lg h-[280px]',
               i === recommendedRecipes.length - 1 ? 'mb-8' : ''
             ]" imageClass="h-52 w-full object-cover rounded-lg mb-2" />
         </div>
@@ -130,7 +133,7 @@ export default {
   created() {
     this.startCarousel();
     this.fetchAllRecipes();
-    this.fetchRecommendedRecipes(); 
+    this.fetchRecommendedRecipes();
   },
   methods: {
     /**
@@ -175,7 +178,7 @@ export default {
     async fetchRecommendedRecipes() {
       try {
         const response = await communicationManager.getRecommendedRecipes();
-        this.recommendedRecipes = response.recipes || [];
+        this.recommendedRecipes = response || [];
       } catch (error) {
         console.error('Error fetching recommended recipes:', error);
         this.popupMessage = 'Error al cargar recomendaciones';
