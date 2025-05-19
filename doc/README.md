@@ -849,4 +849,3 @@ Tant per imatges com per vídeos:
   "isFood": true | false,
   "reason": "explicació en català"
 }
-
