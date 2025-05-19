@@ -1,15 +1,12 @@
 <template>
-  <!-- Contenedor principal del perfil - Contiene toda la vista del perfil de usuario -->
   <div class="profile-container pb-24">
-    <!-- Contenedor principal de contenido - Solo visible si el usuario está autenticado -->
     <div v-if="authStore.isAuthenticated">
-      <!-- Popup de notificación - Muestra mensajes temporales al usuario (éxito, error, etc) -->
-      <div v-if="popupMessage"
-        class="fixed top-5 right-5 bg-gradient-to-r from-lime-500 to-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
+      <!-- Popup de notificación -->
+      <div v-if="popupMessage" class="popup-notification">
         {{ popupMessage }}
       </div>
 
-      <!-- Modal de creación de carpeta - Permite al usuario crear nuevas carpetas para organizar recetas -->
+      <!-- Crear nova carpeta -->
       <div v-if="showCreateFolderInput"
         class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
         @click="showCreateFolderInput = false">
@@ -25,27 +22,34 @@
                 </svg>
               </button>
             </div>
-            <div class="mb-6">
-              <label for="folderName" class="block text-sm font-medium text-gray-700 mb-2">Nom de la carpeta</label>
-              <input type="text" id="folderName" v-model="newFolderName"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-lime-500 transition-colors"
-                placeholder="Introdueix el nom de la carpeta">
-            </div>
-            <div class="flex justify-end gap-4">
-              <button @click="showCreateFolderInput = false"
-                class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
-                Cancel·lar
-              </button>
-              <button @click="createFolder"
-                class="px-6 py-2 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg">
-                Crear Carpeta
-              </button>
+            <div class="space-y-4">
+              <div class="form-group">
+                <label for="folder-name" class="block text-sm font-medium text-gray-700 mb-1">Nom de la carpeta:</label>
+                <input type="text" id="folder-name" v-model="newFolderName" placeholder="Nom de la carpeta"
+                  @keyup.enter="createFolder" ref="folderNameInput" autofocus
+                  class="w-full px-3 py-2 text-sm text-gray-700 bg-white border-2 border-lime-200 rounded-lg focus:outline-none focus:border-lime-400 focus:ring-2 focus:ring-lime-200 transition-all duration-300" />
+              </div>
+              <div class="flex space-x-4 pt-4">
+                <button @click="createFolder"
+                  class="flex-1 px-4 py-2 bg-gradient-to-r from-lime-400 to-green-500 text-white font-medium rounded-lg shadow-md hover:from-lime-500 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-lime-300 focus:ring-opacity-50 transition-all duration-300 transform hover:scale-105">
+                  <span class="flex items-center justify-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Crear Carpeta
+                  </span>
+                </button>
+                <button @click="showCreateFolderInput = false"
+                  class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg shadow-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50 transition-all duration-300">
+                  Cancelar
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Header del perfil - Muestra la información principal del usuario y botones de acción -->
+      <!-- Header de perfil -->
       <div
         class="relative mb-10 rounded-2xl bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 p-4 sm:p-6 shadow-lg">
         <div class="flex justify-between items-start">
@@ -129,7 +133,7 @@
         </div>
       </div>
 
-      <!-- Menú de ajustes - Modal con opciones para modificar el perfil del usuario -->
+      <!-- Menú de ajustes -->
       <div v-if="settingsMenuOpen"
         class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
         @click="toggleSettingsMenu">
@@ -222,7 +226,7 @@
         </div>
       </div>
 
-      <!-- Modal de confirmación de cierre de sesión - Pide confirmación antes de cerrar sesión -->
+      <!-- Confirmar logout -->
       <div v-if="showLogoutConfirmation"
         class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 transform transition-all duration-300">
@@ -232,23 +236,253 @@
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
               </path>
             </svg>
-            <h3 class="text-xl font-bold text-gray-900 mb-2">Estàs segur?</h3>
-            <p class="text-gray-600 mb-6">Estàs segur que vols tancar la sessió?</p>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">¿Estás seguro?</h3>
+            <p class="text-gray-600 mb-6">¿Estàs segur que vols tancar la sessió?</p>
             <div class="flex space-x-4">
               <button @click="logout"
                 class="flex-1 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white font-medium rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-300">
-                Sí, tancar sessió
+                Sí, cerrar sesión
               </button>
               <button @click="cancelLogout"
                 class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-all duration-300">
-                Cancel·lar
+                Cancelar
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Sección de recetas guardadas - Muestra las recetas que el usuario ha guardado -->
+      <!-- Formularios de ajustes -->
+      <div v-if="activeTab === 'image'"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 p-6 transform transition-all duration-300">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-lime-900">Cambiar Foto de Perfil</h3>
+            <button @click="cancelEdit" class="text-gray-500 hover:text-gray-700 transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-gray-50 rounded-xl p-4">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">Foto actual</h4>
+              <div class="aspect-square rounded-lg overflow-hidden bg-gray-100">
+                <img :src="user.img || defaultProfile" alt="Foto de perfil actual" class="w-full h-full object-cover" />
+              </div>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-4">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">Nueva foto</h4>
+              <div
+                class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-lime-500 transition-colors">
+                <input type="file" id="image" @change="uploadImage" accept="image/*" class="hidden" />
+                <label for="image" class="cursor-pointer">
+                  <svg class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                    </path>
+                  </svg>
+                  <p class="text-sm text-gray-600">Haz clic para seleccionar una imagen</p>
+                  <p class="text-xs text-gray-500 mt-1">o arrastra y suelta una imagen aquí</p>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="mt-6 flex justify-end">
+            <button @click="cancelEdit"
+              class="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-all duration-300">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="activeTab === 'name'"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 transform transition-all duration-300">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-lime-900">Editar Perfil</h3>
+            <button @click="cancelEdit" class="text-gray-500 hover:text-gray-700 transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label for="newName" class="block text-sm font-medium text-gray-700 mb-1">Nou nom:</label>
+              <input type="text" id="newName" v-model="newName" :placeholder="user.name"
+                class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-lime-500 transition-colors" />
+            </div>
+            <div>
+              <label for="newEmail" class="block text-sm font-medium text-gray-700 mb-1">Nou email:</label>
+              <input type="email" id="newEmail" v-model="newEmail" :placeholder="user.email"
+                class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-lime-500 transition-colors" />
+            </div>
+            <div>
+              <label for="newBio" class="block text-sm font-medium text-gray-700 mb-1">Biografia:</label>
+              <textarea id="newBio" v-model="newBio" :placeholder="user.bio || 'Afegeix una biografia...'" rows="4"
+                class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-lime-500 transition-colors"></textarea>
+            </div>
+          </div>
+          <div class="mt-6 flex space-x-4">
+            <button @click="updateProfile"
+              class="flex-1 px-4 py-2 bg-gradient-to-r from-lime-500 to-green-500 text-white font-medium rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300">
+              Guardar canvis
+            </button>
+            <button @click="cancelEdit"
+              class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-all duration-300">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="activeTab === 'password'"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 transform transition-all duration-300">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-lime-900">Cambiar Contraseña</h3>
+            <button @click="cancelEdit" class="text-gray-500 hover:text-gray-700 transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-1">Contrasenya
+                actual:</label>
+              <div class="relative">
+                <input :type="showCurrentPassword ? 'text' : 'password'" id="currentPassword" v-model="currentPassword"
+                  class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-lime-500 transition-colors" />
+                <button @click="togglePasswordVisibility('current')"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                  <img :src="showCurrentPassword ? eyeOpenIcon : eyeClosedIcon" class="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div>
+              <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1">Nova contrasenya:</label>
+              <div class="relative">
+                <input :type="showNewPassword ? 'text' : 'password'" id="newPassword" v-model="newPassword"
+                  class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-lime-500 transition-colors" />
+                <button @click="togglePasswordVisibility('new')"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                  <img :src="showNewPassword ? eyeOpenIcon : eyeClosedIcon" class="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div>
+              <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirmar nova
+                contrasenya:</label>
+              <div class="relative">
+                <input :type="showConfirmPassword ? 'text' : 'password'" id="confirmPassword" v-model="confirmPassword"
+                  class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-lime-500 transition-colors" />
+                <button @click="togglePasswordVisibility('confirm')"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                  <img :src="showConfirmPassword ? eyeOpenIcon : eyeClosedIcon" class="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="mt-6 flex space-x-4">
+            <button @click="updatePassword"
+              class="flex-1 px-4 py-2 bg-gradient-to-r from-lime-500 to-green-500 text-white font-medium rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300">
+              Guardar canvis
+            </button>
+            <button @click="cancelEdit"
+              class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-all duration-300">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones para ver secciones -->
+      <div v-if="!showLiveForm && !settingsMenuOpen && activeTab === ''"
+        class="flex justify-center gap-4 mt-8 mb-6 px-6 md:gap-2 md:mt-4 md:mb-2 md:px-2">
+        <button @click="toggleSection('recipes')" :class="[
+          'flex-1 py-2 px-2 text-sm rounded-full font-semibold transition-all duration-300',
+          'md:py-4 md:px-4 md:text-base',
+          showRecipes && !showLivesSection ? 'bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 shadow-lg hover:shadow-xl hover:brightness-110' : 'bg-gradient-to-r from-green-100 via-lime-50 to-lime-100 text-lime-700 hover:from-green-200 hover:via-lime-100 hover:to-lime-200 hover:shadow-md'
+        ]">
+          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="inline-block">
+            <path
+              d="M14 5.6C14 5.03995 14 4.75992 14.109 4.54601C14.2049 4.35785 14.3578 4.20487 14.546 4.10899C14.7599 4 15.0399 4 15.6 4H18.4C18.9601 4 19.2401 4 19.454 4.10899C19.6422 4.20487 19.7951 4.35785 19.891 4.54601C20 4.75992 20 5.03995 20 5.6V8.4C20 8.96005 20 9.24008 19.891 9.45399C19.7951 9.64215 19.6422 9.79513 19.454 9.89101C19.2401 10 18.9601 10 18.4 10H15.6C15.0399 10 14.7599 10 14.546 9.89101C14.3578 9.79513 14.2049 9.64215 14.109 9.45399C14 9.24008 14 8.96005 14 8.4V5.6Z"
+              stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path
+              d="M4 5.6C4 5.03995 4 4.75992 4.10899 4.54601C4.20487 4.35785 4.35785 4.20487 4.54601 4.10899C4.75992 4 5.03995 4 5.6 4H8.4C8.96005 4 9.24008 4 9.45399 4.10899C9.64215 4.20487 9.79513 4.35785 9.89101 4.54601C10 4.75992 10 5.03995 10 5.6V8.4C10 8.96005 10 9.24008 9.89101 9.45399C9.79513 9.64215 9.64215 9.79513 9.45399 9.89101C9.24008 10 8.96005 10 8.4 10H5.6C5.03995 10 4.75992 10 4.54601 9.89101C4.35785 9.79513 4.20487 9.64215 4.10899 9.45399C4 9.24008 4 8.96005 4 8.4V5.6Z"
+              stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path
+              d="M4 15.6C4 15.0399 4 14.7599 4.10899 14.546C4.20487 14.3578 4.35785 14.2049 4.54601 14.109C4.75992 14 5.03995 14 5.6 14H8.4C8.96005 14 9.24008 14 9.45399 14.109C9.64215 14.2049 9.79513 14.3578 9.89101 14.546C10 14.7599 10 15.0399 10 15.6V18.4C10 18.9601 10 19.2401 9.89101 19.454C9.79513 19.6422 9.64215 19.7951 9.45399 19.891C9.24008 20 8.96005 20 8.4 20H5.6C5.03995 20 4.75992 20 4.54601 19.891C4.35785 19.7951 4.20487 19.6422 4.10899 19.454C4 19.2401 4 18.9601 4 18.4V15.6Z"
+              stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path
+              d="M14 15.6C14 15.0399 14 14.7599 14.109 14.546C14.2049 14.2049 14.3578 14.2049 14.546 14.1089C14.7599 14 15.0399 14 15.6 14H18.4C18.9601 14 19.2401 14 19.454 14.1089C19.6422 14.2049 19.7951 14.3578 19.891 14.546C20 14.7599 20 15.0399 20 15.6V18.4C20 18.9601 20 19.2401 19.891 19.4539C19.7951 19.6422 19.6422 19.7951 19.454 19.891C19.2401 20 18.9601 20 18.4 20H15.6C15.0399 20 14.7599 20 14.546 19.891C14.3578 19.7951 14.2049 19.6422 14.109 19.4539C14 19.2401 14 18.9601 14 18.4V15.6Z"
+              stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </button>
+
+        <button v-if="isChef" @click="toggleSection('lives')" :class="[
+          'flex-1 py-2 px-2 text-sm rounded-full font-semibold transition-all duration-300',
+          'md:py-4 md:px-4 md:text-base',
+          showLivesSection ? 'bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 shadow-lg hover:shadow-xl hover:brightness-110' : 'bg-gradient-to-r from-green-100 via-lime-50 to-lime-100 text-lime-700 hover:from-green-200 hover:via-lime-100 hover:to-lime-200 hover:shadow-md'
+        ]">
+          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="inline-block">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path
+                d="M22 12C22 14.7578 20.8836 17.2549 19.0782 19.064M2 12C2 9.235 3.12222 6.73208 4.93603 4.92188M19.1414 5.00003C19.987 5.86254 20.6775 6.87757 21.1679 8.00003M5 19.1415C4.08988 18.2493 3.34958 17.1845 2.83209 16"
+                stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+              <path
+                d="M16.2849 8.04397C17.3458 9.05877 18 10.4488 18 11.9822C18 13.5338 17.3302 14.9386 16.2469 15.9564M7.8 16C6.68918 14.9789 6 13.556 6 11.9822C6 10.4266 6.67333 9.01843 7.76162 8"
+                stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+              <path
+                d="M13.6563 10.4511C14.5521 11.1088 15 11.4376 15 12C15 12.5624 14.5521 12.8912 13.6563 13.5489C13.4091 13.7304 13.1638 13.9014 12.9384 14.0438C12.7407 14.1688 12.5168 14.298 12.2849 14.4249C11.3913 14.914 10.9444 15.1586 10.5437 14.8878C10.1429 14.617 10.1065 14.0502 10.0337 12.9166C10.0131 12.596 10 12.2817 10 12C10 11.7183 10.0131 11.404 10.0337 11.0834C10.1065 9.94977 10.1429 9.38296 10.5437 9.1122C10.9444 8.84144 11.3913 9.08599 12.2849 9.57509C12.5168 9.70198 12.7407 9.83123 12.9384 9.95619C13.1638 10.0986 13.4091 10.2696 13.6563 10.4511Z"
+                stroke="#000000" stroke-width="1.5"></path>
+            </g>
+          </svg>
+        </button>
+
+        <button @click="toggleSection('saved')" :class="[
+          'flex-1 py-2 px-2 text-sm rounded-full font-semibold transition-all duration-300',
+          'md:py-4 md:px-4 md:text-base',
+          showSavedSection ? 'bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 shadow-lg hover:shadow-xl hover:brightness-110' : 'bg-gradient-to-r from-green-100 via-lime-50 to-lime-100 text-lime-700 hover:from-green-200 hover:via-lime-100 hover:to-lime-200 hover:shadow-md'
+        ]">
+          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="inline-block">
+            <path
+              d="M5 6.2C5 5.07989 5 4.51984 5.21799 4.09202C5.40973 3.71569 5.71569 3.40973 6.09202 3.21799C6.51984 3 7.07989 3 8.2 3H15.8C16.9201 3 17.4802 3 17.908 3.21799C18.2843 3.40973 18.5903 3.71569 18.782 4.09202C19 4.51984 19 5.07989 19 6.2V21L12 16L5 21V6.2Z"
+              stroke="#000000" stroke-width="2" stroke-linejoin="round" />
+          </svg>
+        </button>
+
+        <button @click="toggleSection('folders')" :class="[
+          'flex-1 py-2 px-2 text-sm rounded-full font-semibold transition-all duration-300',
+          'md:py-4 md:px-4 md:text-base',
+          showFoldersSection ? 'bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 shadow-lg hover:shadow-xl hover:brightness-110' : 'bg-gradient-to-r from-green-100 via-lime-50 to-lime-100 text-lime-700 hover:from-green-200 hover:via-lime-100 hover:to-lime-200 hover:shadow-md'
+        ]">
+          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="inline-block">
+            <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" stroke="#000000"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+
+        <button @click="toggleSection('liked')" :class="[
+          'flex-1 py-2 px-2 text-sm rounded-full font-semibold transition-all duration-300',
+          'md:py-4 md:px-4 md:text-base',
+          showLikedSection ? 'bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 shadow-lg hover:shadow-xl hover:brightness-110' : 'bg-gradient-to-r from-green-100 via-lime-50 to-lime-100 text-lime-700 hover:from-green-200 hover:via-lime-100 hover:to-lime-200 hover:shadow-md'
+        ]">
+          <svg width="25" height="25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="inline-block">
+            <path
+              d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+              stroke="#000000" stroke-width="2" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Sección de guardadas -->
       <div v-if="showSavedSection" class="user-recipes saved-section pb-20">
         <div v-if="popupMessage" class="popup-notification">
           {{ popupMessage }}
@@ -305,7 +539,7 @@
         </div>
       </div>
 
-      <!-- Sección de carpetas - Permite gestionar las carpetas de recetas del usuario -->
+      <!-- Sección de carpetas -->
       <div v-if="showFoldersSection" class="user-recipes pb-20">
         <div v-if="selectedFolder" class="selected-folder-view">
           <h3 class="text-2xl font-bold text-lime-900 mb-8 text-center">{{ selectedFolder.name }}</h3>
@@ -372,7 +606,7 @@
         </div>
       </div>
 
-      <!-- Sección de lives programados - Muestra los lives que el chef ha programado -->
+      <!-- Lives programados -->
       <div v-if="showLivesSection && !showLiveForm" class="user-recipes pb-20">
         <h3 class="text-2xl font-bold text-lime-900 mb-8 text-center"> Els meus lives programats</h3>
         <div v-if="scheduledLives.length === 0" class="bg-white rounded-xl p-8 text-center shadow-lg max-w-2xl mx-auto">
@@ -442,7 +676,7 @@
 
       </div>
 
-      <!-- Sección de recetas propias - Muestra las recetas creadas por el usuario -->
+      <!-- Recetas propias -->
       <div v-if="showRecipes && !showLiveForm && !showLivesSection" class="user-recipes pb-20">
         <h3 class="text-2xl font-bold text-lime-900 mb-8 text-center"> Les meves publicacions</h3>
         <div v-if="recipes.length === 0" class="bg-white rounded-xl p-8 text-center shadow-lg max-w-2xl mx-auto">
@@ -476,7 +710,7 @@
         </div>
       </div>
 
-      <!-- Formulario de edición de receta - Permite modificar una receta existente -->
+      <!-- Edit Recipe Form -->
       <div v-if="showEditRecipeForm"
         class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
         <div
@@ -602,7 +836,7 @@
         </div>
       </div>
 
-      <!-- Sección de recetas que me gustan - Muestra las recetas a las que el usuario ha dado like -->
+      <!-- Sección de recetas que me gustan -->
       <div v-if="showLikedSection" class="user-recipes liked-section pb-20">
         <div class="bg-white rounded-xl p-6 shadow-lg mb-8">
           <h3 class="text-2xl font-bold text-lime-900 mb-4">Receptes que m'agraden</h3>
@@ -644,52 +878,47 @@
         </div>
       </div>
 
-      <!-- Formulario de programación de live - Permite a los chefs programar nuevos lives -->
+      <!-- Formulario para programar un nou live -->
       <div v-if="showLiveForm" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 transform transition-all duration-300">
           <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold text-lime-900">Programar Nou Live</h3>
+            <h3 class="text-2xl font-bold text-lime-900">Programar nou live</h3>
             <button @click="toggleLiveForm" class="text-gray-500 hover:text-gray-700 transition-colors">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
             </button>
           </div>
-          <div class="space-y-4">
+          <form @submit.prevent="createLive" class="space-y-6">
             <div>
-              <label for="recipe" class="block text-sm font-medium text-gray-700 mb-2">Recepta</label>
-              <select id="recipe" v-model="newLive.recipe_id"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-lime-500 transition-colors">
-                <option value="">Selecciona una recepta</option>
-                <option v-for="recipe in recipes" :key="recipe.id" :value="recipe.id">
-                  {{ recipe.title }}
-                </option>
+              <label for="recipe" class="block text-sm font-medium text-gray-700 mb-1">Recepta:</label>
+              <select v-model="newLive.recipe_id" id="recipe" required
+                class="w-full px-3 py-2 border-2 border-lime-200 rounded-lg focus:outline-none focus:border-lime-400 focus:ring-2 focus:ring-lime-200 transition-all duration-300">
+                <option value="" disabled selected>Selecciona una recepta</option>
+                <option v-for="recipe in recipes" :key="recipe.id" :value="recipe.id">{{ recipe.title }}</option>
               </select>
             </div>
             <div>
-              <label for="date" class="block text-sm font-medium text-gray-700 mb-2">Data</label>
-              <input type="date" id="date" v-model="newLive.dia" :min="minDate"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-lime-500 transition-colors">
+              <label for="dia" class="block text-sm font-medium text-gray-700 mb-1">Dia:</label>
+              <input type="date" id="dia" v-model="newLive.dia" :min="minDate" required
+                class="w-full px-3 py-2 border-2 border-lime-200 rounded-lg focus:outline-none focus:border-lime-400 focus:ring-2 focus:ring-lime-200 transition-all duration-300" />
             </div>
             <div>
-              <label for="time" class="block text-sm font-medium text-gray-700 mb-2">Hora</label>
-              <input type="time" id="time" v-model="newLive.hora"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-lime-500 transition-colors">
+              <label for="hora" class="block text-sm font-medium text-gray-700 mb-1">Hora:</label>
+              <input type="time" id="hora" v-model="newLive.hora" required
+                class="w-full px-3 py-2 border-2 border-lime-200 rounded-lg focus:outline-none focus:border-lime-400 focus:ring-2 focus:ring-lime-200 transition-all duration-300" />
             </div>
-          </div>
-          <div class="flex justify-end gap-4 mt-6">
-            <button @click="toggleLiveForm" class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
-              Cancel·lar
-            </button>
-            <button @click="createLive"
-              class="px-6 py-2 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg">
-              Programar Live
-            </button>
-          </div>
+            <div class="flex justify-end pt-4">
+              <button type="submit"
+                class="px-6 py-2 bg-gradient-to-r from-lime-400 to-green-500 text-white font-medium rounded-lg shadow-md hover:from-lime-500 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-lime-300 focus:ring-opacity-50 transition-all duration-300">
+                Guardar live
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
-      <!-- Formulario de edición de live - Permite modificar un live programado -->
+      <!-- Formulario para editar un live -->
       <div v-if="showEditForm" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 transform transition-all duration-300">
           <div class="flex justify-between items-center mb-6">
@@ -730,16 +959,15 @@
       </div>
     </div>
 
-    <!-- Modal de autenticación - Muestra mensaje cuando el usuario no está autenticado -->
+  
+
+    <!-- Modal de autenticación requerida si no hay token -->
     <teleport to="body">
       <transition name="modal">
-        <div v-if="!authStore.isAuthenticated"
-          class="pointer-events-none fixed left-0 right-0 top-0 bottom-20 flex items-center justify-center z-50">
+        <div v-if="!authStore.isAuthenticated" class="pointer-events-none fixed left-0 right-0 top-0 bottom-20 flex items-center justify-center z-50">
           <div class="pointer-events-auto bg-white rounded-2xl shadow-lg p-8 text-center w-full max-w-xs md:max-w-md">
             <p class="text-lime-900 text-lg font-semibold mb-6">Per veure el teu perfil, has d'iniciar sessió</p>
-            <button @click="goToLogin"
-              class="w-full py-3 bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 rounded-xl font-semibold shadow hover:from-green-600 hover:via-lime-500 hover:to-lime-400 hover:brightness-110 transition-all duration-200 text-base">Iniciar
-              Sessió</button>
+            <button @click="goToLogin" class="w-full py-3 bg-gradient-to-r from-green-500 via-lime-400 to-lime-300 text-lime-900 rounded-xl font-semibold shadow hover:from-green-600 hover:via-lime-500 hover:to-lime-400 hover:brightness-110 transition-all duration-200 text-base">Iniciar Sessió</button>
           </div>
         </div>
       </transition>
@@ -767,7 +995,7 @@ export default {
     const authStore = useAuthStore();
     const router = useRouter();
 
-    // Variables para la sección de guardados
+    // Saved section variables
     const showSavedSection = ref(false);
     const showFoldersSection = ref(false);
     const loadingGuardades = ref(true);
@@ -778,7 +1006,7 @@ export default {
     const selectedFolder = ref(null);
     const selectedFolderRecipes = ref([]);
 
-    // Variables del perfil
+    // Profile variables
     const minDate = computed(() => {
       const today = new Date();
       const dd = String(today.getDate()).padStart(2, '0');
@@ -786,8 +1014,57 @@ export default {
       const yyyy = today.getFullYear();
       return `${yyyy}-${mm}-${dd}`;
     });
+    const scheduledLives = ref([]);
+    const showLivesSection = ref(false);
+    const showLikedSection = ref(false);
+    const goToExplore = () => {
+      router.push('/explorar');
+    };
+    const newLive = ref({
+      recipe_id: '',
+      dia: '',
+      hora: ''
+    });
+    const editingLive = ref({
+      id: null,
+      recipe_id: '',
+      dia: '',
+      hora: ''
+    });
+    const showEditForm = ref(false);
+    const showLiveForm = ref(false);
+    const userImage = ref('/default-avatar.png');
+    const likedRecipes = ref([]);
+    const user = ref({ name: '', email: '', img: '/default-avatar.png' });
+    const recipes = ref([]);
+    const settingsMenuOpen = ref(false);
+    const activeTab = ref('');
+    const newName = ref('');
+    const newEmail = ref('');
+    const newPassword = ref('');
+    const confirmPassword = ref('');
+    const currentPassword = ref('');
+    const showRecipes = ref(true);
+    const popupMessage = ref('');
+    const showLogoutConfirmation = ref(false);
+    const showCurrentPassword = ref(false);
+    const showNewPassword = ref(false);
+    const showConfirmPassword = ref(false);
+    const newBio = ref('');
+    const editingRecipe = ref(null);
+    const showEditRecipeForm = ref(false);
 
-    // Obtiene las recetas guardadas del usuario actual
+    const isChef = computed(() => {
+      const role = authStore.user?.role || user.value?.role;
+      return authStore.isAuthenticated && role === 'chef';
+    });
+
+    const isAdmin = computed(() => {
+      const role = authStore.user?.role || user.value?.role;
+      return authStore.isAuthenticated && role === 'admin';
+    });
+
+    // Saved section methods
     const fetchSavedRecipes = async () => {
       loadingGuardades.value = true;
       try {
@@ -802,7 +1079,6 @@ export default {
       }
     };
 
-    // Elimina una receta de las guardadas del usuario
     const removeSavedRecipe = async (recipeId) => {
       try {
         await communicationManager.toggleSaveRecipe(recipeId);
@@ -816,7 +1092,6 @@ export default {
       }
     };
 
-    // Obtiene todas las carpetas creadas por el usuario
     const fetchUserFolders = async () => {
       try {
         const userFolders = await communicationManager.fetchUserFolders();
@@ -828,7 +1103,6 @@ export default {
       }
     };
 
-    // Obtiene todas las recetas dentro de una carpeta específica
     const fetchFolderRecipes = async (folderId) => {
       try {
         const recipesFromFolder = await communicationManager.fetchFolderRecipes(folderId);
@@ -841,7 +1115,6 @@ export default {
       }
     };
 
-    // Crea una nueva carpeta para organizar recetas
     const createFolder = async () => {
       if (newFolderName.value.trim() === '') {
         popupMessage.value = "El nom de la carpeta no pot estar buit";
@@ -855,7 +1128,7 @@ export default {
         showCreateFolderInput.value = false;
         newFolderName.value = '';
         await fetchUserFolders();
-        showFoldersSection.value = true;
+        showFoldersSection.value = true; // Mostrar la sección de carpetas después de crear
       } catch (error) {
         console.error('Error creant la carpeta', error);
         popupMessage.value = "Error en crear la carpeta";
@@ -863,7 +1136,6 @@ export default {
       }
     };
 
-    // Elimina una carpeta y todo su contenido
     const deleteFolder = async (folderId) => {
       try {
         await communicationManager.deleteFolder(folderId);
@@ -881,7 +1153,6 @@ export default {
       }
     };
 
-    // Elimina una receta de una carpeta específica
     const removeRecipeFromFolder = async (recipeId, folderId) => {
       try {
         await communicationManager.removeRecipeFromFolder(recipeId, folderId);
@@ -897,31 +1168,32 @@ export default {
       }
     };
 
-    // Vuelve a la vista de carpetas desde una carpeta específica
     const goBackFromFolder = () => {
       selectedFolder.value = null;
       selectedFolderRecipes.value = [];
     };
-
-    // Cambia la visibilidad de las diferentes secciones (recetas, lives, guardados, likes, carpetas)
     const toggleSection = (section) => {
+      // Resetear todas las secciones
       showRecipes.value = false;
       showLivesSection.value = false;
       showSavedSection.value = false;
       showLikedSection.value = false;
       showFoldersSection.value = false;
 
+      // Resetear la carpeta seleccionada si se hace clic en el botón de carpetas
       if (section === 'folders') {
         selectedFolder.value = null;
         selectedFolderRecipes.value = [];
       }
 
+      // Activar solo la sección seleccionada
       if (section === 'recipes') showRecipes.value = true;
       else if (section === 'lives') showLivesSection.value = true;
       else if (section === 'saved') showSavedSection.value = true;
       else if (section === 'liked') showLikedSection.value = true;
       else if (section === 'folders') showFoldersSection.value = true;
 
+      // Cargar datos si es necesario
       if (section === 'lives') loadScheduledLives();
       if (section === 'saved') {
         fetchSavedRecipes();
@@ -932,7 +1204,7 @@ export default {
       if (section === 'liked') loadLikedRecipes();
     };
 
-    // Maneja el clic en el botón de crear carpeta
+    // Modificar el botón de crear carpeta para que oculte las demás secciones
     const handleCreateFolderClick = () => {
       showCreateFolderInput.value = true;
       showRecipes.value = false;
@@ -942,19 +1214,16 @@ export default {
       showFoldersSection.value = false;
     };
 
-    // Maneja el clic en el botón de live para chefs
     const handleLiveButtonClick = () => {
       showLivesSection.value = false;
       showRecipes.value = false;
       toggleLiveForm();
     };
 
-    // Cambia la visibilidad del menú de ajustes
     const toggleSettingsMenu = () => {
       settingsMenuOpen.value = !settingsMenuOpen.value;
     };
 
-    // Muestra la sección de lives programados
     const showScheduledLives = async () => {
       showRecipes.value = false;
       showLivesSection.value = true;
@@ -962,14 +1231,12 @@ export default {
       await loadScheduledLives();
     };
 
-    // Oculta la sección de lives y vuelve a la vista de recetas
     const hideLivesSection = () => {
       showLivesSection.value = false;
       showRecipes.value = true;
       showLiveForm.value = false;
     };
 
-    // Cambia la visibilidad del formulario de live
     const toggleLiveForm = () => {
       showLiveForm.value = !showLiveForm.value;
       if (showLiveForm.value) {
@@ -985,7 +1252,6 @@ export default {
       }
     };
 
-    // Navega a la página de inicio de sesión
     const goToLogin = () => {
       router.push({
         name: 'login',
@@ -993,14 +1259,16 @@ export default {
       });
     };
 
-    // Carga todos los lives programados para el chef actual
     const loadScheduledLives = async () => {
       try {
         if (!isChef.value) return;
 
         const response = await communicationManager.getChefLives();
-        if (response.success && Array.isArray(response.data)) {
-          scheduledLives.value = response.data;
+        // Handle both formats: {lives: Array} and Array
+        if (response.lives && Array.isArray(response.lives)) {
+          scheduledLives.value = response.lives;
+        } else if (Array.isArray(response)) {
+          scheduledLives.value = response;
         } else {
           scheduledLives.value = [];
           console.warn('Unexpected response format from getChefLives:', response);
@@ -1011,13 +1279,11 @@ export default {
       }
     };
 
-    // Formatea una fecha a formato localizado
     const formatDate = (dateString) => {
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       return new Date(dateString).toLocaleDateString('ca-ES', options);
     };
 
-    // Elimina un live programado
     const deleteLive = async (liveId) => {
       try {
         await communicationManager.deleteLive(liveId);
@@ -1030,7 +1296,6 @@ export default {
       }
     };
 
-    // Prepara un live para edición
     const editLive = (live) => {
       editingLive.value = {
         id: live.id,
@@ -1041,7 +1306,6 @@ export default {
       showEditForm.value = true;
     };
 
-    // Guarda la información editada del live
     const saveEditedLive = async () => {
       try {
         if (!editingLive.value || !editingLive.value.id) return;
@@ -1059,7 +1323,6 @@ export default {
       }
     };
 
-    // Crea un nuevo live programado
     const createLive = async () => {
       try {
         if (!newLive.value.recipe_id || !newLive.value.dia || !newLive.value.hora) {
@@ -1091,7 +1354,6 @@ export default {
       }
     };
 
-    // Elimina una receta
     const deleteRecipe = async (recipeId) => {
       try {
         await communicationManager.deleteRecipe(recipeId);
@@ -1105,18 +1367,16 @@ export default {
       }
     };
 
-    // Carga todas las recetas que le gustan al usuario
     const loadLikedRecipes = async () => {
       try {
         const response = await communicationManager.getUserLikedRecipes();
-        likedRecipes.value = response.recipes;
+        likedRecipes.value = response;
       } catch (error) {
         popupMessage.value = error.message || "No s'han pogut carregar les receptes likeades";
         setTimeout(() => { popupMessage.value = ''; }, 3000);
       }
     };
 
-    // Sube una nueva foto de perfil
     const uploadImage = async (event) => {
       const file = event.target.files[0];
       if (!file) return;
@@ -1149,7 +1409,6 @@ export default {
       }
     };
 
-    // Establece la pestaña activa en el menú de ajustes
     const setActiveTab = (tab) => {
       activeTab.value = tab;
       showRecipes.value = false;
@@ -1160,7 +1419,6 @@ export default {
       }
     };
 
-    // Cambia la visibilidad de las contraseñas en diferentes campos
     const togglePasswordVisibility = (field) => {
       if (field === 'current') {
         showCurrentPassword.value = !showCurrentPassword.value;
@@ -1170,13 +1428,9 @@ export default {
         showConfirmPassword.value = !showConfirmPassword.value;
       }
     };
-
-    // Navega a la página de verificación
     const goToVerification = () => {
       router.push('/verificacion');
     };
-
-    // Actualiza la información del perfil del usuario
     const updateProfile = async () => {
       try {
         await communicationManager.updateProfile({
@@ -1199,7 +1453,6 @@ export default {
       }
     };
 
-    // Actualiza la contraseña del usuario
     const updatePassword = async () => {
       if (newPassword.value !== confirmPassword.value) {
         popupMessage.value = "Las contraseñas no coinciden";
@@ -1229,7 +1482,6 @@ export default {
       }
     };
 
-    // Cancela la operación de edición actual
     const cancelEdit = () => {
       settingsMenuOpen.value = false;
       activeTab.value = '';
@@ -1238,13 +1490,10 @@ export default {
       showSavedSection.value = false;
       showLikedSection.value = false;
     };
-
-    // Muestra el diálogo de confirmación de cierre de sesión
     const confirmLogout = () => {
       showLogoutConfirmation.value = true;
     };
 
-    // Cierra la sesión del usuario actual
     const logout = () => {
       authStore.clearAuth();
       window.location.href = '/';
@@ -1252,17 +1501,14 @@ export default {
       showLogoutConfirmation.value = false;
     };
 
-    // Cancela la operación de cierre de sesión
     const cancelLogout = () => {
       showLogoutConfirmation.value = false;
     };
 
-    // Navega a la página de administración
     const goToAdmin = () => {
       router.push('/recetas');
     };
 
-    // Navega a la página de una receta específica
     const goToRecipe = (recipeId) => {
       router.push({
         name: 'inforeceta',
@@ -1270,12 +1516,10 @@ export default {
       });
     };
 
-    // Navega al formulario de recomendaciones
     const goToFormulario = () => {
       router.push('/formulario');
     };
 
-    // Prepara una receta para edición
     const editRecipe = async (recipe) => {
       await fetchCategoriesAndCuisines();
       editingRecipe.value = { ...recipe };
@@ -1291,7 +1535,6 @@ export default {
       showRecipes.value = false;
     };
 
-    // Guarda la información editada de la receta
     const saveEditedRecipe = async () => {
       try {
         const recipeToSave = { ...editingRecipe.value };
@@ -1314,14 +1557,36 @@ export default {
       }
     };
 
-    // Cancela la operación de edición de receta
     const cancelEditRecipe = () => {
       editingRecipe.value = null;
       showEditRecipeForm.value = false;
       showRecipes.value = true;
     };
 
-    // Convierte un array de ingredientes a formato texto
+    onMounted(async () => {
+      try {
+        const userData = await communicationManager.getUser();
+        user.value = userData;
+        newName.value = userData.name;
+        newEmail.value = userData.email;
+        newBio.value = userData.bio || '';
+        const userRecipes = await communicationManager.getUserRecipes(userData.id);
+        recipes.value = userRecipes.recipes;
+
+        if (isChef.value) {
+          await loadScheduledLives();
+        }
+
+        // Load saved data
+        await fetchSavedRecipes();
+        await fetchUserFolders();
+      } catch (error) {
+        console.error('Error obteniendo datos del usuario:', error);
+      }
+    });
+
+    // 1. En el setup, añade helpers para convertir arrays a texto y viceversa:
+
     function ingredientsArrayToText(ingredients) {
       if (!Array.isArray(ingredients)) return '';
       return ingredients.map(ing => {
@@ -1329,38 +1594,35 @@ export default {
         return `${ing.quantity || ''} ${ing.unit || ''} ${ing.name || ing}`.trim();
       }).join('\n');
     }
-
-    // Convierte un texto de ingredientes a formato array
     function textToIngredientsArray(text) {
       return text.split('\n').map(line => {
         const parts = line.trim().split(' ');
         if (parts.length < 2) return { name: line.trim() };
+        // Asume formato: cantidad unidad nombre
         const quantity = parts.shift();
         const unit = parts.shift();
         const name = parts.join(' ');
         return { quantity, unit, name };
       });
     }
-
-    // Convierte un array de instrucciones a formato texto
     function instructionsArrayToText(steps) {
       if (!Array.isArray(steps)) return '';
       return steps.join('\n');
     }
-
-    // Convierte un texto de instrucciones a formato array
     function textToInstructionsArray(text) {
       return text.split('\n').map(line => line.trim()).filter(Boolean);
     }
 
-    // Obtiene todas las categorías y cocinas para la edición de recetas
+    // 1. En el setup, añade los states y la carga de categorías y cocinas:
+    const categories = ref([]);
+    const cuisines = ref([]);
     const fetchCategoriesAndCuisines = async () => {
       try {
         let cats = await communicationManager.fetchCategories();
-        if (cats && cats.data) cats = cats.data;
+        if (cats && cats.data) cats = cats.data; // por si la API devuelve {data: [...]}
         categories.value = Array.isArray(cats) ? cats : [];
         let cuis = await communicationManager.fetchCuisines();
-        if (cuis && cuis.data) cuis = cuis.data;
+        if (cuis && cuis.data) cuis = cuis.data; // por si la API devuelve {data: [...]}
         cuisines.value = Array.isArray(cuis) ? cuis : [];
       } catch (error) {
         categories.value = [];
@@ -1383,6 +1645,7 @@ export default {
       },
       minDate: new Date().toISOString().split('T')[0],
       lives: [],
+      // Saved section
       showSavedSection,
       showFoldersSection,
       loadingGuardades,
@@ -1399,6 +1662,7 @@ export default {
       fetchFolderRecipes,
       goBackFromFolder,
       removeRecipeFromFolder,
+      // Profile
       authStore,
       toggleSection,
       router,

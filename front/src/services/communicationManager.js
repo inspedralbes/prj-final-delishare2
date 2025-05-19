@@ -146,7 +146,20 @@ const communicationManager = {
   fetchRecipeDetails(recipeId) {
     // Asegúrate de que recipeId sea string si tu backend lo espera así
     return apiClient.get(`/recipes/${String(recipeId)}`)
-      .then(response => response.data)
+      .then(async (response) => {
+        const recipe = response.data;
+        
+        // Obtener comentarios
+        const commentsResponse = await apiClient.get(`/recipes/${recipe.id}/comments`);
+        recipe.comments = commentsResponse.data;
+        
+        // Obtener likes
+        const likesResponse = await apiClient.get(`/recipes/${recipe.id}/likes`);
+        recipe.likes = likesResponse.data.likes;
+        recipe.liked = likesResponse.data.liked;
+        
+        return recipe;
+      })
       .catch(error => {
         if (error.response?.status === 401) {
           throw new Error('Unauthorized - Please login');

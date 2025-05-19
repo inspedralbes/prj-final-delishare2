@@ -186,6 +186,19 @@ class RecipeController extends Controller
         }
     }
 
+    // Obtiene todas las recetas que el usuario ha liked
+    public function getUserLikedRecipes()
+    {
+        $userId = auth()->id();
+        
+        return Recipe::join('recipe_user', 'recipes.id', '=', 'recipe_user.recipe_id')
+            ->where('recipe_user.user_id', $userId)
+            ->where('recipe_user.liked', true)
+            ->with(['user', 'category', 'cuisine'])
+            ->select('recipes.*')
+            ->get();
+    }
+
     // Devuelve el contador de likes y si el usuario autenticado ha likeado la receta
     public function getLikes($recipeId)
     {

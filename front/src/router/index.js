@@ -18,6 +18,7 @@ import CommentsView from '../views/CommentsView.vue';
 import Verification from '@/components/verification.vue'
 import Live from '@/views/Live.vue';
 import ChatRoom from '@/components/ChatRoom.vue';
+import Perfil from '@/views/Perfil.vue';
 
 const routes = [
   {
@@ -86,6 +87,13 @@ const routes = [
     props: true
   },
   {
+    path: '/info/:recipeId',
+    name: 'InfoReceta',
+    component: InfoReceta,
+    props: true,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/login',
     name: 'login',
     component: login,
@@ -112,8 +120,8 @@ const routes = [
   {
     path: '/perfil',
     name: 'Perfil',
-    component: () => import('@/views/Perfil.vue'),
-    meta: { requiresAuth: false },
+    component: Perfil,
+    meta: { requiresAuth: false }
   },
   {
     path: '/cuisines',
