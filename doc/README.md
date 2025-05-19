@@ -17,6 +17,8 @@ DeliShare és una xarxa social centrada en compartir i descobrir receptes. Els o
   * Pinia per gestió d'estat
   * Socket.IO Client per funcionalitats en temps real
   * Groq (IA) per generació de receptes
+  * Gemini (IA) per validació de imatges i videos al moment de crear una recepte
+
 
 * **Backend:**
   * Laravel (PHP) per API REST
@@ -45,7 +47,7 @@ DeliShare és una xarxa social centrada en compartir i descobrir receptes. Els o
 * Node.js 18+
 * PHP 8.2+
 * Composer
-* Git
+* Git(o terminal)
 
 ### Configuració
 1. Clonar el repositori:
@@ -71,33 +73,6 @@ cp node/.env.example node/.env
 docker-compose up
 ```
 
-### Tecnologies utilitzades
-* **Frontend:**
-  * Vue.js 3 amb Vite
-  * Tailwind CSS per estils
-  * Pinia per gestió d'estat
-  * Socket.IO Client per funcionalitats en temps real
-  * Groq (IA) per generació de receptes
-
-* **Backend:**
-  * Laravel (PHP) per API REST
-  * MySQL 8.2 per base de dades
-  * Node.js amb Socket.IO per API en temps real
-
-### Interrelació entre components
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Frontend  │     │   Backend   │     │    Node.js  │
-│   (Vue.js)  │◄───►│  (Laravel)  │◄───►│  (Socket.IO)│
-└─────────────┘     └─────────────┘     └─────────────┘
-       ▲                   ▲                   ▲
-       │                   │                   │
-       ▼                   ▼                   ▼
-┌─────────────────────────────────────────────────────┐
-│                   Base de Dades                     │
-│                     (MySQL)                         │
-└─────────────────────────────────────────────────────┘
-```
 
 
 ## Desplegament a producció
@@ -129,6 +104,22 @@ cp .env.production .env
 
 # Iniciar serveis
 docker-compose -f docker-compose.prod.yml up -d
+```
+
+
+### Interrelació entre components
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Frontend  │     │   Backend   │     │    Node.js  │
+│   (Vue.js)  │◄───►│  (Laravel)  │◄───►│  (Socket.IO)│
+└─────────────┘     └─────────────┘     └─────────────┘
+       ▲                   ▲                   ▲
+       │                   │                   │
+       ▼                   ▼                   ▼
+┌─────────────────────────────────────────────────────┐
+│                   Base de Dades                     │
+│                     (MySQL)                         │
+└─────────────────────────────────────────────────────┘
 ```
 
 ## API Endpoints
@@ -560,22 +551,33 @@ CREATE TABLE user_preferences (
 ### Fluxos de Comunicació
 
 ```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                                   Frontend                                   │
-├───────────────────────────┬─────────────────────────┬─────────────────────────┤
-│                           │                         │                         │
-│  ┌─────────────┐          │     ┌─────────────┐     │    ┌─────────────┐    │
-│  │  Landing    │◄─────────┼─────┤  Notificacions  │◄───┼─────┤  Perfil    │    │
-│  └─────────────┘          │     └─────────────┘     │    └─────────────┘    │
-│                           │                         │                         │
-│  ┌─────────────┐          │     ┌─────────────┐     │    ┌─────────────┐    │
-│  │  Búsqueda   │◄─────────┼─────┤  Gestió     │◄───┼─────┤  Live       │    │
-│  └─────────────┘          │     │  Receptes   │     │    └─────────────┘    │
-│                           │     └─────────────┘     │                         │
-│  ┌─────────────┐          │                         │                         │
-│  │  Chat       │◄─────────┼─────────────────────────┼─────────────────────────┘
-│  └─────────────┘          │                         │
-└───────────────────────────┴─────────────────────────┘
+
+                          ┌─────────────────────────────┐
+                          │        NAVBAR PRINCIPAL     │
+                          └────────────┬────────────────┘
+                                       │
+          ┌────────────────────────────┼────────────────────────────┐
+          │                            │                            │
+  ┌───────▼────────┐         ┌─────────▼─────────┐        ┌─────────▼─────────┐
+  │ 1. Landing Page│         │ 2. Search Page    │        │ 3. Afegir Recepta │
+  └────────────────┘         └───────────────────┘        └───────────────────┘
+          │                            │                            │
+          │                            │                            │
+          ▼                            ▼                            ▼
+ (Contingut dinàmic:         (Barra de cerca, filtres     (Formulari assistit per
+ populars, recents, IA)      i receptes filtrades)        IA i pujada de contingut)
+
+
+          ┌────────────────────────────┴────────────────────────────┐
+          │                                                         │
+  ┌───────▼────────┐                                         ┌──────▼─────────┐
+  │ 4. Lives Page  │                                         │ 5. Perfil Page │
+  └────────────────┘                                         └────────────────┘
+          │                                                         │
+   (Veure lives en viu,                                   (Informació personal,
+    xat, programació)                                     receptes, guardats,
+                                                                carpetes, etc.)
+
 ```
 
 ### Fluxos d'Interacció
@@ -586,8 +588,8 @@ CREATE TABLE user_preferences (
 │                                   Landing                                    │
 │                                                                              │
 │  ┌────────────────┐    ┌────────────────┐    ┌────────────────┐    ┌─────────┐│
-│  │ Nova notificació│───►│ Notificacions  │───►│ Actualització  │───►│ Alerta  ││
-│  │    rebuda      │    │    en temps    │    │    de UI      │    │  visual ││
+│  │Nova notificació│───►│Notificacions   │───►│ Actualització  │───►│ Alerta  ││
+│  │    rebuda      │    │    en temps    │    │                │    │  visual ││
 │  └────────────────┘    │     real       │    └────────────────┘    └─────────┘│
 │                        └────────────────┘                                    │
 └──────────────────────────────────────────────────────────────────────────────┘
@@ -599,8 +601,8 @@ CREATE TABLE user_preferences (
 │                                   Perfil                                     │
 │                                                                              │
 │  ┌────────────────┐    ┌────────────────┐    ┌────────────────┐    ┌─────────┐│
-│  │ Nova recepta    │───►│ Gestió de      │───►│ Actualització  │───►│ UI      ││
-│  │    creada      │    │  receptes      │    │    de UI      │    │  actual. ││
+│  │ Nova recepta   │───►│ Gestió de      │───►│ Actualització  │───►│ UI      ││
+│  │    creada      │    │  receptes      │    │                │    │  actual. ││
 │  └────────────────┘    │    (CRUD)      │    └────────────────┘    └─────────┘│
 │                        └────────────────┘                                    │
 └──────────────────────────────────────────────────────────────────────────────┘
@@ -612,7 +614,7 @@ CREATE TABLE user_preferences (
 │                                   Búsqueda                                   │
 │                                                                              │
 │  ┌────────────────┐    ┌────────────────┐    ┌────────────────┐    ┌─────────┐│
-│  │ Criteris de    │───►│ Filtratge en    │───►│ Resultats en    │───►│ Paginació││
+│  │ Criteris de    │───►│ Filtratge en   │───►│ Resultats en   │───►│ Paginació│
 │  │    cerca       │    │     temps real │    │     temps real │    │ infinita││
 │  └────────────────┘    └────────────────┘    └────────────────┘    └─────────┘│
 └──────────────────────────────────────────────────────────────────────────────┘
@@ -624,7 +626,7 @@ CREATE TABLE user_preferences (
 │                                   Live                                       │
 │                                                                              │
 │  ┌────────────────┐    ┌────────────────┐    ┌────────────────┐    ┌─────────┐│
-│  │ Inici de trans.│───►│ Streaming en    │───►│ Xat en temps    │───►│ Controls││
+│  │ Inici de trans.│───►│ Streaming en   │───►│ Xat en temps   │───►│ Controls││
 │  │    missió      │    │     temps real │    │     real       │    │  d'usuari││
 │  └────────────────┘    └────────────────┘    └────────────────┘    └─────────┘│
 └──────────────────────────────────────────────────────────────────────────────┘
@@ -791,3 +793,59 @@ const response = await groq.chat.completions.create({
 * Actualitzacions de seguretat
 * Monitoreig de rendiment
 * Neteja de logs
+
+
+## Validació d’Imatges i Vídeos amb Gemini
+
+Aquest servei permet validar si una imatge o un vídeo conté menjar, utilitzant el model Gemini 1.5 Flash de Google a través de la seva API oficial (`@google/generative-ai`).
+
+### Validació d’Imatges
+
+El procés de validació d’imatges es basa a convertir el fitxer a base64 i enviar-lo al model Gemini juntament amb un prompt redactat en català. Aquest prompt sol·licita al model que actuï com un expert en gastronomia i analitzi si la imatge mostra menjar, ingredients, plats cuinats o persones menjant. La resposta esperada és un JSON amb dos camps: `isFood` (booleà que indica si hi ha menjar o no) i `reason` (explicació en català).
+
+**Prompt clau:**
+
+`Eres un experto en análisis de imágenes de comida. Tu tarea es determinar si la imagen proporcionada contiene comida o no. 
+    
+    Devuelve un JSON con el siguiente formato:
+    {
+      "isFood": boolean,
+      "reason": "string" // Explicación en catalán
+    }
+    
+    Reglas:
+    - Si la imagen muestra claramente comida (platos preparados, ingredientes, etc.), marca isFood como true
+    - Si la imagen muestra personas pero están comiendo o con comida, marca isFood como true
+    - Si la imagen no contiene comida (personas solas, paisajes, objetos, etc.), marca isFood como false
+    - Si no puedes determinar con seguridad, marca isFood como false`
+
+
+### Validació de Vídeos
+
+La validació de vídeos es realitza extraient diversos fotogrames en moments específics (1, 5, 10, 15 i 20 segons). Cada fotograma es converteix a base64 i s’analitza individualment amb el mateix procés que en les imatges. Si almenys un dels fotogrames conté menjar, el vídeo es considera vàlid. El resultat també es retorna en format JSON amb un camp `isFood` i una `reason` explicant el veredicte.
+
+**Prompt clau:**
+
+`Ets un expert en vídeos de cuina. Aquesta imatge és un fotograma extret d'un vídeo. La teva tasca és determinar si mostra aliments o escenes relacionades amb la cuina.
+Retorna un JSON amb el format següent:
+`Ets un expert en vídeos de cuina. Aquesta imatge és un fotograma extret d'un vídeo. La teva tasca és determinar si mostra aliments o escenes relacionades amb la cuina.
+  
+  Retorna un JSON amb el format següent:
+  {
+    "isFood": boolean,
+    "reason": "string" 
+  }
+  
+  Recorda:
+  - Si el fotograma mostra clarament menjar, ingredients o cuina, és vàlid.
+  - Si no sembla rellevant a la cuina, és invàlid.`
+
+  
+### Output esperat
+
+Tant per imatges com per vídeos:
+```json
+{
+  "isFood": true | false,
+  "reason": "explicació en català"
+}
