@@ -144,28 +144,59 @@ const communicationManager = {
       });
   },
   fetchRecipeDetails(recipeId) {
-    // Asegúrate de que recipeId sea string si tu backend lo espera así
-    return apiClient.get(`/recipes/${String(recipeId)}`)
+    // Validar que tenemos un ID de receta
+    if (!recipeId) {
+      throw new Error('No se proporcionó ID de receta');
+    }
+
+    // Convertir a string si es necesario
+    const id = String(recipeId);
+    
+    return apiClient.get(`/recipes/${id}`)
       .then(async (response) => {
         const recipe = response.data;
         
+        if (!recipe) {
+          throw new Error('No se encontró la receta');
+        }
+
         // Obtener comentarios
-        const commentsResponse = await apiClient.get(`/recipes/${recipe.id}/comments`);
-        recipe.comments = commentsResponse.data;
+        try {
+          const commentsResponse = await apiClient.get(`/recipes/${id}/comments`);
+          recipe.comments = commentsResponse.data || [];
+        } catch (error) {
+          console.error('Error al obtener comentarios:', error);
+          recipe.comments = [];
+        }
         
         // Obtener likes
-        const likesResponse = await apiClient.get(`/recipes/${recipe.id}/likes`);
-        recipe.likes = likesResponse.data.likes;
-        recipe.liked = likesResponse.data.liked;
+        try {
+          const likesResponse = await apiClient.get(`/recipes/${id}/likes`);
+          recipe.likes = likesResponse.data?.likes || 0;
+          recipe.liked = likesResponse.data?.liked || false;
+        } catch (error) {
+          console.error('Error al obtener likes:', error);
+          recipe.likes = 0;
+          recipe.liked = false;
+        }
+        
+        // Asegurar que todos los campos necesarios existen
+        recipe.id = recipe.id || id;
+        recipe.title = recipe.title || 'Sin título';
+        recipe.description = recipe.description || 'Sin descripción';
+        recipe.ingredients = recipe.ingredients || [];
+        recipe.steps = recipe.steps || [];
+        recipe.prep_time = recipe.prep_time || 0;
+        recipe.cook_time = recipe.cook_time || 0;
+        recipe.servings = recipe.servings || 0;
+        recipe.likes_count = recipe.likes_count || recipe.likes || 0;
+        recipe.nutrition = recipe.nutrition || {};
         
         return recipe;
       })
       .catch(error => {
-        if (error.response?.status === 401) {
-          throw new Error('Unauthorized - Please login');
-        }
-        console.error('Error fetching recipe details:', error);
-        throw error;
+        console.error('Error al obtener detalles de la receta:', error);
+        throw new Error(`Error al cargar la receta: ${error.response?.data?.message || error.message}`);
       });
   },
   updateUserRole(userId, role) {

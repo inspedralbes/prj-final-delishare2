@@ -1,28 +1,22 @@
 <template>
-  <!-- Vista para usuarios no autenticados -->
-  <div v-if="!authStore.token"
-    class="min-h-screen bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 flex items-center justify-center p-4">
+  <div v-if="!authStore.token" class="min-h-screen bg-gradient-to-br from-lime-100 via-lime-200 to-green-200 flex items-center justify-center p-4">
     <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-8 max-w-md w-full shadow-xl text-center">
       <p class="text-lime-900 text-lg mb-6">Per veure els detalls d'aquesta recepta, has d'iniciar sessió</p>
-      <button @click="goToLogin"
-        class="bg-gradient-to-r from-lime-500 via-green-500 to-emerald-500 text-white px-6 py-3 rounded-lg hover:from-lime-600 hover:via-green-600 hover:to-emerald-600 transition-all duration-300 shadow-lg hover:shadow-xl">
+      <button @click="goToLogin" class="bg-gradient-to-r from-lime-500 via-green-500 to-emerald-500 text-white px-6 py-3 rounded-lg hover:from-lime-600 hover:via-green-600 hover:to-emerald-600 transition-all duration-300 shadow-lg hover:shadow-xl">
         Ir a Login
       </button>
     </div>
   </div>
 
-  <!-- Vista principal para usuarios autenticados -->
   <div v-else class="min-h-screen bg-gradient-to-br from-lime-100 via-lime-200 to-green-200">
-    <!-- Popup de notificaciones del sistema -->
-    <div v-if="popupMessage"
-      class="fixed top-5 right-5 bg-gradient-to-r from-lime-500 to-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
+    <!-- Popup de notificaciones -->
+    <div v-if="popupMessage" class="fixed top-5 right-5 bg-gradient-to-r from-lime-500 to-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
       {{ popupMessage }}
     </div>
 
     <div class="max-w-4xl mx-auto px-4 py-8 mb-24">
       <!-- Botón de retroceso -->
-      <button @click="goBack"
-        class="mb-6 flex items-center text-lime-900 hover:text-lime-700 transition-colors duration-200">
+      <button @click="goBack" class="mb-6 flex items-center text-lime-900 hover:text-lime-700 transition-colors duration-200">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
@@ -32,13 +26,10 @@
       <!-- Información principal de la receta -->
       <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden mb-8">
         <div class="p-6">
-          <h1
-            class="text-3xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">
-            {{ recipe.title }}</h1>
+          <h1 class="text-3xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">{{ recipe.title }}</h1>
           <p class="text-lime-700 mb-6">
             <span class="font-semibold">Autor:</span>
-            <router-link :to="'/user/' + recipe.user_id"
-              class="text-lime-600 hover:text-lime-800 transition-colors duration-200">
+            <router-link :to="'/user/' + recipe.user_id" class="text-lime-600 hover:text-lime-800 transition-colors duration-200">
               @{{ recipe.creador }}
             </router-link>
           </p>
@@ -50,36 +41,27 @@
 
           <!-- Botones de acción -->
           <div class="flex flex-wrap gap-4 mb-6">
-            <button @click="downloadPDF"
-              class="w-10 h-10 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg">
+            <button @click="downloadPDF" class="w-10 h-10 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg">
               <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
             </button>
 
-            <button @click="checkRecipeInFolder" :disabled="isButtonDisabled"
-              class="w-10 h-10 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg">
+            <button @click="checkRecipeInFolder" :disabled="isButtonDisabled" class="w-10 h-10 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg">
               <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
               </svg>
             </button>
 
-            <button @click="saveToSavedRecipes(recipe.id)" :disabled="isButtonDisabled"
-              class="w-10 h-10 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg">
+            <button @click="saveToSavedRecipes(recipe.id)" :disabled="isButtonDisabled" class="w-10 h-10 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg">
               <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
               </svg>
             </button>
 
-            <button @click="toggleLike(recipe.id)"
-              class="w-10 h-10 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg">
-              <svg class="w-6 h-6 mx-auto" :fill="!isLiked ? 'white' : 'none'" stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            <button @click="toggleLike(recipe.id)" class="w-10 h-10 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-lg hover:from-lime-600 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg">
+              <svg class="w-6 h-6 mx-auto" :fill="!isLiked ? 'white' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             </button>
           </div>
@@ -91,16 +73,13 @@
 
           <!-- Información extra -->
           <div class="mb-8">
-            <button @click="toggleExtraInfo"
-              class="w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-lime-100 to-green-100 rounded-lg hover:from-lime-200 hover:to-green-200 transition-all duration-300 shadow-md">
+            <button @click="toggleExtraInfo" class="w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-lime-100 to-green-100 rounded-lg hover:from-lime-200 hover:to-green-200 transition-all duration-300 shadow-md">
               <span class="font-medium text-lime-900">Informació extra</span>
-              <svg class="w-5 h-5 transform transition-transform duration-200"
-                :class="{ 'rotate-180': isExtraInfoVisible }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 transform transition-transform duration-200" :class="{ 'rotate-180': isExtraInfoVisible }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div v-if="isExtraInfoVisible"
-              class="mt-4 p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg shadow-inner">
+            <div v-if="isExtraInfoVisible" class="mt-4 p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg shadow-inner">
               <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="text-center">
                   <p class="text-sm text-lime-600">Temps de preparació</p>
@@ -124,29 +103,23 @@
 
           <!-- Ingredientes -->
           <div class="mb-8">
-            <h2
-              class="text-2xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">
-              Ingredients</h2>
+            <h2 class="text-2xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">Ingredients</h2>
             <ul class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <li v-for="(ingredient, index) in recipe.ingredients" :key="index"
-                class="flex items-center p-3 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg shadow-sm">
+              <li v-for="(ingredient, index) in recipe.ingredients" :key="index" 
+                  class="flex items-center p-3 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg shadow-sm">
                 <span class="w-2 h-2 bg-gradient-to-r from-lime-500 to-green-500 rounded-full mr-3"></span>
-                <span class="text-lime-900">{{ ingredient.name }} - {{ ingredient.quantity }} {{ ingredient.unit
-                  }}</span>
+                <span class="text-lime-900">{{ ingredient.name }} - {{ ingredient.quantity }} {{ ingredient.unit }}</span>
               </li>
             </ul>
           </div>
 
           <!-- Pasos -->
           <div class="mb-8">
-            <h2
-              class="text-2xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">
-              Passos</h2>
+            <h2 class="text-2xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">Passos</h2>
             <ol class="space-y-4">
-              <li v-for="(step, index) in recipe.steps" :key="index"
-                class="flex p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg shadow-sm">
-                <span
-                  class="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-full flex items-center justify-center mr-4">
+              <li v-for="(step, index) in recipe.steps" :key="index" 
+                  class="flex p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg shadow-sm">
+                <span class="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-lime-500 to-green-500 text-white rounded-full flex items-center justify-center mr-4">
                   {{ index + 1 }}
                 </span>
                 <span class="text-lime-900">{{ step }}</span>
@@ -156,9 +129,7 @@
 
           <!-- Información nutricional -->
           <div v-if="recipe.nutrition" class="mb-8">
-            <h3
-              class="text-2xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">
-              Informació Nutricional</h3>
+            <h3 class="text-2xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">Informació Nutricional</h3>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div class="p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg text-center shadow-sm">
                 <p class="text-sm text-lime-600">Calories</p>
@@ -166,27 +137,22 @@
               </div>
               <div class="p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg text-center shadow-sm">
                 <p class="text-sm text-lime-600">Proteïnes</p>
-                <p class="font-semibold text-lime-900">{{ recipe.nutrition.protein ? `${recipe.nutrition.protein}g` :
-                  'N/A' }}</p>
+                <p class="font-semibold text-lime-900">{{ recipe.nutrition.protein ? `${recipe.nutrition.protein}g` : 'N/A' }}</p>
               </div>
               <div class="p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg text-center shadow-sm">
                 <p class="text-sm text-lime-600">Carbohidrats</p>
-                <p class="font-semibold text-lime-900">{{ recipe.nutrition.carbs ? `${recipe.nutrition.carbs}g` : 'N/A'
-                  }}</p>
+                <p class="font-semibold text-lime-900">{{ recipe.nutrition.carbs ? `${recipe.nutrition.carbs}g` : 'N/A' }}</p>
               </div>
               <div class="p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg text-center shadow-sm">
                 <p class="text-sm text-lime-600">Greixos</p>
-                <p class="font-semibold text-lime-900">{{ recipe.nutrition.fats ? `${recipe.nutrition.fats}g` : 'N/A' }}
-                </p>
+                <p class="font-semibold text-lime-900">{{ recipe.nutrition.fats ? `${recipe.nutrition.fats}g` : 'N/A' }}</p>
               </div>
             </div>
           </div>
 
           <!-- Video -->
           <div v-if="recipe.video" class="mb-8">
-            <h3
-              class="text-2xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">
-              Video</h3>
+            <h3 class="text-2xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">Video</h3>
             <div class="relative rounded-xl overflow-hidden shadow-lg">
               <video controls class="w-full">
                 <source :src="recipe.video" type="video/mp4">
@@ -197,21 +163,24 @@
 
           <!-- Comentarios -->
           <div class="mb-8">
-            <h3
-              class="text-2xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">
-              Comentaris</h3>
+            <h3 class="text-2xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">Comentaris</h3>
             <div class="mb-6">
-              <textarea v-model="newComment" placeholder="Escriu un comentari..."
+              <textarea 
+                v-model="newComment" 
+                placeholder="Escriu un comentari..." 
                 class="w-full p-4 border-2 border-lime-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-300 focus:border-lime-400 resize-none shadow-sm"
-                rows="3"></textarea>
-              <button @click="addComment"
-                class="mt-3 px-6 py-2 bg-gradient-to-r from-lime-500 via-green-500 to-emerald-500 text-white rounded-lg hover:from-lime-600 hover:via-green-600 hover:to-emerald-600 transition-all duration-300 shadow-md hover:shadow-lg">
+                rows="3"
+              ></textarea>
+              <button 
+                @click="addComment" 
+                class="mt-3 px-6 py-2 bg-gradient-to-r from-lime-500 via-green-500 to-emerald-500 text-white rounded-lg hover:from-lime-600 hover:via-green-600 hover:to-emerald-600 transition-all duration-300 shadow-md hover:shadow-lg"
+              >
                 Comentar
               </button>
             </div>
             <div class="space-y-4">
-              <div v-for="(comment, index) in comments" :key="index"
-                class="p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg shadow-sm">
+              <div v-for="(comment, index) in comments" :key="index" 
+                   class="p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-lg shadow-sm">
                 <p class="font-medium text-lime-900">
                   <span class="text-lime-600">{{ comment.name || 'Usuari desconegut' }}</span>
                   <span class="text-lime-800">: {{ comment.comment }}</span>
@@ -226,21 +195,26 @@
     <!-- Modal de selección de carpeta -->
     <div v-if="showFolderSelection" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-8 max-w-md w-full mx-4 shadow-xl">
-        <h3
-          class="text-xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">
-          On vols desar la recepta?</h3>
-        <select v-model="selectedFolderId"
-          class="w-full p-3 border-2 border-lime-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-300 focus:border-lime-400 mb-4 shadow-sm">
+        <h3 class="text-xl font-bold bg-gradient-to-r from-lime-900 via-green-800 to-emerald-900 bg-clip-text text-transparent mb-4">On vols desar la recepta?</h3>
+        <select 
+          v-model="selectedFolderId" 
+          class="w-full p-3 border-2 border-lime-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-300 focus:border-lime-400 mb-4 shadow-sm"
+        >
           <option v-for="folder in userFolders" :key="folder.id" :value="folder.id">
             {{ folder.name }}
           </option>
         </select>
         <div class="flex justify-end gap-4">
-          <button @click="hideModal" class="px-4 py-2 text-lime-700 hover:text-lime-900 transition-colors duration-200">
+          <button 
+            @click="hideModal" 
+            class="px-4 py-2 text-lime-700 hover:text-lime-900 transition-colors duration-200"
+          >
             Cancel·lar
           </button>
-          <button @click="saveToFolder"
-            class="px-4 py-2 bg-gradient-to-r from-lime-500 via-green-500 to-emerald-500 text-white rounded-lg hover:from-lime-600 hover:via-green-600 hover:to-emerald-600 transition-all duration-300 shadow-md hover:shadow-lg">
+          <button 
+            @click="saveToFolder" 
+            class="px-4 py-2 bg-gradient-to-r from-lime-500 via-green-500 to-emerald-500 text-white rounded-lg hover:from-lime-600 hover:via-green-600 hover:to-emerald-600 transition-all duration-300 shadow-md hover:shadow-lg"
+          >
             Desar
           </button>
         </div>
@@ -252,12 +226,16 @@
       <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-8 max-w-md w-full mx-4 shadow-xl">
         <p class="text-lime-900 mb-6">La recepta ja està desada en una de les teves carpetes.</p>
         <div class="flex justify-end gap-4">
-          <button @click="cancelAddToFolder"
-            class="px-4 py-2 text-lime-700 hover:text-lime-900 transition-colors duration-200">
+          <button 
+            @click="cancelAddToFolder" 
+            class="px-4 py-2 text-lime-700 hover:text-lime-900 transition-colors duration-200"
+          >
             Cancel·lar
           </button>
-          <button @click="addToAnotherFolder"
-            class="px-4 py-2 bg-gradient-to-r from-lime-500 via-green-500 to-emerald-500 text-white rounded-lg hover:from-lime-600 hover:via-green-600 hover:to-emerald-600 transition-all duration-300 shadow-md hover:shadow-lg">
+          <button 
+            @click="addToAnotherFolder" 
+            class="px-4 py-2 bg-gradient-to-r from-lime-500 via-green-500 to-emerald-500 text-white rounded-lg hover:from-lime-600 hover:via-green-600 hover:to-emerald-600 transition-all duration-300 shadow-md hover:shadow-lg"
+          >
             Afegir a una altra carpeta
           </button>
         </div>
@@ -289,7 +267,7 @@ export default {
         id: null,
         title: '',
         image: '',
-        video: null,
+        video: null, // Añadido campo para el video
         description: '',
         ingredients: [],
         steps: [],
@@ -338,10 +316,6 @@ export default {
   },
 
   methods: {
-    /**
-     * Descarga el PDF de la receta
-     * Maneja estados de éxito y error
-     */
     async downloadPDF() {
       try {
         const recipeId = this.recipe.id;
@@ -353,11 +327,6 @@ export default {
         this.showPopup('Error al descarregar el PDF');
       }
     },
-
-    /**
-     * Actualiza los comentarios mediante polling
-     * Verifica cambios y muestra notificaciones
-     */
     async pollComments() {
       try {
         const response = await communicationManager.fetchComments(this.recipe.id);
@@ -378,11 +347,6 @@ export default {
         console.error('Error al obtener comentarios:', error);
       }
     },
-
-    /**
-     * Configura el sistema de polling para comentarios
-     * Inicia la actualización periódica
-     */
     setupPolling() {
       // Polling inicial
       this.pollComments();
@@ -393,20 +357,19 @@ export default {
       }, 3000);
     },
 
-    /**
-     * Limpia los intervalos de polling
-     * Previene memory leaks
-     */
     clearPolling() {
       if (this.commentsInterval) {
         clearInterval(this.commentsInterval);
       }
     },
 
-    /**
-     * Configura el observador de autenticación
-     * Maneja cambios en el estado de autenticación
-     */
+
+    clearPolling() {
+      if (this.commentsInterval) {
+        clearInterval(this.commentsInterval);
+      }
+    },
+
     setupAuthWatcher() {
       this.$watch(
         () => this.authStore.token,
@@ -420,10 +383,6 @@ export default {
       );
     },
 
-    /**
-     * Verifica la autenticación y carga los datos
-     * Redirige si es necesario
-     */
     async checkAuthAndLoadData() {
       if (!this.authStore.token) {
         this.redirectToLogin();
@@ -432,10 +391,32 @@ export default {
       await this.loadRecipeData();
     },
 
-    /**
-     * Redirige al usuario a la página de login
-     * Mantiene la ruta actual para redirección posterior
-     */
+    redirectToLogin() {
+      this.$router.push({
+        name: 'LandingPage',
+        query: {
+          authError: 'Debes iniciar sesión para ver detalles de recetas',
+          redirect: this.$route.fullPath
+        }
+      });
+    },
+
+    async loadRecipeData() {
+      try {
+        const recipeId = String(this.$route.params.recipeId);
+        const data = await communicationManager.fetchRecipeDetails(recipeId);
+        this.recipe = data;
+        await this.loadComments();
+        this.userFolders = await communicationManager.fetchUserFolders();
+      } catch (error) {
+        console.error("Error loading recipe:", error);
+        if (error.message.includes('Unauthorized')) {
+          this.authStore.clearAuth();
+          this.redirectToLogin();
+        }
+      }
+    },
+
     goToLogin() {
       this.$router.push({
         name: 'login',
@@ -443,10 +424,6 @@ export default {
       });
     },
 
-    /**
-     * Muestra un mensaje en el popup
-     * @param {string} message - Mensaje a mostrar
-     */
     showPopup(message) {
       this.popupMessage = message;
       setTimeout(() => {
@@ -454,10 +431,6 @@ export default {
       }, 5000);
     },
 
-    /**
-     * Verifica si la receta está en una carpeta
-     * Muestra alerta o modal según corresponda
-     */
     checkRecipeInFolder() {
       const gestionPinia = useGestionPinia();
       const folder = gestionPinia.folders.find((f) =>
@@ -470,42 +443,24 @@ export default {
       }
     },
 
-    /**
-     * Prepara la adición a otra carpeta
-     * Reinicia la selección y oculta la alerta
-     */
     addToAnotherFolder() {
       this.showFolderAlert = false;
       this.showFolderSelection = true;
       this.selectedFolderId = null;
     },
 
-    /**
-     * Cancela la adición a carpeta
-     * Oculta la alerta de carpeta existente
-     */
     cancelAddToFolder() {
       this.showFolderAlert = false;
     },
 
-    /**
-     * Oculta el modal de selección de carpeta
-     */
     hideModal() {
       this.showFolderSelection = false;
     },
 
-    /**
-     * Navega a la página anterior
-     */
     goBack() {
       this.$router.go(-1);
     },
 
-    /**
-     * Carga los comentarios de la receta
-     * Maneja errores de carga
-     */
     async loadComments() {
       try {
         const data = await communicationManager.fetchComments(this.recipe.id);
@@ -514,14 +469,9 @@ export default {
         console.error('Error fetching comments:', error);
       }
     },
-
-    /**
-     * Verifica notificaciones del sistema
-     * Muestra mensajes relevantes
-     */
     async checkNotifications() {
       try {
-        const response = await communicationManager.fetchNotifications();
+        const response = await communicationManager.fetchNotifications(); // crea esta función en tu servicio
         response.forEach((notif) => {
           this.showPopup(notif.message);
         });
@@ -530,10 +480,6 @@ export default {
       }
     },
 
-    /**
-     * Guarda o elimina la receta de guardadas
-     * Actualiza el estado y muestra feedback
-     */
     async saveToSavedRecipes() {
       const recipeId = this.recipe.id;
       try {
@@ -551,10 +497,6 @@ export default {
       }
     },
 
-    /**
-     * Alterna el estado de guardado de la receta
-     * @param {number} recipeId - ID de la receta
-     */
     async toggleSave(recipeId) {
       this.isButtonDisabled = true;
       try {
@@ -567,11 +509,6 @@ export default {
         this.isButtonDisabled = false;
       }
     },
-
-    /**
-     * Añade un nuevo comentario a la receta
-     * Actualiza la lista y notifica al autor
-     */
     async addComment() {
       if (!this.newComment.trim()) return;
 
@@ -579,12 +516,14 @@ export default {
         const user = await communicationManager.getUser();
         const response = await communicationManager.addComment(this.recipe.id, this.newComment);
 
+        // Actualizar lista de comentarios inmediatamente después de añadir uno nuevo
         this.comments.unshift({
           comment: this.newComment,
           name: user.name,
           updated_at: new Date().toISOString()
         });
 
+        // Enviar notificación
         await communicationManager.createNotification({
           user_id: this.recipe.user_id,
           recipe_id: this.recipe.id,
@@ -594,6 +533,7 @@ export default {
         this.newComment = '';
         this.showPopup('Comentario añadido');
 
+        // Forzar actualización inmediata
         await this.pollComments();
       } catch (error) {
         console.error('Error al añadir comentario:', error);
@@ -601,10 +541,7 @@ export default {
       }
     },
 
-    /**
-     * Alterna el estado de like de la receta
-     * @param {number} recipeId - ID de la receta
-     */
+
     async toggleLike(recipeId) {
       try {
         const response = await communicationManager.toggleLike(recipeId);
@@ -627,17 +564,10 @@ export default {
       }
     },
 
-    /**
-     * Alterna la visibilidad de la información extra
-     */
     toggleExtraInfo() {
       this.isExtraInfoVisible = !this.isExtraInfoVisible;
     },
 
-    /**
-     * Guarda la receta en una carpeta seleccionada
-     * Valida y maneja errores
-     */
     async saveToFolder() {
       if (!this.selectedFolderId) {
         this.showPopup('Si us plau, selecciona una carpeta');
@@ -714,7 +644,6 @@ export default {
     opacity: 0;
     transform: translateY(-10px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);

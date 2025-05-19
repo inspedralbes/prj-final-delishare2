@@ -1,19 +1,15 @@
 <template>
-  <!-- Tarjeta principal de la receta con efectos hover y transiciones -->
   <article 
     class="relative flex flex-col w-full border-2 border-lime-300 rounded-2xl overflow-hidden text-center transition-transform duration-300 ease-in-out cursor-pointer bg-white hover:scale-105 hover:shadow-xl hover:border-lime-400"
     @click="handleClick"
   >
-    <!-- Imagen de la receta con dimensiones responsivas -->
     <img :src="image" :alt="title" class="h-52 w-full object-cover rounded-2xl mb-3 md:h-32" />
-    
-    <!-- Contenedor del contenido de la tarjeta -->
     <div class="p-4 flex-grow flex flex-col justify-between">
       <h2 class="text-sm md:text-lg font-bold text-lime-700 md:truncate mb-1">{{ title }}</h2>
       <p class="text-base text-gray-700 line-clamp-2">{{ truncatedDescription }}</p>
     </div>
     
-    <!-- Modal de autenticación que se renderiza fuera del flujo normal del DOM -->
+    <!-- Modal fuera del flujo normal con portal -->
     <teleport to="body">
       <transition 
         enter-active-class="transition duration-200 ease-out"
@@ -23,13 +19,11 @@
         leave-from-class="transform scale-100 opacity-100"
         leave-to-class="transform scale-95 opacity-0"
       >
-        <!-- Modal que aparece cuando el usuario no está autenticado -->
         <div 
           v-if="showAuthModal && !authStore.isAuthenticated" 
           class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
           @click.self="closeModal"
         >
-          <!-- Contenido del modal con botones de acción -->
           <div class="bg-white rounded-2xl shadow-lg p-8 text-center w-full max-w-xs md:max-w-md">
             <p class="text-lime-900 text-lg font-semibold mb-6">Has d'iniciar sessió per veure aquesta recepta</p>
             <div class="flex justify-center gap-4">
@@ -60,7 +54,6 @@ import { useRouter } from 'vue-router';
 
 export default {
   name: 'RecipeCard',
-  // Definición de las propiedades que recibe el componente
   props: {
     recipeId: {
       type: [String, Number],
@@ -84,7 +77,7 @@ export default {
     const router = useRouter();
     const showAuthModal = ref(false);
 
-    // Función para cerrar el modal cuando el usuario se autentica
+    // Cerrar modal cuando el usuario se autentique
     const closeAuthModalOnLogin = () => {
       authStore.checkAuth(); 
       if (authStore.isAuthenticated) {
@@ -92,25 +85,21 @@ export default {
       }
     };
 
-    // Configuración de eventos al montar el componente
     onMounted(() => {
       eventBus.on('authUpdated', closeAuthModalOnLogin);
-      authStore.checkAuth(); // Verificar el estado de autenticación al montar
+      authStore.checkAuth(); // 🔥 Asegurar que el token está actualizado al montar
     });
 
-    // Limpieza de eventos al desmontar el componente
     onUnmounted(() => {
       eventBus.off('authUpdated', closeAuthModalOnLogin);
     });
 
-    // Observar cambios en el token de autenticación
     watch(() => authStore.token, (newToken) => {
       if (newToken) {
         showAuthModal.value = false;
       }
     });
 
-    // Computed property para truncar la descripción a 15 palabras
     const truncatedDescription = computed(() => {
       const descriptionText = props.description || '';
       const words = descriptionText.split(' ');
@@ -119,7 +108,6 @@ export default {
         : descriptionText;
     });
 
-    // Manejador del clic en la tarjeta
     const handleClick = () => {
       if (!authStore.isAuthenticated) {
         showAuthModal.value = true;
@@ -131,7 +119,6 @@ export default {
       }
     };
 
-    // Función para redirigir al login
     const goToLogin = () => {
       router.push({ 
         name: 'login',
@@ -139,7 +126,6 @@ export default {
       });
     };
 
-    // Función para cerrar el modal
     const closeModal = (e) => {
       e?.stopPropagation();
       showAuthModal.value = false;
