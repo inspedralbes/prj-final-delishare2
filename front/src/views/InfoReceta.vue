@@ -317,14 +317,39 @@ export default {
 
   methods: {
     async downloadPDF() {
-      try {
-        const recipeId = this.recipe.id;
-        const response = await communicationManager.downloadPDF(recipeId);
+      if (!this.recipe.id) {
+        this.showPopup('No se pudo obtener el ID de la receta');
+        return;
+      }
 
-        this.showPopup('PDF descarregat amb èxit');
+      try {
+        this.showPopup('Generando PDF...');
+        await communicationManager.downloadPDF(this.recipe.id);
+        this.showPopup('PDF descargado con éxito');
       } catch (error) {
-        console.error('Error al descarregar el PDF:', error);
-        this.showPopup('Error al descarregar el PDF');
+        console.error('Error detallado:', error);
+        console.error('Response:', error.response);
+        console.error('Status:', error.response?.status);
+        console.error('Data:', error.response?.data);
+        
+        let errorMessage = 'Error al generar el PDF';
+        
+        // Intentar obtener el mensaje de error más específico
+        if (error.response?.status === 500) {
+          errorMessage += ': Error interno del servidor. Por favor, intenta de nuevo más tarde.';
+        } else if (error.response?.data?.message) {
+          errorMessage += `: ${error.response.data.message}`;
+        } else if (error.response?.status === 401) {
+          errorMessage += ': No autorizado';
+        } else if (error.response?.status === 404) {
+          errorMessage += ': Receta no encontrada';
+        } else if (error.response?.status) {
+          errorMessage += `: ${error.response.status}`;
+        } else {
+          errorMessage += ': Error desconocido. Por favor, intenta de nuevo.';
+        }
+        
+        this.showPopup(errorMessage);
       }
     },
     async pollComments() {
@@ -510,34 +535,45 @@ export default {
       }
     },
     async addComment() {
-      if (!this.newComment.trim()) return;
+      if (!this.newComment.trim()) {
+        this.showPopup('El comentario no puede estar vacío');
+        return;
+      }
 
       try {
+        // Obtener el usuario actual
         const user = await communicationManager.getUser();
+        if (!user) {
+          throw new Error('No se pudo obtener el usuario');
+        }
+
+        // Añadir el comentario
         const response = await communicationManager.addComment(this.recipe.id, this.newComment);
+        if (!response || !response.success) {
+          throw new Error('Error al añadir el comentario');
+        }
 
-        // Actualizar lista de comentarios inmediatamente después de añadir uno nuevo
+        // Actualizar lista de comentarios
         this.comments.unshift({
+          id: response.data?.id || Date.now(), // Usar ID del servidor o timestamp como fallback
           comment: this.newComment,
-          name: user.name,
-          updated_at: new Date().toISOString()
+          name: user.name || 'Usuario',
+          created_at: new Date().toISOString(),
+          user_id: user.id
         });
 
-        // Enviar notificación
-        await communicationManager.createNotification({
-          user_id: this.recipe.user_id,
-          recipe_id: this.recipe.id,
-          type: 'comment',
-        });
-
+        // Limpiar el campo de entrada
         this.newComment = '';
-        this.showPopup('Comentario añadido');
 
-        // Forzar actualización inmediata
+        // Mostrar mensaje de éxito
+        this.showPopup('Comentario añadido con éxito');
+
+        // Actualizar los comentarios del servidor
         await this.pollComments();
+
       } catch (error) {
         console.error('Error al añadir comentario:', error);
-        this.showPopup('Error al añadir comentario');
+        this.showPopup(error.message || 'Error al añadir el comentario');
       }
     },
 

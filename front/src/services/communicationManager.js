@@ -54,21 +54,66 @@ const connectSocket = (userId) => {
 
 const communicationManager = {
   downloadPDF(recipeId) {
-    return apiClient.get(`/recipes/${recipeId}/download`, {
+    // Validar el ID de la receta
+    if (!recipeId) {
+      throw new Error('ID de receta es requerido');
+    }
+
+    // Convertir a string para asegurar formato correcto
+    const id = String(recipeId);
+
+    return apiClient.get(`/recipes/${id}/download`, {
       responseType: 'blob',
+      headers: {
+        'Accept': 'application/pdf',
+        'Content-Type': 'application/json'
+      }
     })
       .then(response => {
-        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+        // Verificar que la respuesta es un blob
+        if (!response.data instanceof Blob) {
+          throw new Error('No se recibió un archivo PDF válido');
+        }
+
+        // Verificar el tipo de contenido
+        const contentType = response.headers['content-type'];
+        if (!contentType?.includes('pdf')) {
+          throw new Error('El archivo no es un PDF válido');
+        }
+
+        // Crear el objeto URL y el enlace para descargar
+        const url = window.URL.createObjectURL(response.data);
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', `receta_${recipeId}.pdf`);
+        link.download = `receta_${id}.pdf`;
+        
+        // Asegurar que el enlace está en el documento
         document.body.appendChild(link);
+        
+        // Simular clic y limpiar
         link.click();
-        link.remove();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
       })
       .catch(error => {
-        console.error('Error al descargar el PDF:', error);
-        throw error;
+        console.error('Error detallado:', error);
+        console.error('Response:', error.response);
+        console.error('Status:', error.response?.status);
+        
+        let errorMessage = 'Error al descargar el PDF';
+        
+        // Intentar obtener el mensaje de error más específico
+        if (error.response?.data?.message) {
+          errorMessage += `: ${error.response.data.message}`;
+        } else if (error.response?.status === 401) {
+          errorMessage += ': No autorizado';
+        } else if (error.response?.status === 404) {
+          errorMessage += ': Receta no encontrada';
+        } else if (error.response?.status) {
+          errorMessage += `: ${error.response.status}`;
+        }
+        
+        throw new Error(errorMessage);
       });
   },
 
@@ -114,7 +159,7 @@ const communicationManager = {
         throw error;
       });
   },
-  
+
   deleteRecipe(id) {
     return apiClient.delete(`/recipes/${id}`)
       .then(response => response.data)
@@ -151,11 +196,11 @@ const communicationManager = {
 
     // Convertir a string si es necesario
     const id = String(recipeId);
-    
+
     return apiClient.get(`/recipes/${id}`)
       .then(async (response) => {
         const recipe = response.data;
-        
+
         if (!recipe) {
           throw new Error('No se encontró la receta');
         }
@@ -168,7 +213,7 @@ const communicationManager = {
           console.error('Error al obtener comentarios:', error);
           recipe.comments = [];
         }
-        
+
         // Obtener likes
         try {
           const likesResponse = await apiClient.get(`/recipes/${id}/likes`);
@@ -179,7 +224,7 @@ const communicationManager = {
           recipe.likes = 0;
           recipe.liked = false;
         }
-        
+
         // Asegurar que todos los campos necesarios existen
         recipe.id = recipe.id || id;
         recipe.title = recipe.title || 'Sin título';
@@ -191,7 +236,7 @@ const communicationManager = {
         recipe.servings = recipe.servings || 0;
         recipe.likes_count = recipe.likes_count || recipe.likes || 0;
         recipe.nutrition = recipe.nutrition || {};
-        
+
         return recipe;
       })
       .catch(error => {
@@ -207,7 +252,7 @@ const communicationManager = {
         throw error;
       });
   },
-  
+
   fetchAllUsers() {
     return apiClient.get('/users')
       .then(response => response.data)
@@ -257,7 +302,7 @@ const communicationManager = {
         }
       });
   },
-  
+
 
   login(userData) {
     return apiClient.post('/login', userData)
@@ -523,11 +568,30 @@ const communicationManager = {
 
   // Agregar un comentario a una receta
   addComment(recipeId, commentText) {
-    return apiClient.post(`/recipes/${recipeId}/comment`, { comment: commentText })  // <-- Enviar 'comment' en lugar de 'text'
-      .then(response => response.data)
+    // Validar parámetros
+    if (!recipeId || !commentText) {
+      throw new Error('ID de receta y texto del comentario son requeridos');
+    }
+
+    const data = {
+      comment: commentText.trim(),
+      user_id: localStorage.getItem('userId') // Asumiendo que el ID del usuario está en localStorage
+    };
+
+    return apiClient.post(`/recipes/${recipeId}/comment`, data)
+      .then(response => {
+        if (response.status !== 200 || !response.data) {
+          throw new Error('Respuesta inválida del servidor');
+        }
+        return {
+          success: true,
+          data: response.data
+        };
+      })
       .catch(error => {
-        console.error('Error adding comment:', error);
-        throw error;
+        console.error('Error al añadir comentario:', error);
+        const errorMessage = error.response?.data?.message || 'Error al añadir el comentario';
+        throw new Error(errorMessage);
       });
   },
   getAllComments() {
@@ -702,7 +766,7 @@ const communicationManager = {
     if (!Array.isArray(ingredients) || ingredients.length === 0) {
       return Promise.reject(new Error('Debe proporcionar al menos un ingrediente'));
     }
-  
+
     return apiClient.post('/recipes/filter-by-ingredients', { ingredients })
       .then(response => {
         // Aquí podrías añadir más lógica si es necesario (como mostrar un mensaje si no se encuentran recetas)
@@ -878,12 +942,12 @@ const communicationManager = {
   async markNotificationAsRead(id) {
     try {
       const response = await apiClient.put(`/notifications/${id}/read`);
-      
+
       // Sincronizar con el servidor de sockets si está conectado
       if (socket && isSocketConnected) {
         socket.emit('markNotificationAsRead', id);
       }
-      
+
       return response.data;
     } catch (error) {
       console.error('Error marcando notificación como leída:', error);
@@ -894,7 +958,7 @@ const communicationManager = {
   async createNotification(data) {
     try {
       const response = await apiClient.post('/notifications', data);
-      
+
       // Enviar por sockets si está conectado
       if (socket && isSocketConnected) {
         socket.emit('createNotification', {
@@ -905,7 +969,7 @@ const communicationManager = {
           triggeredBy: data.triggered_by
         });
       }
-      
+
       return response.data;
     } catch (error) {
       console.error('Error creando notificación:', error);
