@@ -84,7 +84,7 @@
 </template>
 
 <script>
-import communicationManager from '@/services/communicationManager';
+import communicationManager from '../services/communicationManager';
 import RecipeCard from '@/components/RecipeCard.vue';
 
 export default {

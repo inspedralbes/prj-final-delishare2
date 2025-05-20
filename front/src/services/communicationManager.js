@@ -3,12 +3,14 @@ import io from 'socket.io-client';
 
 // Configuración base de Axios
 const apiClient = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000',
   headers: {
     'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest'
   },
   withCredentials: true,
 });
+
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -25,7 +27,7 @@ let isSocketConnected = false;
 
 const connectSocket = (userId) => {
   if (!socket) {
-    socket = io(process.env.VUE_APP_SOCKET_URL || 'http://127.0.0.1:8000/socket.io/', {
+    socket = io(import.meta.env.VITE_APP_SOCKET_URL || 'http://localhost:4000/socket.io/', {
       transports: ['websocket', 'polling'],
       auth: {
         token: localStorage.getItem('token')

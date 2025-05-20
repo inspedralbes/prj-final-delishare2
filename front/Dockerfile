@@ -8,10 +8,14 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalar dependencias del proyecto
-RUN npm install
+RUN npm install --legacy-peer-deps && \
+    npm cache clean --force
 
 # Copiar el resto del código de la aplicación
 COPY . .
+
+# Instalar dependencias locales
+RUN npm install
 
 # Exponer el puerto 5173 para el servidor de desarrollo de Vite
 EXPOSE 5173
