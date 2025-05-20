@@ -852,7 +852,7 @@ export default {
       if (!userError.value) {
         console.log(`Inicializando chat como ${isChef.value ? 'CHEF' : 'USUARIO'} para sala ${liveId.value}`);
 
-        socket.value = io('https://delishare.cat', {
+        socket.value = io('http://localhost:4000', {
           path: '/socket.io',
           transports: ['websocket'],
           upgrade: false,
